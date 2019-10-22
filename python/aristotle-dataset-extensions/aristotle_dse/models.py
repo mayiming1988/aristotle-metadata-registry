@@ -14,6 +14,7 @@ from aristotle_mdr.fields import (
 )
 from aristotle_mdr.structs import Tree, Node
 from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_dse.model_utils import DSSGroupingLinkedGroupThrough, DSSDEInclusionSpecialisationClassesThrough
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
 
@@ -438,30 +439,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         )
 
 
-class DSSGroupingLinkedGroupThrough(models.Model):
-    """
-    Class representation of the through table for the `linked_group` attribute of DSSGrouping objects.
-    The purpose of this table is to specify the `to_field` and `from_field` attributes for the DSSGrouping model,
-    in order to use UUID instead of id.
-    """
-    to_dssgrouping = models.ForeignKey(
-        blank=True,
-        null=True,
-        to='DSSGrouping',
-        to_field='uuid',
-        related_name='to_dssgrouping_reverse',
-        on_delete=models.CASCADE,
-    )
-    from_dssgrouping = models.ForeignKey(
-        blank=True,
-        null=True,
-        to='DSSGrouping',
-        to_field='uuid',
-        related_name='from_dssgrouping_reverse',
-        on_delete=models.CASCADE,
-    )
-
-
 class DSSGrouping(aristotle.models.aristotleComponent):
 
     inline_field_layout = 'list'
@@ -514,6 +491,7 @@ class DSSDEInclusion(DSSInclusion):
         aristotle.models.ObjectClass,
         help_text=_(""),
         blank=True,
+        through=DSSDEInclusionSpecialisationClassesThrough
     )
 
     inline_field_layout = 'list'

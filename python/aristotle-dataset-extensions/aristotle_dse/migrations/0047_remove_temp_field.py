@@ -22,4 +22,8 @@ class Migration(migrations.Migration):
             model_name='dssgroupinglinkedgroupthrough',
             name='to_dssgrouping_temp',
         ),
+        migrations.RemoveField(
+            model_name='dssdeinclusionspecialisationclassesthrough',
+            name='dssdeinclusion_temp',
+        ),
     ]

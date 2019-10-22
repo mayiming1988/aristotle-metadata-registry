@@ -13,6 +13,7 @@ from aristotle_mdr.utils.model_utils import (
     aristotleComponent,
 )
 from comet.managers import FrameworkDimensionManager
+from comet.model_utils import IndicatorFrameworkDimensionsThrough
 
 
 class Framework(MDR.concept):
@@ -69,25 +70,6 @@ class QualityStatement(MDR.concept):
     relevance = MDR.RichTextField(blank=True)
     accuracy = MDR.RichTextField(blank=True)
     coherence = MDR.RichTextField(blank=True)
-
-
-class IndicatorFrameworkDimensionsThrough(models.Model):
-    """
-    Class representation of the through table between Indicator objects and FrameworkDimension objects.
-    The purpose of this table is to specify a `to_field` attribute for the frameworkdimension Foreign Key field,
-    in order to use UUID instead of id.
-    """
-    indicator = ConceptForeignKey(
-        "Indicator",
-        on_delete=models.CASCADE
-    )
-    frameworkdimension = models.ForeignKey(
-        "FrameworkDimension",
-        null=True,
-        blank=True,
-        to_field='uuid',
-        on_delete=models.CASCADE,
-    )
 
 
 class Indicator(MDR.concept):

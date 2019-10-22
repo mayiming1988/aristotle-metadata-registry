@@ -26,11 +26,24 @@ class Migration(migrations.Migration):
             model_name='dssgrouping',
             name='id',
         ),
+        migrations.RemoveField(
+            model_name='dssdeinclusionspecialisationclassesthrough',
+            name='dssdeinclusion',
+        ),
+        migrations.RemoveField(
+            model_name='dssdeinclusion',
+            name='id',
+        ),
         migrations.AlterField(
             model_name='dssgrouping',
             name='uuid',
             field=models.UUIDField(default=uuid.uuid1, editable=False,
                                    help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
                                    primary_key=True, serialize=False, unique=True),
+        ),
+        migrations.AlterField(
+            model_name='dssdeinclusion',
+            name='uuid',
+            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', primary_key=True, serialize=False, unique=True),
         ),
     ]

@@ -29,6 +29,14 @@ class Migration(migrations.Migration):
                                     on_delete=django.db.models.deletion.CASCADE),
         ),
         migrations.AddField(
+            model_name='dssdeinclusionspecialisationclassesthrough',
+            name='dssdeinclusion',
+            field=models.ForeignKey(blank=True,
+                                    null=True,
+                                    to='aristotle_dse.DSSDEInclusion',
+                                    on_delete=django.db.models.deletion.CASCADE),
+        ),
+        migrations.AddField(
             model_name='dssdeinclusion',
             name='group',
             field=models.ForeignKey(blank=True,

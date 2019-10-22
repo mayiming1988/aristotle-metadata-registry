@@ -419,7 +419,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                     "data_element": self.de1.id,
                     "group": None,
                     "specialisation_classes": [
-                        self.oc.id,
+                        self.oc.uuid,
                     ]
                 },
                 {
@@ -469,6 +469,9 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             post_data,
             format='json',
         )
+
+        import pdb
+        pdb.set_trace()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
         self.assertEqual(len(response.data['dssdeinclusion_set']), 2)  # We have 2 dss de inclusion objects.

@@ -26,4 +26,9 @@ class Migration(migrations.Migration):
             name='group_temp',
             field=models.UUIDField(blank=True, null=True),
         ),
+        migrations.AddField(
+            model_name='dssdeinclusionspecialisationclassesthrough',
+            name='dssdeinclusion_temp',
+            field=models.UUIDField(blank=True, null=True),
+        )
     ]

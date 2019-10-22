@@ -14,4 +14,8 @@ class Migration(migrations.Migration):
             model_name='dssgrouping',
             name='linked_group',
         ),
+        migrations.RemoveField(
+            model_name='dssdeinclusion',
+            name='specialisation_classes',
+        ),
     ]
