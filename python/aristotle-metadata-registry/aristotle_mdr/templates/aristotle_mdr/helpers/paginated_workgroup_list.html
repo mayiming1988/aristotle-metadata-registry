@@ -65,7 +65,7 @@
                 </td>
             {% endif %}
             <td>
-                {% if perms.aristotle_mdr.view_workgroup %}
+                {% if item|can_view:request.user %}
                     <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
                 {% else %}
                     {{ item.name }}
@@ -84,7 +84,7 @@
                     {% endif %}
                 </td>
             {% endif %}
-            {% if perms.aristotle_mdr.change_workgroup %}
+            {% if item|can_manage_workgroup:request.user %}
             <td><a class="btn btn-primary btn-small" href="{% url 'aristotle:workgroup_edit' item.pk %}">Edit</a></td>
             {% endif %}
         </tr>

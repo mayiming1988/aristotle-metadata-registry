@@ -45,6 +45,13 @@ def can_alter_post(user, post):
     except:
         return False
 
+@register.filter()
+def can_manage_workgroup(user, workgroup):
+    try:
+        return perms.user_can_manage_workgroup(user, workgroup)
+    except: # pragma: no cover
+        return None
+
 
 @register.filter
 def is_in(item, iterable):
