@@ -1,5 +1,10 @@
 Changelog
 
+- 3.0.3
+  - Aristotle MDR
+    - Made Workgroup links clickable for non-superusers,
+    - applied permissions to workgroup edit buttons in. Fixes #1529
+
 - 3.0.2
   - Aristotle MDR
     - Fixed generation of Sitemap XML
