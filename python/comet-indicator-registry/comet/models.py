@@ -74,8 +74,8 @@ class QualityStatement(MDR.concept):
 class IndicatorFrameworkDimensionsThrough(models.Model):
     """
     Class representation of the through table between Indicator objects and FrameworkDimension objects.
-    The purpose of this table is to specify a `to_field` attribute in the frameworkdimension field, in order
-    to use UUID instead of id.
+    The purpose of this table is to specify a `to_field` attribute for the frameworkdimension Foreign Key field,
+    in order to use UUID instead of id.
     """
     indicator = ConceptForeignKey(
         "Indicator",
