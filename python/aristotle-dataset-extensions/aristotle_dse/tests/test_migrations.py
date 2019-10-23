@@ -233,9 +233,9 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         through_object_1 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 1")
         through_object_2 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 2")
         through_object_3 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 3")
-        self.assertEqual(through_object_1.objectclass_id, self.oc_1.id)
-        self.assertEqual(through_object_2.objectclass_id, self.oc_2.id)
-        self.assertEqual(through_object_3.objectclass_id, self.oc_3.id)
+        self.assertEqual(through_object_1.get().objectclass_id, self.oc_1.id)
+        self.assertEqual(through_object_2.get().objectclass_id, self.oc_2.id)
+        self.assertEqual(through_object_3.get().objectclass_id, self.oc_3.id)
 
 
 class TestDistributionDataElementPathSpecialisationClassesThroughTable(MigrationsTestCase, TestCase):
