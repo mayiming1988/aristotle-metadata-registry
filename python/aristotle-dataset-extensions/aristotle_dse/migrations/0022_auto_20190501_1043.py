@@ -33,4 +33,3 @@ class Migration(migrations.Migration):
             custom_field_kwargs={"order": 1},
         ),
     ]
-    
