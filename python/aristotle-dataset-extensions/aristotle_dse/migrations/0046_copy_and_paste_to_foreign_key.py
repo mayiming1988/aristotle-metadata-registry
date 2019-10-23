@@ -8,10 +8,12 @@ def duplicate_models_foreign_keys(apps, schema_editor):
     DSSDEInclusion = apps.get_model('aristotle_dse', 'dssdeinclusion')
     DSSGroupingLinkedGroupThrough = apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
     DSSDEInclusionSpecialisationClassesThrough = apps.get_model('aristotle_dse', 'dssdeinclusionspecialisationclassesthrough')
+    DistributionDataElementPathSpecialisationClassesThrough = apps.get_model('aristotle_dse', 'distributiondataelementpathspecialisationclassesthrough')
     data_copy_and_paste(DSSDEInclusion, 'group_temp', 'group_id')
     data_copy_and_paste(DSSGroupingLinkedGroupThrough, 'from_dssgrouping_temp', 'from_dssgrouping_id')
     data_copy_and_paste(DSSGroupingLinkedGroupThrough, 'to_dssgrouping_temp', 'to_dssgrouping_id')
     data_copy_and_paste(DSSDEInclusionSpecialisationClassesThrough, 'dssdeinclusion_temp', 'dssdeinclusion')
+    data_copy_and_paste(DistributionDataElementPathSpecialisationClassesThrough, 'distributiondataelementpath_temp', 'distributiondataelementpath')
 
 
 class Migration(migrations.Migration):

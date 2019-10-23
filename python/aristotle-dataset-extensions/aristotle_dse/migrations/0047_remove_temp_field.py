@@ -26,4 +26,8 @@ class Migration(migrations.Migration):
             model_name='dssdeinclusionspecialisationclassesthrough',
             name='dssdeinclusion_temp',
         ),
+        migrations.RemoveField(
+            model_name='distributiondataelementpathspecialisationclassesthrough',
+            name='distributiondataelementpath_temp',
+        ),
     ]

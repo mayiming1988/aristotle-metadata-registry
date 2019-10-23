@@ -21,6 +21,11 @@ class Migration(migrations.Migration):
             old_name='specialisation_classes_new',
             new_name='specialisation_classes',
         ),
+        migrations.RenameField(
+            model_name='distributiondataelementpath',
+            old_name='specialisation_classes_new',
+            new_name='specialisation_classes',
+        ),
 
         # Remove Related names:
         migrations.AlterField(
@@ -37,6 +42,14 @@ class Migration(migrations.Migration):
             field=aristotle_mdr.fields.ConceptManyToManyField(
                 blank=True,
                 through='aristotle_dse.DSSDEInclusionSpecialisationClassesThrough',
+                to='aristotle_mdr.ObjectClass'),
+        ),
+        migrations.AlterField(
+            model_name='distributiondataelementpath',
+            name='specialisation_classes',
+            field=aristotle_mdr.fields.ConceptManyToManyField(
+                blank=True,
+                through='aristotle_dse.DistributionDataElementPathSpecialisationClassesThrough',
                 to='aristotle_mdr.ObjectClass'),
         ),
 

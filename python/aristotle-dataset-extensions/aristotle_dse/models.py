@@ -14,7 +14,11 @@ from aristotle_mdr.fields import (
 )
 from aristotle_mdr.structs import Tree, Node
 from aristotle_mdr.utils import fetch_aristotle_settings
-from aristotle_dse.model_utils import DSSGroupingLinkedGroupThrough, DSSDEInclusionSpecialisationClassesThrough
+from aristotle_dse.model_utils import (
+    DSSGroupingLinkedGroupThrough,
+    DSSDEInclusionSpecialisationClassesThrough,
+    DistributionDataElementPathSpecialisationClassesThrough,
+)
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
 
@@ -201,7 +205,8 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
     specialisation_classes = ConceptManyToManyField(
         aristotle.models.ObjectClass,
         help_text=_(""),
-        blank=True
+        blank=True,
+        through=DistributionDataElementPathSpecialisationClassesThrough,
     )
 
 
@@ -491,7 +496,7 @@ class DSSDEInclusion(DSSInclusion):
         aristotle.models.ObjectClass,
         help_text=_(""),
         blank=True,
-        through=DSSDEInclusionSpecialisationClassesThrough
+        through=DSSDEInclusionSpecialisationClassesThrough,
     )
 
     inline_field_layout = 'list'

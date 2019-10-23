@@ -216,6 +216,7 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         self.assertEqual(self.dssdei.specialisation_classes.through.objects.all().count(), 3)
 
     def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
+
         DSSDEInclusionSpecialisationClassesThrough = self.dssdei.specialisation_classes_new.through
 
         # Through table was actually created:
@@ -230,7 +231,7 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
                 'from_fields')[0],
             'self'
         )
-        # Make sure that this Foreign key 'to_dssgrouping' does have a reference to 'uuid' in 'to_fields':
+        # Make sure that this Foreign key 'dssdeinclusion' does have a reference to 'uuid' in 'to_fields':
         self.assertEqual(
             DSSDEInclusionSpecialisationClassesThrough.objects.first()._meta.get_field('dssdeinclusion').__dict__.get(
                 'to_fields')[0],
@@ -242,6 +243,78 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         # Make sure there is actually a connection in the through table:
         self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.first().objectclass_id, self.oc_1.id)
         self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.last().objectclass_id, self.oc_3.id)
+
+
+class TestDistributionDataElementPathSpecialisationClassesThroughTable(MigrationsTestCase, TestCase):
+    app = 'aristotle_dse'
+    migrate_from = [
+        ('aristotle_mdr', '0084_remove_temp_field'),
+        ('aristotle_dse', '0037_create_new_through_tables'),
+    ]
+    migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
+
+    def setUpBeforeMigration(self, apps):
+        DataElement = apps.get_model('aristotle_mdr', 'dataelement')
+        DataSetSpecification = apps.get_model('aristotle_dse', 'datasetspecification')
+        DistributionDataElementPath = apps.get_model('aristotle_dse', 'distributiondataelementpath')
+        ObjectClass = apps.get_model('aristotle_mdr', 'objectclass')
+
+        self.de = DataElement.objects.create(name="Test DE")
+        self.dss = DataSetSpecification.objects.create(name="Test DSS")
+        self.ddep = DistributionDataElementPath.objects.create(
+            data_element=self.de,
+        )
+
+        self.oc_1 = ObjectClass.objects.create(
+            name="Test OC 1"
+        )
+        self.oc_2 = ObjectClass.objects.create(
+            name="Test OC 2"
+        )
+        self.oc_3 = ObjectClass.objects.create(
+            name="Test OC 3"
+        )
+
+        self.ddep.specialisation_classes.add(
+            self.oc_1,
+            self.oc_2,
+            self.oc_3,
+        )
+
+        # Make sure at this point the old through table is still there:
+        self.assertEqual(self.ddep.specialisation_classes.through.__name__, 'DistributionDataElementPath_specialisation_classes')
+
+        # Make sure the old through table has 3 ObjectClass objects:
+        self.assertEqual(self.ddep.specialisation_classes.through.objects.all().count(), 3)
+
+    def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
+
+        DistributionDataElementPathSpecialisationClassesThrough = self.ddep.specialisation_classes_new.through
+
+        # Through table was actually created:
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.__name__, 'DistributionDataElementPathSpecialisationClassesThrough')
+
+        # Make sure the new through table has 3 DistributionDataElementPathSpecialisationClassesThrough objects:
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.all().count(), 3)
+
+        # Make sure that this Foreign key 'distributiondataelementpath' does have a reference to 'self' in 'from_fields':
+        self.assertEqual(
+            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field('distributiondataelementpath').__dict__.get(
+                'from_fields')[0],
+            'self'
+        )
+        # Make sure that this Foreign key 'distributiondataelementpath' does have a reference to 'uuid' in 'to_fields':
+        self.assertEqual(
+            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field('distributiondataelementpath').__dict__.get(
+                'to_fields')[0],
+            'uuid'
+        )
+        # Make sure that this Foreign Keys in the new through table are referenced by uuids:
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().distributiondataelementpath_id, self.ddep.uuid)
+
+        # Make sure there is actually a connection in the through table:
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().objectclass_id, self.oc_1.id)
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.last().objectclass_id, self.oc_3.id)
 
 
 class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCase, TestCase):

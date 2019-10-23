@@ -24,8 +24,21 @@ class Migration(migrations.Migration):
             name='DSSDEInclusionSpecialisationClassesThrough',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('dssdeinclusion', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DSSDEInclusion', to_field='uuid')),
-                ('objectclass', aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ObjectClass')),
+                ('dssdeinclusion', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                                     to='aristotle_dse.DSSDEInclusion', to_field='uuid')),
+                ('objectclass', aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                                                       to='aristotle_mdr.ObjectClass')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='DistributionDataElementPathSpecialisationClassesThrough',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('distributiondataelementpath', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                                                  to='aristotle_dse.DistributionDataElementPath', to_field='uuid')),
+                ('objectclass', aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True,
+                                                                       on_delete=django.db.models.deletion.CASCADE,
+                                                                       to='aristotle_mdr.ObjectClass')),
             ],
         ),
         migrations.AddField(
@@ -42,6 +55,14 @@ class Migration(migrations.Migration):
             field=aristotle_mdr.fields.ConceptManyToManyField(
                 blank=True, related_name='specialisation_classes_reverse_new',
                 through='aristotle_dse.DSSDEInclusionSpecialisationClassesThrough',
+                to='aristotle_mdr.ObjectClass'),
+        ),
+        migrations.AddField(
+            model_name='distributiondataelementpath',
+            name='specialisation_classes_new',
+            field=aristotle_mdr.fields.ConceptManyToManyField(
+                blank=True, related_name='specialisation_classes_reverse_new',
+                through='aristotle_dse.DistributionDataElementPathSpecialisationClassesThrough',
                 to='aristotle_mdr.ObjectClass'),
         ),
     ]

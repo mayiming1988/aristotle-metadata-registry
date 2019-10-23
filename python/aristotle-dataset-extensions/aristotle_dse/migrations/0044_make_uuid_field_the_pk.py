@@ -31,7 +31,15 @@ class Migration(migrations.Migration):
             name='dssdeinclusion',
         ),
         migrations.RemoveField(
+            model_name='distributiondataelementpathspecialisationclassesthrough',
+            name='distributiondataelementpath',
+        ),
+        migrations.RemoveField(
             model_name='dssdeinclusion',
+            name='id',
+        ),
+        migrations.RemoveField(
+            model_name='distributiondataelementpath',
             name='id',
         ),
         migrations.AlterField(
@@ -44,6 +52,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='dssdeinclusion',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', primary_key=True, serialize=False, unique=True),
+            field=models.UUIDField(default=uuid.uuid1, editable=False,
+                                   help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                                   primary_key=True, serialize=False, unique=True),
+        ),
+        migrations.AlterField(
+            model_name='distributiondataelementpath',
+            name='uuid',
+            field=models.UUIDField(default=uuid.uuid1, editable=False,
+                                   help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                                   primary_key=True, serialize=False, unique=True),
         ),
     ]
