@@ -1,20 +1,10 @@
-from aristotle_mdr import models
-from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.models import STATES
 from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
-from aristotle_mdr.utils import migration_utils as migration_utils
-
-from django.test import TestCase, tag
-from django.apps import apps as current_apps
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.management import create_contenttypes
-from django.utils import timezone
-from unittest import skip
+from django.test import TestCase
 
 
 class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
-
     app = 'aristotle_dse'
+
     migrate_from = [
         ('aristotle_mdr', '0057_auto_20190329_1609'),
         ('aristotle_dse', '0021_auto_20190415_0012'),
@@ -37,8 +27,8 @@ class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
 
         DataSetSpecification = apps.get_model('aristotle_dse', 'DataSetSpecification')
 
-        self.implementation_start_date="2018-01-01"
-        self.implementation_end_date="2019-01-01"
+        self.implementation_start_date = "2018-01-01"
+        self.implementation_end_date = "2019-01-01"
 
         self.dss = DataSetSpecification.objects.create(
             name='My DSS',
@@ -75,7 +65,7 @@ class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
             name="Implementation End Date",
             allowed_model=ctype,
         )
-        
+
         self.assertEqual('date', isd_field.type)
         self.assertEqual('date', ied_field.type)
 
@@ -145,7 +135,6 @@ class TestDSSGroupingLinkedGroupThroughTable(MigrationsTestCase, TestCase):
         self.assertEqual(self.dss_grouping_2.linked_group.through.objects.all().count(), 3)
 
     def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
-
         DSSGroupingLinkedGroupThrough = self.dss_grouping_2.linked_group_new.through
 
         # Through table was actually created:
@@ -216,11 +205,11 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         self.assertEqual(self.dssdei.specialisation_classes.through.objects.all().count(), 3)
 
     def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
-
         DSSDEInclusionSpecialisationClassesThrough = self.dssdei.specialisation_classes_new.through
 
         # Through table was actually created:
-        self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.__name__, 'DSSDEInclusionSpecialisationClassesThrough')
+        self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.__name__,
+                         'DSSDEInclusionSpecialisationClassesThrough')
 
         # Make sure the new through table has 3 DSSDEInclusionSpecialisationClassesThrough objects:
         self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.all().count(), 3)
@@ -282,39 +271,46 @@ class TestDistributionDataElementPathSpecialisationClassesThroughTable(Migration
         )
 
         # Make sure at this point the old through table is still there:
-        self.assertEqual(self.ddep.specialisation_classes.through.__name__, 'DistributionDataElementPath_specialisation_classes')
+        self.assertEqual(self.ddep.specialisation_classes.through.__name__,
+                         'DistributionDataElementPath_specialisation_classes')
 
         # Make sure the old through table has 3 ObjectClass objects:
         self.assertEqual(self.ddep.specialisation_classes.through.objects.all().count(), 3)
 
     def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
-
         DistributionDataElementPathSpecialisationClassesThrough = self.ddep.specialisation_classes_new.through
 
         # Through table was actually created:
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.__name__, 'DistributionDataElementPathSpecialisationClassesThrough')
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.__name__,
+                         'DistributionDataElementPathSpecialisationClassesThrough')
 
         # Make sure the new through table has 3 DistributionDataElementPathSpecialisationClassesThrough objects:
         self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.all().count(), 3)
 
         # Make sure that this Foreign key 'distributiondataelementpath' does have a reference to 'self' in 'from_fields':
         self.assertEqual(
-            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field('distributiondataelementpath').__dict__.get(
+            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field(
+                'distributiondataelementpath').__dict__.get(
                 'from_fields')[0],
             'self'
         )
         # Make sure that this Foreign key 'distributiondataelementpath' does have a reference to 'uuid' in 'to_fields':
         self.assertEqual(
-            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field('distributiondataelementpath').__dict__.get(
+            DistributionDataElementPathSpecialisationClassesThrough.objects.first()._meta.get_field(
+                'distributiondataelementpath').__dict__.get(
                 'to_fields')[0],
             'uuid'
         )
         # Make sure that this Foreign Keys in the new through table are referenced by uuids:
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().distributiondataelementpath_id, self.ddep.uuid)
+        self.assertEqual(
+            DistributionDataElementPathSpecialisationClassesThrough.objects.first().distributiondataelementpath_id,
+            self.ddep.uuid)
 
         # Make sure there is actually a connection in the through table:
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().objectclass_id, self.oc_1.id)
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.last().objectclass_id, self.oc_3.id)
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().objectclass_id,
+                         self.oc_1.id)
+        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.last().objectclass_id,
+                         self.oc_3.id)
 
 
 class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCase, TestCase):
@@ -341,8 +337,8 @@ class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCa
         )
 
 
-class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
-
+class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(
+    UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
     migrate_from = '0042_add_temp_field'
     migrate_to = '0043_copy_and_paste_foreign_value'
 
@@ -351,8 +347,11 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(UUIDToP
 
         # Make sure the temporary fields are UUID fields:
         self.assertEqual(self.DSSDEInclusion._meta.get_field('group_temp').get_internal_type(), 'UUIDField')
-        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping_temp').get_internal_type(), 'UUIDField')
-        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping_temp').get_internal_type(), 'UUIDField')
+        self.assertEqual(
+            self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping_temp').get_internal_type(),
+            'UUIDField')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping_temp').get_internal_type(),
+                         'UUIDField')
 
         self.DSSGroupingLinkedGroupThrough.objects.create(
             from_dssgrouping=self.dssgrouping_1,
@@ -386,7 +385,6 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(UUIDToP
 
 
 class TestDSSGroupingUUIDForeignKey(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
-
     migrate_from = '0045_add_foreign_key_field'
     migrate_to = '0046_copy_and_paste_to_foreign_key'
 
@@ -395,8 +393,10 @@ class TestDSSGroupingUUIDForeignKey(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAn
 
         # Make sure the new Field is a Foreign Key field:
         self.assertEqual(self.DSSDEInclusion._meta.get_field('group').get_internal_type(), 'ForeignKey')
-        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping').get_internal_type(), 'ForeignKey')
-        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping').get_internal_type(), 'ForeignKey')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping').get_internal_type(),
+                         'ForeignKey')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping').get_internal_type(),
+                         'ForeignKey')
 
         self.DSSGroupingLinkedGroupThrough.objects.create(
             from_dssgrouping_temp=self.dssgrouping_1.uuid,
@@ -416,7 +416,7 @@ class TestDSSGroupingUUIDForeignKey(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAn
         dssg1 = DSSGrouping.objects.get(name="Test DSSGrouping 1")
         dssg2 = DSSGrouping.objects.get(name="Test DSSGrouping 2")
         dssglgt = DSSGroupingLinkedGroupThrough.objects.last()
-        self.assertEqual(dssglgt.from_dssgrouping, dssg1)   # Check that new foreign key is working.
+        self.assertEqual(dssglgt.from_dssgrouping, dssg1)  # Check that new foreign key is working.
         self.assertEqual(dssglgt.to_dssgrouping, dssg2)  # Check that new foreign key is working.
         self.assertEqual(dssdei.group, dssg1)  # Check that new foreign key is working.
 
