@@ -61,17 +61,17 @@ class ResponseDomain(aristotleComponent):
 
 
 """
-class QuestionModule(aristotle.models.concept):
+class QuestionModule(MDR.concept):
     template = "mallard-qr/questionmodule.html"
     questions = models.ManyToManyField(Question,blank=True,null=True)
     submodules = models.ManyToManyField('QuestionModule',blank=True,null=True)
-    instruction_text = aristotle.models.RichTextField(blank=True,null=True)
+    instruction_text = MDR.RichTextField(blank=True,null=True)
     sqbl_definition = TextField(blank=True,null=True)
     administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
 
-class Questionnaire(aristotle.models.concept):
+class Questionnaire(MDR.concept):
     template = "mallard-qr/questionnaire.html"
     submodules = models.ManyToManyField(QuestionModule,blank=True,null=True)
-    instructionText = aristotle.models.RichTextField(blank=True)
+    instructionText = MDR.RichTextField(blank=True)
     administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
 """

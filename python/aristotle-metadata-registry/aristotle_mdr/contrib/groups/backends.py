@@ -8,7 +8,7 @@ from braces.views import (
 )
 from django import forms
 from django.conf import settings
-from django.conf.urls import url, include
+from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
@@ -16,7 +16,7 @@ from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
-from django.urls import reverse
+from django.urls import reverse, path, include
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     FormView,
@@ -357,7 +357,7 @@ class GroupURLManager(InvitationBackend):
 
         return [
             url(r'^s/?$', view=self.list_view(), name="list"),
-            url(r'^/?$', view=RedirectView.as_view(pattern_name=self.namespace + ":list")),
+            path('', view=RedirectView.as_view(pattern_name=self.namespace + ":list")),
             url(r'^s/create/$', view=self.create_view(), name="create"),
             url(r'^s/all/$', view=self.list_all_view(), name="list_all"),
 

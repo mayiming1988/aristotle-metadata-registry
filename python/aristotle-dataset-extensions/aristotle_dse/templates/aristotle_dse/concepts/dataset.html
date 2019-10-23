@@ -69,6 +69,7 @@
                                     <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
                                     <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
                                 </dl>
+                                {% comment %}
                                 {% if distribution.distributiondataelementpath_set.exists %}
                                     <strong>Data Elements in this dataset</strong>
                                     <table class='table table-striped'>
@@ -100,6 +101,7 @@
                                         </tbody>
                                     </table>
                                 {% endif %}
+                                {% endcomment %}
                             </li>
                         {% endfor %}
                     {% endif %}
