@@ -1,7 +1,9 @@
 from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
 from django.test import TestCase
+from unittest import skip
 
 
+@skip("Old migration test. It will be squashed.")
 class TestSixToEightMigration(MigrationsTestCase, TestCase):
     app = 'comet'
     migrate_from = [
