@@ -63,7 +63,6 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
     def test_migration(self):
         Indicator = self.apps.get_model('comet', 'Indicator')
 
-        de = self.apps.get_model('aristotle_mdr', 'DataElement')
         numerator_model = self.apps.get_model('comet', 'IndicatorNumeratorDefinition')
         denominator_model = self.apps.get_model('comet', 'IndicatorDenominatorDefinition')
         disaggregation_model = self.apps.get_model('comet', 'IndicatorDisaggregationDefinition')
