@@ -230,8 +230,12 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.first().dssdeinclusion_id, self.dssdei.uuid)
 
         # Make sure there is actually a connection in the through table:
-        self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.first().objectclass_id, self.oc_1.id)
-        self.assertEqual(DSSDEInclusionSpecialisationClassesThrough.objects.last().objectclass_id, self.oc_3.id)
+        through_object_1 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 1")
+        through_object_2 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 2")
+        through_object_3 = DSSDEInclusionSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 3")
+        self.assertEqual(through_object_1.objectclass_id, self.oc_1.id)
+        self.assertEqual(through_object_2.objectclass_id, self.oc_2.id)
+        self.assertEqual(through_object_3.objectclass_id, self.oc_3.id)
 
 
 class TestDistributionDataElementPathSpecialisationClassesThroughTable(MigrationsTestCase, TestCase):
@@ -307,10 +311,12 @@ class TestDistributionDataElementPathSpecialisationClassesThroughTable(Migration
             self.ddep.uuid)
 
         # Make sure there is actually a connection in the through table:
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.first().objectclass_id,
-                         self.oc_1.id)
-        self.assertEqual(DistributionDataElementPathSpecialisationClassesThrough.objects.last().objectclass_id,
-                         self.oc_3.id)
+        through_object_1 = DistributionDataElementPathSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 1")
+        through_object_2 = DistributionDataElementPathSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 2")
+        through_object_3 = DistributionDataElementPathSpecialisationClassesThrough.objects.filter(objectclass__name="Test OC 3")
+        self.assertEqual(through_object_1.objectclass_id, self.oc_1.id)
+        self.assertEqual(through_object_2.objectclass_id, self.oc_2.id)
+        self.assertEqual(through_object_3.objectclass_id, self.oc_3.id)
 
 
 class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCase, TestCase):
