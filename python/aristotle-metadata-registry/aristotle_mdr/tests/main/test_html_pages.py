@@ -1878,7 +1878,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                             value = getattr(v, field)
                             if value is not None:
 
-                                if (updating_field is None):
+                                if updating_field is None:
                                     # see if this is the field to update
                                     model_field = current_formset[0]._meta.model._meta.get_field(field)
 
@@ -1894,7 +1894,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                                         added_value = default_fields[field]
                                     else:
                                         data.update({"%s-%d-%s" % (pre, i, field): value})
-                                    if (i == num_vals - 1):
+                                    if i == num_vals - 1:
                                         # add a copy
                                         data.update({"%s-%d-%s" % (pre, i + 1, field): added_value})
 
@@ -1904,8 +1904,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 # than text updates
 
                 i = 0
-                data.update({"%s-%d-DELETE" % (pre, i): 'checked', "%s-%d-%s" % (pre, i, updating_field): getattr(v,
-                                                                                                                  updating_field) + " - deleted"})  # delete the last one.
+                data.update({"%s-%d-DELETE" % (pre, i): 'checked',
+                             "%s-%d-%s" % (pre, i, updating_field): getattr(v, updating_field) + " - deleted"})  # delete the last one.
 
                 # add order and updating_value to newly added data
                 i = num_vals
