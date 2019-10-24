@@ -173,7 +173,7 @@ class aristotleComponent(models.Model):
     def id(self):
         return self.pk
 
-    uuid = models.UUIDField(
+    id = models.UUIDField(
         primary_key=True,
         help_text=_(
             "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"
@@ -262,7 +262,7 @@ class AbstractValue(aristotleComponent):
         'ValueMeaning',
         blank=True,
         null=True,
-        to_field="uuid",
+        to_field="id",
         help_text=_('A reference to the value meaning that this designation relates to'),
         on_delete=models.SET_NULL,
     )

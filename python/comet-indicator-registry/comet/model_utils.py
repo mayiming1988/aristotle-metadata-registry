@@ -16,6 +16,6 @@ class IndicatorFrameworkDimensionsThrough(models.Model):
         "FrameworkDimension",
         null=True,
         blank=True,
-        to_field='uuid',
+        to_field='id',
         on_delete=models.CASCADE,
     )
