@@ -1895,20 +1895,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 # than text updates
                 self.assertIsNotNone(updating_field)
 
-                # Delete the last one:
                 data.update({
+                    # Delete the last one:
                     "{}-{}-DELETE".format(prefix, 0): 'checked',
                     "{}-{}-{}".format(prefix, 0, updating_field): getattr(weak_object, updating_field) + " - deleted",
-                })
-
-                # Add order and updating_value to newly added data:
-                data.update({
+                    # Add order and updating_value to newly added data:
                     "{}-{}-ORDER".format(prefix, weak_entities_count): weak_entities_count,
                     "{}-{}-{}".format(prefix, weak_entities_count, updating_field): "new value -updated",
-                })
-
-                # Add management form:
-                data.update({
+                    # Add management form:
                     "{}-TOTAL_FORMS".format(prefix): weak_entities_count + 1,
                     "{}-INITIAL_FORMS".format(prefix): weak_entities_count,
                     "{}-MAX_NUM_FORMS".format(prefix): 1000,
