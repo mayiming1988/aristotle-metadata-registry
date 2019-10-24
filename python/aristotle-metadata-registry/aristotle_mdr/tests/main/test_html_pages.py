@@ -2257,13 +2257,13 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(clone.permissiblevalue_set.count(), 4)
         self.assertEqual(clone.supplementaryvalue_set.count(), 4)
 
-    def create_bulk_values(self, n: int, vd):
+    def create_bulk_values(self, number_of_values: int, value_domain):
         pvs = []
-        for i in range(n):
+        for i in range(number_of_values):
             value = 'Value {}'.format(i),
             meaning = 'Meaning {}'.format(i),
             pv = models.PermissibleValue(
-                valueDomain=vd,
+                valueDomain=value_domain,
                 value=value,
                 meaning=meaning,
                 order=i
@@ -2271,7 +2271,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             pvs.append(pv)
         models.PermissibleValue.objects.bulk_create(pvs)
 
-    def post_and_time_permissible_values(self, vd, data, datalist, initial, event_name):
+    def post_and_time_permissible_values(self, value_domain, data, datalist, initial, event_name):
         permdata = self.get_formset_postdata(datalist, 'permissible_values', initial)
         data.update(permdata)
 
@@ -2279,7 +2279,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         self.start_timer()
         response = self.client.post(
-            reverse('aristotle:edit_item', args=[vd.id]),
+            reverse('aristotle:edit_item', args=[value_domain.id]),
             data
         )
         self.end_timer(event_name)
