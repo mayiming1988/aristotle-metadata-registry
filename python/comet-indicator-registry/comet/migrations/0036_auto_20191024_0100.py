@@ -40,11 +40,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='frameworkdimension',
             name='parent',
-            field=mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='child_dimensions', to='comet.FrameworkDimension', to_field='uuid'),
+            field=mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='child_dimensions', to='comet.FrameworkDimension', to_field='id'),
         ),
         migrations.AlterField(
             model_name='indicatorframeworkdimensionsthrough',
             name='frameworkdimension',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='comet.FrameworkDimension', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='comet.FrameworkDimension', to_field='id'),
         ),
     ]

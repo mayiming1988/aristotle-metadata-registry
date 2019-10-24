@@ -34,26 +34,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='distributiondataelementpathspecialisationclassesthrough',
             name='distributiondataelementpath',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DistributionDataElementPath', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DistributionDataElementPath', to_field='id'),
         ),
         migrations.AlterField(
             model_name='dssdeinclusion',
             name='group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='aristotle_dse.DSSGrouping', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='aristotle_dse.DSSGrouping', to_field='id'),
         ),
         migrations.AlterField(
             model_name='dssdeinclusionspecialisationclassesthrough',
             name='dssdeinclusion',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DSSDEInclusion', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DSSDEInclusion', to_field='id'),
         ),
         migrations.AlterField(
             model_name='dssgroupinglinkedgroupthrough',
             name='from_dssgrouping',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='from_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='from_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='id'),
         ),
         migrations.AlterField(
             model_name='dssgroupinglinkedgroupthrough',
             name='to_dssgrouping',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='to_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='to_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='id'),
         ),
     ]
