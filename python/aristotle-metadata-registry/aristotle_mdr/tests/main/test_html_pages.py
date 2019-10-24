@@ -562,7 +562,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             reverse_args=[self.item.id],
             status_code=302
         )
-        self.item1.refresh_from_db()
+        self.item1 = models.ObjectClass.objects.get(pk=self.item.pk)
         self.assertRedirects(response, url_slugify_concept(self.item))
 
         cv_query = CustomValue.objects.filter(
