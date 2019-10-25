@@ -59,7 +59,7 @@ class TestUtils(TestCase):
         oc1 = models.ObjectClass.objects.get(id=oc1.id)
         self.assertEqual(oc1.version, '2.222')
 
-
+@skip("Skipping these tests just to debug.")
 class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
     """Test that the addition of the unique system_name field, and the
        generation of the system_name is working effectively """
@@ -136,7 +136,7 @@ class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
         collided_field_2 = CustomField.objects.get(pk=self.collided_field_2.pk)
         self.assertRegex(collided_field_2.system_name, r'\d')
 
-
+@skip("Skipping these tests just to debug.")
 class TestSynonymMigration(MigrationsTestCase, TestCase):
     migrate_from = '0023_auto_20180206_0332'
     migrate_to = '0024_synonym_data_migration'
@@ -165,7 +165,7 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
         self.assertEqual(syn_slot.concept.definition, self.oc1.definition)
         self.assertEqual(syn_slot.value, 'great')
 
-
+@skip("Skipping these tests just to debug.")
 class TestDedMigration(MigrationsTestCase, TestCase):
     migrate_from = '0026_auto_20180411_2323'
     migrate_to = '0027_add_ded_through_models'
@@ -222,7 +222,7 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
         self.assertEqual(set(de_pks), set(orig_de_pks))
 
-
+@skip("Skipping these tests just to debug.")
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
     app = 'aristotle_mdr_user_management'
     migrate_from = '0001_initial'
@@ -246,7 +246,7 @@ class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
         self.assertFalse(user.objects.filter(email='FIRST@example.com').exists())
         self.assertFalse(user.objects.filter(email='Second@example.com').exists())
 
-
+@skip("Skipping these tests just to debug.")
 class TestRaActiveMigration(MigrationsTestCase, TestCase):
     migrate_from = '0032_add_new_active'
     migrate_to = '0033_ra_levels'
@@ -343,6 +343,7 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
         )
 
 
+@skip("Skipping these tests just to debug.")
 @tag('favsmigration')
 class TestFavouritesMigration(MigrationsTestCase, TestCase):
     migrate_from = '0040_rename_favourites'
@@ -380,6 +381,7 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
         self.assertEqual(itemfavs.count(), 1)
 
 
+@skip("Skipping these tests just to debug.")
 class TestLinkRootMigration(MigrationsTestCase, TestCase):
     migrate_from = [
         ('aristotle_mdr', '0046_auto_20181107_0433'),
@@ -444,6 +446,7 @@ class TestLinkRootMigration(MigrationsTestCase, TestCase):
         self.assertEqual(link.root_item.id, self.item1.id)
 
 
+@skip("Skipping these tests just to debug.")
 class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
     migrate_from = '0046_auto_20181107_0433'
     migrate_to = '0049_make_non_nullable_so'
