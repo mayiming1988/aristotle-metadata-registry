@@ -44,8 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 class FriendlyLoginView(LoginView):
-
-    template_name='aristotle_mdr/friendly_login.html'
+    template_name = 'aristotle_mdr/friendly_login.html'
     redirect_field_name = 'next'
     redirect_authenticated_user = True
 
@@ -58,7 +57,7 @@ class FriendlyLoginView(LoginView):
 
         return context
 
-    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+    def get_redirect_url(self):  # We have to override this function to avoid ValueError "Redirection loop for auth..."
         if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
             return settings.LOGIN_REDIRECT_URL
         return super().get_redirect_url()
@@ -73,8 +72,7 @@ class FriendlyLogoutView(LogoutView):
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
-
-    template_name='aristotle_mdr/user/userProfile.html'
+    template_name = 'aristotle_mdr/user/userProfile.html'
 
     def get_user(self):
         return self.request.user
@@ -144,7 +142,8 @@ def home(request):
                         # If a version exists, but the item has been removed the next line dies
                         obj = ver.object
                         if hasattr(obj, 'get_absolute_url'):
-                            revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                            revdata['versions'].append(
+                                {'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
                     except:
                         # TODO: Show something properly here
                         pass
@@ -157,9 +156,7 @@ def home(request):
 
     recently_viewed = []
     for viewed in (
-        request.user.recently_viewed_metadata.all()
-        .order_by("-view_date")
-        .prefetch_related('concept')[:5]
+            request.user.recently_viewed_metadata.all().order_by("-view_date").prefetch_related('concept')[:5]
     ):
         recently_viewed.append(viewed)
 
@@ -175,7 +172,6 @@ def home(request):
 
 
 class Roles(LoginRequiredMixin, TemplateView):
-
     template_name = 'aristotle_mdr/user/userRoles.html'
 
     def sort(self, unsorted: List) -> List:
@@ -454,7 +450,6 @@ class NotificationPermissions(LoginRequiredMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
-
         initial = {
             'notifications_json': json.dumps(self.profile.notificationPermissions)
         }
@@ -467,7 +462,6 @@ class NotificationPermissions(LoginRequiredMixin, FormView):
 
 
 class RegistrarTools(LoginRequiredMixin, View):
-
     template_name = "aristotle_mdr/user/registration_authority/list_all.html"
     model = MDR.RegistrationAuthority
 
