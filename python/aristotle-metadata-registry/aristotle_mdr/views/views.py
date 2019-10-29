@@ -724,7 +724,7 @@ class EditStatus(UpdateView):
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
-class StatusHistory(TemplateView, IsSuperUserMixin):
+class StatusHistory(IsSuperUserMixin, TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
     def get_context_data(self, **kwargs):
