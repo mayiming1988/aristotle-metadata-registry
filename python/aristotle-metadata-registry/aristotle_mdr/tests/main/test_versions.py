@@ -638,5 +638,40 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
 
-        # Vesions are not visible to editors at the moment. Maybe later we need to update test.
+        # TODO: Versions are not visible to editors at the moment. Maybe later we need to update test.
         self.assertEquals(response.context['versions'], None)
+
+    def test_status_reversion_page_only_visible_to_superusers(self):
+        """Test that the status reversion page 403s for any user but superusers"""
+        self.logout()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+
+        self.login_viewer()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_regular_user()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual((response.status_code, 403))
+        self.logout()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 200)
+        self.logout()
+
+
+
+
