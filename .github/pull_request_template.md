@@ -1,4 +1,4 @@
-Fixes issues: #
+Issues resolved: #
 
 Sanity checks:
 - [ ] Have tests been run locally?

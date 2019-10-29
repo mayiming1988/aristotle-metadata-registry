@@ -25,6 +25,7 @@ from aristotle_mdr.utils.model_utils import (
     discussionAbstract,
     AbstractValue,
     DedBaseThrough,
+    unmanagedObject,
     get_comet_indicator_relational_attributes,
 )
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -170,21 +171,6 @@ class StewardOrganisation(AbstractGroup):
 class StewardOrganisationMembership(AbstractMembership):
     group_class = StewardOrganisation
     group_kwargs = {"to_field": "uuid"}
-
-
-class unmanagedObject(baseAristotleObject):
-    class Meta:
-        abstract = True
-
-    def can_edit(self, user):
-        return user.is_superuser
-
-    def can_view(self, user):
-        return True
-
-    @property
-    def item(self):
-        return self
 
 
 class registryGroup(unmanagedObject):
@@ -1631,13 +1617,19 @@ class DataElement(concept):
     def relational_attributes(self):
         rels = {}
         if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-            from aristotle_dse.models import DataSetSpecification
+            from aristotle_dse.models import DataSetSpecification, Distribution
 
             rels.update({
                 "dss": {
                     "all": _("Inclusion in Data Set Specifications"),
                     "qs": DataSetSpecification.objects.filter(
                         dssdeinclusion__data_element=self
+                    ).distinct()
+                },
+                "distributions": {
+                    "all": _("Inclusion in Data Distributions"),
+                    "qs": Distribution.objects.filter(
+                        distributiondataelementpath__data_element=self
                     ).distinct()
                 },
             })
