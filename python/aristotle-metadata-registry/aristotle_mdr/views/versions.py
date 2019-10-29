@@ -460,10 +460,11 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                     pass
                 else:
                     if self.is_concept_fk(field):
-                        # Perform the lookup, modify in place
-                        item_model = self.get_model_from_foreign_key_field(model, field_name)
-                        item_name = item_model.objects.get(pk=value).name
-                        subitem[field_name] = item_name
+                        if value:
+                            # Perform the lookup, modify in place
+                            item_model = self.get_model_from_foreign_key_field(model, field_name)
+                            item_name = item_model.objects.get(pk=value).name
+                            subitem[field_name] = item_name
         return items
 
     def perform_diff_on_field(self, earlier, later):

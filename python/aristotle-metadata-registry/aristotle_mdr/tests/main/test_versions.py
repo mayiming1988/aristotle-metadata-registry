@@ -5,12 +5,12 @@ from django.conf import settings
 
 import aristotle_mdr.models as MDR
 import aristotle_dse.models as DSE
-import datetime
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
+import datetime
 import reversion
 from reversion.models import Version
 
@@ -67,12 +67,26 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
+        aristotle_settings['CONTENT_EXTENSIONS'].append('comet')
         with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
+            from comet.models import Indicator, IndicatorNumeratorDefinition
+
             self.data_set_specification = DSE.DataSetSpecification.objects.create(
                 name='Data Set Specification',
                 definition='definition',
                 submitter=self.editor,
                 workgroup=self.wg1
+            )
+
+            self.indicator = Indicator.objects.create(
+                name='indicator',
+                definition='indicator',
+            )
+            # Add a numerator
+            IndicatorNumeratorDefinition.objects.create(
+                data_element=self.data_element,
+                indicator=self.indicator,
+                order=1
             )
 
     def create_two_versions(self, concept):
@@ -340,9 +354,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         # Check the content of the fields
         self.assertEqual(response.context['html_fields'], ['This is an updated DSS Grouping', 'This is a DSS Grouping'])
 
-    def version_comparator_handles_added_fields_on_model(self):
-        pass
-
     def test_all_added_data_elements_appear_in_comparision_view(self):
         self.login_viewer()
 
@@ -400,9 +411,34 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.assertContainsHtml(response, 'Hallo')
         self.assertContainsHtml(response, 'Hoi')
 
+    def test_indicator_with_incomplete_numerator_doesnt_500(self):
+        self.login_superuser()
+        with reversion.revisions.create_revision():
+            self.indicator.definition = "New indicator"
+            self.indicator.save()
+
+        # Make a minor modification to the definition
+        with reversion.revisions.create_revision():
+            self.indicator.definition = "New indicator"
+            self.indicator.save()
+
+        # Confirm that two versions were created
+        versions = reversion.models.Version.objects.get_for_object(self.indicator)
+        self.assertEqual(versions.count(), 2)
+
+        # Build the get query parameter. Format is parent_field.{{ number of subitem indexed from 0}}.field
+        url = reverse('aristotle:compare_versions', args=[self.indicator.id])
+        query = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query)
+
+        # Confirm that the page loads successfully
+        self.assertEqual(response.status_code, 200)
+
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the comparision of Value Domain specific fields"""
+
     def setUp(self):
         super().setUp()
 
@@ -413,6 +449,7 @@ class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
 class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
     """ Class to test the version permissions  """
+
     def setUp(self):
         super().setUp()
 
@@ -572,9 +609,7 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
 
 
 class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
-
     def setUp(self):
-
         super().setUp()
 
         self.object_class = MDR.ObjectClass.objects.create(
@@ -591,7 +626,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             )
 
     def test_statuses_reversion_page_works(self):
-
         self.login_superuser()
 
         # Load the Reversions page for Statuses
@@ -600,18 +634,15 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
-
         self.login_superuser()
 
         # Because there are no versions yet.
-
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
 
         self.assertEqual(len(response.context['versions']), 1)
 
     def test_statuses_reversions_list_is_populated_after_creating_reversion(self):
-
         self.login_superuser()
 
         with reversion.revisions.create_revision():
@@ -631,7 +662,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.assertEqual(len(response.context['versions']), 2)
 
     def test_statuses_reversions_are_only_visible_to_superusers(self):
-
         self.logout()
         self.login_editor()
 
