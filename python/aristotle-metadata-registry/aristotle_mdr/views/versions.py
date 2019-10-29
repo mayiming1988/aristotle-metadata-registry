@@ -99,12 +99,12 @@ class VersionsMixin:
         versions = versions.order_by('-revision__date_created')
         return versions
 
-    def is_field_html(self, fieldname: str, model: Model) -> bool:
+    def is_field_html(self, field_name: str, model: Model) -> bool:
         try:
-            fieldobj = model._meta.get_field(fieldname)
+            field_obj = model._meta.get_field(field_name)
         except FieldDoesNotExist:
             return False
-        return self.is_field_obj_html(fieldobj)
+        return self.is_field_obj_html(field_obj)
 
     def is_field_obj_html(self, field: Field) -> bool:
         return issubclass(type(field), RichTextField)
@@ -203,6 +203,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         self.version = self.get_version()
         self.model = self.version.content_type.model_class()
         self.item = self.get_item(self.version)
+        self.is_most_recent = self.is_this_version_the_most_recent()
 
         # Check it's a concept version
         if not issubclass(self.model, MDR._concept):
@@ -234,6 +235,16 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def get_item(self, version):
         """Get current item from version"""
         return version.object
+
+    def is_this_version_the_most_recent(self):
+        """
+        Check if the version passed is actually the most recent version for this item.
+        :return: Boolean
+        """
+        latest_version = reversion.models.Version.objects.filter(
+            object_id=self.item.id, content_type=self.version.content_type
+        ).latest('revision__date_created')
+        return self.version == latest_version
 
     def get_version(self) -> reversion.models.Version:
         """Lookup version object"""
@@ -417,6 +428,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             'hide_item_help': True,
             'hide_item_related': True,
             'item_is_version': True,
+            'version_is_most_recent': self.is_most_recent,
             'item': self.get_version_context_data(),
             'current_item': self.item,
             'version': self.version,
