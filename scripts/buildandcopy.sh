@@ -113,7 +113,8 @@ if [[ $MANUAL -eq 1 ]] || [[ $PYPI -eq 1 ]]; then
         rm -r ./dist
     fi
     # Run
-    $PYTHON_CMD setup.py sdist bdist_wheel
+    echo "Building python package..."
+    $PYTHON_CMD setup.py --quiet sdist bdist_wheel
 fi
 
 if [[ $MANUAL -eq 1 ]]; then
