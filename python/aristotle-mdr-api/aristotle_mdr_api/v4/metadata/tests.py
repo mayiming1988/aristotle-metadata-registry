@@ -739,13 +739,13 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
 
-    # CREATE TESTS TO CHECK THE PATCH AND UPDATE BEHAVIOUR WHEN TRYING TO UPDATE SUBCOMPONENTS LIKE PERMISSIBLE_VALUE_SET
+    # TODO: Write tests to check the patch and update behaviour when trying to update subcomponents like permissible_value_set
     def test_subcomponents_updated_with_uuid_using_patch_request(self):
 
         patch_data = {
             "supplementaryvalue_set": [
                 {
-                    "uuid": self.sv_1.uuid,
+                    "uuid": self.sv_1.id,
                     "meaning": "My definition has changed.",
                     "value": "This is the new value",
                     "order": 2,
