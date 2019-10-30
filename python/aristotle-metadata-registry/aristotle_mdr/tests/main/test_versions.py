@@ -630,17 +630,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(len(response.context['versions']), 2)
 
-    def test_statuses_reversions_are_only_visible_to_superusers(self):
-
-        self.logout()
-        self.login_editor()
-
-        response = self.client.get(
-            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-
-        # TODO: Versions are not visible to editors at the moment. Maybe later we need to update test.
-        self.assertEquals(response.context['versions'], None)
-
     def test_status_reversion_page_only_visible_to_superusers(self):
         """Test that the status reversion page 403s for any user but superusers"""
         self.logout()
