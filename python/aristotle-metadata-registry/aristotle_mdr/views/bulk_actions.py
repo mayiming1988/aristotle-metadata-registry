@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 
 from aristotle_mdr import exceptions as registry_exceptions
 from aristotle_mdr.utils import fetch_aristotle_settings
@@ -204,3 +204,8 @@ class ChangeStatusBulkActionView(ReviewChangesView):
         else:
             url = '/'
         return HttpResponseRedirect(url)
+
+
+class ChangeItemStewardshipBulkActionView(TemplateView):
+    template_name = 'aristotle_mdr/actions/bulk_actions/change_steward.html'
+    pass
