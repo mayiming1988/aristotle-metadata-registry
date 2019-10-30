@@ -661,7 +661,6 @@ class ChangeStatusView(ReviewChangesView):
 
 
 class DeleteStatus(IsSuperUserMixin, DeleteView):
-
     model = MDR.Status
 
     def get_context_data(self, **kwargs):

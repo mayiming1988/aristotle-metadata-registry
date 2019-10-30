@@ -591,7 +591,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             )
 
     def test_statuses_reversion_page_works(self):
-
         self.login_superuser()
 
         # Load the Reversions page for Statuses
@@ -599,8 +598,76 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
         self.assertEqual(response.status_code, 200)
 
-    def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
+    def test_status_edit_page_is_restricted_to_superusers(self):
+        """Test that the status edit page 403s for any user but superusers"""
+        self.logout()
+        url = reverse('friendly_login') + '?next=' + reverse('aristotle:editStatus', args=[self.status.id,
+                                                                                              self.object_class.id,
+                                                                                              self.ra.id])
+        response = self.client.get(
+            reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, url)
 
+        self.login_viewer()
+        response = self.client.get(
+            reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+
+        self.login_regular_user()
+        response = self.client.get(
+            reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 200)
+        self.logout()
+
+    def test_status_delete_page_is_restricted_to_superusers(self):
+        """Test that the status edit page 403s for any user but superusers"""
+        self.logout()
+        url = reverse('friendly_login') + '?next=' + reverse('aristotle:deleteStatus', args=[self.status.id,
+                                                                                             self.object_class.id])
+        response = self.client.get(
+            reverse('aristotle:deleteStatus', args=[self.status.id, self.object_class.id])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        self.login_viewer()
+        response = self.client.get(
+            reverse('aristotle:deleteStatus', args=[self.status.id, self.object_class.id]))
+        self.assertEqual(response.status_code, 403)
+
+        self.login_regular_user()
+        response = self.client.get(
+            reverse('aristotle:deleteStatus', args=[self.status.id, self.object_class.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:deleteStatus', args=[self.status.id, self.object_class.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:deleteStatus', args=[self.status.id, self.object_class.id]))
+        self.assertEqual(response.status_code, 200)
+        self.logout()
+
+    def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
         self.login_superuser()
 
         # Because there are no versions yet.
