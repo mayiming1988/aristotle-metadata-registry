@@ -339,7 +339,6 @@ class ConceptView(ConceptRenderView):
 
 
 class ObjectClassView(ConceptRenderView):
-
     objtype = MDR.ObjectClass
 
     def check_item(self, item):
@@ -660,8 +659,7 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
-class DeleteStatus(DeleteView):
-
+class DeleteStatus(IsSuperUserMixin, DeleteView):
     model = MDR.Status
 
     def get_context_data(self, **kwargs):
@@ -687,7 +685,7 @@ class DeleteStatus(DeleteView):
         return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
 
 
-class EditStatus(UpdateView):
+class EditStatus(IsSuperUserMixin, UpdateView):
     template_name = 'aristotle_mdr/status_edit.html'
     form_class = MDRForms.EditStatusForm
     model = MDR.Status
