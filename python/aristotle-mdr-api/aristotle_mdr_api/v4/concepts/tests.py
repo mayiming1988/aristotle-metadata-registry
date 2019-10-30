@@ -330,9 +330,3 @@ class ConceptAPITestCase(BaseAPITestCase):
             reverse('api_v4:item:list-version-permissions', args=[object_class.id])
         )
         self.assertEqual(response.status_code, 403)
-
-
-
-
-
-
