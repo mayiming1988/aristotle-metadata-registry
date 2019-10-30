@@ -15,23 +15,25 @@
     {% if history %}
         {% for ra, states in history.items %}
             <h2>Registration History for <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
-            <div class="table-responsive">
-                <table class="table">
+            <div class="registration_status_table">
+                <table class="table table-striped reg">
                     <thead>
-                    <th class="col-md-2">{% trans 'Date registration effective' %}</th>
-                    <th class="col-md-2">{% trans 'Date registration expires' %}</th>
-                    <th class="col-md-2">{% trans 'State' %}</th>
-                    <th class="col-md-4">{% trans 'Comments' %}</th>
-                    {% if item|can_edit:request.user %}
-                        <th class="col-md-2"></th>
-                    {% endif %}
+                    <tr>
+                        <th class="col-md-2">{% trans 'State' %}</th>
+                        <th class="col-md-2">{% trans 'Date registration effective' %}</th>
+                        <th class="col-md-2">{% trans 'Date registration expires' %}</th>
+                        <th class="col-md-4">{% trans 'Comments' %}</th>
+                        {% if item|can_edit:request.user %}
+                            <th class="col-md-2"></th>
+                        {% endif %}
+                    </tr>
                     </thead>
                     <tbody>
                     {% for status in states %}
                         <tr>
+                            <td data-name="{{ status.state|state_to_text }}"><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|state_to_text }}</a></td>
                             <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
                             <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
-                            <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|state_to_text }}</a></td>
                             <td>{{ status.changeDetails }}</td>
                             {% if item|can_edit:request.user %}
                                 <td>
