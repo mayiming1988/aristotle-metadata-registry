@@ -31,14 +31,14 @@ class MigrationsTestCase(object):
         #executor.loader.build_graph()  # reload.
         old_apps = executor.loader.project_state(self.migrate_from).apps
 
-        executor.migrate(self.migrate_from)  # It is possible to pass fake=True to have a different error feedback.
+        executor.migrate(self.migrate_from)
 
         self.setUpBeforeMigration(old_apps)
 
         # Run the migration to test
         executor = MigrationExecutor(connection)
         executor.loader.build_graph()  # reload.
-        executor.migrate(self.migrate_to)  # It is possible to pass fake=True to have a different error feedback.
+        executor.migrate(self.migrate_to)
 
         self.apps = executor.loader.project_state(self.migrate_to).apps
 
