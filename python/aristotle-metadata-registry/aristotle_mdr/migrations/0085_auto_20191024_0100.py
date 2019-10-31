@@ -36,14 +36,4 @@ class Migration(migrations.Migration):
             old_name='uuid',
             new_name='id',
         ),
-        migrations.AlterField(
-            model_name='permissiblevalue',
-            name='value_meaning',
-            field=models.ForeignKey(blank=True, help_text='A reference to the value meaning that this designation relates to', null=True, on_delete=django.db.models.deletion.SET_NULL, to='aristotle_mdr.ValueMeaning', to_field='id'),
-        ),
-        migrations.AlterField(
-            model_name='supplementaryvalue',
-            name='value_meaning',
-            field=models.ForeignKey(blank=True, help_text='A reference to the value meaning that this designation relates to', null=True, on_delete=django.db.models.deletion.SET_NULL, to='aristotle_mdr.ValueMeaning', to_field='id'),
-        ),
     ]
