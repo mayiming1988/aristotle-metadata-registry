@@ -169,10 +169,6 @@ class ManagedItem(baseAristotleObject):
 
 class aristotleComponent(models.Model):
 
-    @property
-    def id(self):
-        return self.pk
-
     id = models.UUIDField(
         primary_key=True,
         help_text=_(
