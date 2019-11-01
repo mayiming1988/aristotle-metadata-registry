@@ -314,13 +314,15 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """
         Get all concepts linked from this version that are viewable by the user
         """
+        self.ids: List[int] = []
+        self.uuids: List[str] = []
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
                 self.ids_or_uuids_appender(field)
 
             if self.is_concept_multiple(field_name) and type(field) == list:  # If reverse fk or many to many of concept
-                for inner_field in field_name:
+                for inner_field in field:
                     self.ids_or_uuids_appender(inner_field)
 
             if type(field) == list:
