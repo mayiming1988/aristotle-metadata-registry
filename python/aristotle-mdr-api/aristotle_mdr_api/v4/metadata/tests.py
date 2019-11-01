@@ -406,7 +406,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             "origin_URI": "",
             "origin": "",
             "comments": "",
-            # "statistical_unit": None,  WE NEED TO IMPLEMENT A TEST WITH STATISTICAL UNITS.
+            "statistical_unit": self.oc.uuid,
             "collection_method": "My collection method.",
             "groups": [],
             "dssdeinclusion_set": [
@@ -667,8 +667,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
 
-    @skip("WE NEED TO UN-SKIP THIS TEST AFTER WE IMPLEMENT UUIDS EVERYWHERE")
-    def test_sub_items_in_json_data_can_update_actual_items_when_their_uuid_is_provided(self):
+    def test_sub_items_in_json_data_can_update_actual_items_when_their_id_is_provided(self):
 
         patch_data = {
             "name": "My new vd name",
@@ -676,7 +675,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "Yeah SV!",
                     "order": 5,
-                    "uuid": self.sv_1.uuid,
+                    "id": self.sv_1.id,
                 }
             ]
         }
@@ -692,7 +691,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.sv_1.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
-        self.assertEqual(self.sv_1.id, response.data['supplementaryvalue_set'][0]['id'])
+        self.assertEqual(str(self.sv_1.id), response.data['supplementaryvalue_set'][0]['id'])
         self.assertEqual(self.sv_1.value, response.data['supplementaryvalue_set'][0]['value'])
         self.assertEqual(self.sv_1.order, response.data['supplementaryvalue_set'][0]['order'])
 
