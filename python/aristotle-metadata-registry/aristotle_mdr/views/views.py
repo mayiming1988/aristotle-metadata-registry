@@ -42,6 +42,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
 from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
+from aristotle_mdr.mixins import IsSuperUserMixin
 
 from reversion.models import Version
 from reversion import revisions as reversion
@@ -607,7 +608,6 @@ class ReviewChangesView(SessionWizardView):
 
 
 class ChangeStatusView(ReviewChangesView):
-
     change_step_name = 'change_status'
 
     form_list = [
@@ -660,8 +660,7 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
-class DeleteStatus(DeleteView):
-
+class DeleteStatus(IsSuperUserMixin, DeleteView):
     model = MDR.Status
 
     def get_context_data(self, **kwargs):
@@ -687,7 +686,7 @@ class DeleteStatus(DeleteView):
         return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
 
 
-class EditStatus(UpdateView):
+class EditStatus(IsSuperUserMixin, UpdateView):
     template_name = 'aristotle_mdr/status_edit.html'
     form_class = MDRForms.EditStatusForm
     model = MDR.Status

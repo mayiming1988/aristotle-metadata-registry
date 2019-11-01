@@ -1,5 +1,4 @@
 from django.test import TestCase, tag
-from unittest import skip
 
 from aristotle_mdr.tests.utils import ManagedObjectVisibility
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages

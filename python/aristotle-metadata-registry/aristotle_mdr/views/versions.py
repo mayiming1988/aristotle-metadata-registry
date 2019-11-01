@@ -215,6 +215,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         self.version = self.get_version_object()
         self.model = self.version.content_type.model_class()
         self.item = self.version.object
+        self.is_most_recent = self.is_this_version_the_most_recent()
 
         if not issubclass(self.model, MDR._concept):  # Check it's a concept version
             raise Http404
@@ -232,6 +233,25 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         self.html_custom_field_ids: Set[int] = self.get_html_custom_field_ids()  # Fetch html custom field ids
 
         return super().dispatch(request, *args, **kwargs)
+
+    def check_item(self, item, version_permission):
+        """Permissions checking on version"""
+        # Will 403 Forbidden when user can't view the version
+        return self.user_can_view_version(self.request.user, item, version_permission)
+
+    def get_item(self, version):
+        """Get current item from version"""
+        return version.object
+
+    def is_this_version_the_most_recent(self):
+        """
+        Check if the version passed is actually the most recent version for this item.
+        :return: Boolean
+        """
+        latest_version = reversion.models.Version.objects.filter(
+            object_id=self.item.id, content_type=self.version.content_type
+        ).latest('revision__date_created')
+        return self.version == latest_version
 
     def get_version_object(self) -> reversion.models.Version:
         """
@@ -292,17 +312,15 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
     def get_viewable_concepts(self, field_data: Dict) -> Dict[int, MDR._concept]:
         """
-        Get all concepts linked from this version that are viewable by the user.
+        Get all concepts linked from this version that are viewable by the user
         """
-        self.ids: List[int] = []
-        self.uuids: List[str] = []
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
                 self.ids_or_uuids_appender(field)
 
             if self.is_concept_multiple(field_name) and type(field) == list:  # If reverse fk or many to many of concept
-                for inner_field in field:
+                for inner_field in field_name:
                     self.ids_or_uuids_appender(inner_field)
 
             if type(field) == list:
@@ -451,6 +469,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             'hide_item_help': True,
             'hide_item_related': True,
             'item_is_version': True,
+            'version_is_most_recent': self.is_most_recent,
             'item': self.get_version_context_data(),
             'current_item': self.item,
             'version': self.version,
@@ -494,10 +513,11 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                     pass
                 else:
                     if self.is_concept_fk(field):
-                        # Perform the lookup, modify in place
-                        item_model = self.get_model_from_foreign_key_field(model, field_name)
-                        item_name = item_model.objects.get(pk=value).name
-                        subitem[field_name] = item_name
+                        if value:
+                            # Perform the lookup, modify in place
+                            item_model = self.get_model_from_foreign_key_field(model, field_name)
+                            item_name = item_model.objects.get(pk=value).name
+                            subitem[field_name] = item_name
         return items
 
     def perform_diff_on_field(self, earlier, later):
