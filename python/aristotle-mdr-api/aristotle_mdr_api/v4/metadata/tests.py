@@ -390,9 +390,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             format='json',
         )
 
-        import pdb
-        pdb.set_trace()
-
         last_vd = mdr_models.ValueDomain.objects.last()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
