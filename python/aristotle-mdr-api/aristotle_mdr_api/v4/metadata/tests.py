@@ -764,7 +764,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         patch_data = {
             "supplementaryvalue_set": [
                 {
-                    "uuid": self.sv_1.id,
+                    "id": self.sv_1.id,
                     "meaning": new_meaning,
                     "value": new_value,
                     "order": 2,
