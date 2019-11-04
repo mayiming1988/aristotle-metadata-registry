@@ -143,7 +143,8 @@ def home(request):
                         obj = ver.object
                         if hasattr(obj, 'get_absolute_url'):
                             revdata['versions'].append(
-                                {'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                                {'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url}
+                            )
                     except:
                         # TODO: Show something properly here
                         pass
@@ -446,6 +447,8 @@ class NotificationPermissions(LoginRequiredMixin, FormView):
     template_name = 'aristotle_mdr/user/notificationPermissions.html'
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
         self.profile = request.user.profile
         return super().dispatch(request, *args, **kwargs)
 
