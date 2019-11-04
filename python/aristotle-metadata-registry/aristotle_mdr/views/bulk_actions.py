@@ -204,8 +204,3 @@ class ChangeStatusBulkActionView(ReviewChangesView):
         else:
             url = '/'
         return HttpResponseRedirect(url)
-
-
-class ChangeItemStewardshipBulkActionView(TemplateView):
-    template_name = 'aristotle_mdr/actions/bulk_actions/change_steward.html'
-    pass
