@@ -214,6 +214,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def dispatch(self, request, *args, **kwargs):
         self.version = self.get_version_object()
         self.model = self.version.content_type.model_class()
+        self.is_most_recent = self.is_this_version_the_most_recent()
         self.item = self.version.object
 
         if not issubclass(self.model, MDR._concept):  # Check it's a concept version
@@ -232,6 +233,16 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         self.html_custom_field_ids: Set[int] = self.get_html_custom_field_ids()  # Fetch html custom field ids
 
         return super().dispatch(request, *args, **kwargs)
+
+    def is_this_version_the_most_recent(self):
+        """
+        Check if the version passed is actually the most recent version for this item.
+        :return: Boolean
+        """
+        latest_version = reversion.models.Version.objects.filter(
+            object_id=self.item.id, content_type=self.version.content_type
+        ).latest('revision__date_created')
+        return self.version == latest_version
 
     def get_version_object(self) -> reversion.models.Version:
         """
@@ -451,6 +462,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             'hide_item_help': True,
             'hide_item_related': True,
             'item_is_version': True,
+            'version_is_most_recent': self.is_most_recent,
             'item': self.get_version_context_data(),
             'current_item': self.item,
             'version': self.version,
@@ -494,10 +506,11 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                     pass
                 else:
                     if self.is_concept_fk(field):
-                        # Perform the lookup, modify in place
-                        item_model = self.get_model_from_foreign_key_field(model, field_name)
-                        item_name = item_model.objects.get(pk=value).name
-                        subitem[field_name] = item_name
+                        if value:
+                            # Perform the lookup, modify in place
+                            item_model = self.get_model_from_foreign_key_field(model, field_name)
+                            item_name = item_model.objects.get(pk=value).name
+                            subitem[field_name] = item_name
         return items
 
     def perform_diff_on_field(self, earlier, later):
