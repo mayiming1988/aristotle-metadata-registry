@@ -12,12 +12,11 @@ import subprocess
 import pprint
 import re
 
-
 # This wont run on test aristotle_mdr.test because it is not prefixed with test_
 
 MEDIA_TYPES = [
     [],
-    #['(max-device-width: 480px)'],
+    # ['(max-device-width: 480px)'],
     ['(max-width: 599px)'],
     ['(min-width: 600px)'],
     # ['(min-width: 992px)'],
@@ -48,8 +47,8 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
         )
         dir_listing = process.communicate()[0].decode('utf-8')
         # Verify the static files are in the right place.
-        assert('admin' in dir_listing)
-        assert('aristotle_mdr' in dir_listing)
+        assert ('admin' in dir_listing)
+        assert ('aristotle_mdr' in dir_listing)
         print("All setup")
 
     def pages_tester(self, pages, media_types=MEDIA_TYPES):
@@ -81,7 +80,7 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
                     pp.pprint(results['warnings'])
                     print('Skipped')
                     pp.pprint(results['skipped'])
-                    print("%s failures!!" % len(results['failures']) )
+                    print("%s failures!!" % len(results['failures']))
                     failures += len(results['failures'])
                 else:
                     print('+', end="", flush=True, file=sys.stderr)
@@ -98,9 +97,8 @@ class TestStaticPageAccessibility(TestWebPageAccessibilityBase, TestCase):
         pages = [
             reverse("aristotle:%s" % u.name) for u in urlpatterns
             if hasattr(u, 'name') and u.name is not None
-            and re.compile(u.pattern._regex).groups == 0  # Only get static pages that lack matching groups
+               and re.compile(u.pattern.regex).groups == 0  # Only get static pages that lack matching groups
         ]
-
 
         self.pages_tester(pages)
 
@@ -127,12 +125,12 @@ class TestMetadataActionPageAccessibility(TestWebPageAccessibilityBase, TestCase
         self.login_superuser()
 
         items = [
-                self.oc,
-                self.pr,
-                self.dec,
-                self.vd,
-                self.de,
-                self.cd,
+            self.oc,
+            self.pr,
+            self.dec,
+            self.vd,
+            self.de,
+            self.cd,
         ]
 
         pages = [
@@ -153,4 +151,4 @@ class TestMetadataActionPageAccessibility(TestWebPageAccessibilityBase, TestCase
         ]
         # We skip those pages that don't exist (like object class 'child metadata' pages)
 
-        self.pages_tester(pages, media_types = [[], ['(min-width: 600px)']])
+        self.pages_tester(pages, media_types=[[], ['(min-width: 600px)']])

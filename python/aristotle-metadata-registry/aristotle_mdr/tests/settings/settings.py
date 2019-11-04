@@ -1,11 +1,9 @@
 import sys
 import tempfile
-import dj_database_url
 from aristotle_mdr.required_settings import *
 import os
 
-
-BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)),'..')
+BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
 
 sys.path.insert(1, BASE)
 sys.path.insert(1, os.path.join(BASE, "tests"))
@@ -21,7 +19,7 @@ SECRET_KEY = 'inara+oscar+vtkprm7@0(fsc$+grbz9-s+tmo9d)e#k(9uf8m281&$7xhdkjr'
 # We set this up so we can point wcag_zoo in the right place
 BASE_STATICPATH = tempfile.mkdtemp(suffix='_staticfiles')
 
-STATIC_ROOT = BASE_STATICPATH+STATIC_URL
+STATIC_ROOT = BASE_STATICPATH + STATIC_URL
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
@@ -36,7 +34,7 @@ else:
     ci_runner = "Tox"
 
 skip_migrations = (
-    "ARISTOTLE_DEV_SKIP_MIGRATIONS" in os.environ # or
+        "ARISTOTLE_DEV_SKIP_MIGRATIONS" in os.environ  # or
     # os.environ.get('DATABASE_URL', "").startswith('mssql')
 )
 
@@ -46,6 +44,8 @@ print("Running test-suite with connection string %s" % os.environ.get('DATABASE_
 
 if skip_migrations:  # pragma: no cover
     print("Skipping migrations")
+
+
     class DisableMigrations(object):
 
         def __contains__(self, item):
@@ -53,6 +53,7 @@ if skip_migrations:  # pragma: no cover
 
         def __getitem__(self, item):
             return None
+
 
     MIGRATION_MODULES = DisableMigrations()
 
@@ -77,23 +78,24 @@ elif os.environ.get('SEARCH') == 'elastic':
     else:
         print("Aristotle specific variant")
         from aristotle_mdr.tests.settings.templates.search.elasticsearch import HAYSTACK_CONNECTIONS
+
         ELASTIC_SEARCH_BACKEND = True
 elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
     from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
+
     WOOSH_SEARCH_BACKEND = True
 else:
     print("Vanilla haystack variant")
     from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
 
 INSTALLED_APPS = (
-    # The good stuff
-    'aristotle_glossary',
-    'extension_test',
-    'aristotle_dse',
-    'comet'
-) + INSTALLED_APPS
-
+                     # The good stuff
+                     'aristotle_glossary',
+                     'extension_test',
+                     'aristotle_dse',
+                     'comet',
+                 ) + INSTALLED_APPS
 
 # https://docs.djangoproject.com/en/1.10/topics/testing/overview/#speeding-up-the-tests
 # We do a lot of user log in testing, this should speed stuff up.
