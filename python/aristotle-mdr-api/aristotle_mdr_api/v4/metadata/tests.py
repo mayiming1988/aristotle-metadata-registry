@@ -621,6 +621,13 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
             order=5
         )
 
+        self.sv_3 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 3",
+            meaning="I also belong to VD #1",
+            valueDomain=self.vd_1,
+            order=1
+        )
+
     def test_update_data_element_with_put_request(self):
 
         put_data = {
@@ -684,12 +691,13 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
 
     def test_sub_items_in_json_data_can_update_actual_items_when_their_id_is_provided(self):
 
+        new_vd_name = "My new vd name"
+
         patch_data = {
-            "name": "My new vd name",
+            "name": new_vd_name,
             "supplementaryvalue_set": [
                 {
                     "value": "Yeah SV!",
-                    "order": 5,
                     "id": self.sv_1.id,
                 }
             ]
@@ -705,10 +713,12 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.de.refresh_from_db()
         self.sv_1.refresh_from_db()
 
+        self.assertEqual(response.data['name'], new_vd_name)  # We just changed the name of this value domain.
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(str(self.sv_1.id), response.data['supplementaryvalue_set'][0]['id'])
         self.assertEqual(self.sv_1.value, response.data['supplementaryvalue_set'][0]['value'])
         self.assertEqual(self.sv_1.order, response.data['supplementaryvalue_set'][0]['order'])
+        self.assertEqual(self.vd_1.supplementaryvalue_set.all().count(), 1)  # Now there is only 1 sv in this vd (not 2)
 
     def test_avoid_updating_sub_items_that_are_not_linked_to_the_parent_item(self):
 

@@ -6,8 +6,6 @@ from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
-from django.db.models.functions import Cast
-from django.db.models import TextField
 from django.utils.translation import ugettext_lazy as _
 from aristotle_mdr.models import (
     aristotleComponent,
