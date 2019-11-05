@@ -211,7 +211,7 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_api_updates_version_permissions(self):
-        self.login_user()
+        self.login_superuser()
 
         post_data = [{
             "version_id": self.version_with_permission.id,
@@ -245,7 +245,7 @@ class ConceptAPITestCase(BaseAPITestCase):
 
     def test_api_can_create_version_permissions(self):
         """Test that the API works to create version permissions"""
-        self.login_user()
+        self.login_superuser()
 
         post_data = [{
             "version_id": self.version_without_permission.id,
@@ -268,7 +268,7 @@ class ConceptAPITestCase(BaseAPITestCase):
     def test_api_cant_edit_non_item_version_permissions(self):
         """Test that a request including the version permission for another item does not edit the
          version permission for another item"""
-        self.login_user()
+        self.login_superuser()
 
         post_data = [
             {"version_id": self.version_with_permission.id,

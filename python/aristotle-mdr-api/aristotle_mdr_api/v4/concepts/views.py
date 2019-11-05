@@ -265,7 +265,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView, VersionsMixin):
             raise PermissionDenied()
 
         # Get associated versions
-        versions = self.get_versions(concept, self.request.user)
+        versions = self.get_versions(self.item, self.request.user)
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)
