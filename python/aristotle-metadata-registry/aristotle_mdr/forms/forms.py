@@ -35,7 +35,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     changeDetails = forms.CharField(
         max_length=512,
         required=True,
-        label=_("Why is the status being changed for these items?"),
+        label=_("Administrative Note"),
         widget=forms.Textarea
     )
     registrationAuthorities = forms.ChoiceField(
