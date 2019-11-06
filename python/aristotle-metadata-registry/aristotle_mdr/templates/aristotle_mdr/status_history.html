@@ -26,7 +26,8 @@
             <th>{% trans 'Date registration expires' %}</th>
             <th>{% trans 'State' %}</th>
             <th scope="col">{% trans 'User' %}</th>
-            <th scope="col">{% trans 'Comment' %}</th>
+            <th scope="col">{% trans 'Administrative note' %}</th>
+            <th scope="col">{% trans 'Change comment' %}</th>
         </tr>
         </thead>
         <tbody>
@@ -46,6 +47,9 @@
                     {% if version.revision.user %}
                         {{ version.revision.user.display_name }}
                     {% endif %}
+                </td>
+                <td>
+                    {{ version.field_dict.changeDetails }}
                 </td>
                 <td>
                     {{version.revision.comment|linebreaks|default:"-"}}

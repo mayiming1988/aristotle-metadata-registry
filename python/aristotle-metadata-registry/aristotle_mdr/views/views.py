@@ -31,7 +31,6 @@ from aristotle_mdr.utils import (
     fetch_aristotle_downloaders,
     fetch_metadata_apps,
     url_slugify_concept,
-    construct_change_message_for_form,
 )
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
@@ -48,6 +47,8 @@ from aristotle_mdr.models import concept_visibility_updated
 
 from reversion.models import Version
 from reversion import revisions as reversion
+from typing import Dict
+
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -729,29 +730,25 @@ class EditStatus(IsSuperUserMixin, UpdateView):
 class StatusHistory(IsSuperUserMixin, TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        versions = None
+    def get_context_data(self, **kwargs) -> Dict:
+        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        ra = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
 
-        if user_can_view_statuses_revisions(self.request.user, self.RA):
-            versions = Version.objects.get_for_object(self.status).select_related("revision__user")
+        context = super().get_context_data(**kwargs)
+        versions = []
+
+        if user_can_view_statuses_revisions(self.request.user, ra):
+            versions = Version.objects.get_for_object(status).select_related("revision__user")
 
         context.update(
-            {'item': self.item,
-             'ra': self.RA,
-             'status': self.status,
+            {'item': item,
+             'ra': ra,
+             'status': status,
              'versions': versions,
              }
         )
-
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
-        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
-        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
-
-        return super().dispatch(request, args, kwargs)
 
 
 def extensions(request):

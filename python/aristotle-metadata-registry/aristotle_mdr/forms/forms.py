@@ -130,11 +130,9 @@ class CompareConceptsForm(forms.Form):
 
 
 class EditUserForm(ModelForm):
-
     profile_picture = MDR.PossumProfile._meta.get_field('profilePicture').formfield()
 
     class Meta:
-
         model = get_user_model()
         fields = ('email', 'full_name', 'short_name')
         labels = {
