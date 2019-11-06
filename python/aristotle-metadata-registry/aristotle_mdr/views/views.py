@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import Any
+from typing import Any, List
+
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -37,7 +38,6 @@ from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     TagsMixin
 )
-from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
@@ -72,7 +72,6 @@ class DynamicTemplateView(TemplateView):
 
 
 def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
-
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
     obj = model_class.objects.get(id=object_id)
@@ -352,7 +351,6 @@ class ObjectClassView(ConceptRenderView):
 
 
 class DataElementView(ConceptRenderView):
-
     objtype = MDR.DataElement
 
     def check_item(self, item):
@@ -727,7 +725,7 @@ class StatusHistory(IsSuperUserMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        versions = None
+        versions: List = []
 
         if user_can_view_statuses_revisions(self.request.user, self.RA):
             versions = Version.objects.get_for_object(self.status).select_related("revision__user")
