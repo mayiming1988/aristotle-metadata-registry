@@ -37,6 +37,7 @@ from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     TagsMixin
 )
+from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
@@ -725,7 +726,7 @@ class EditStatus(IsSuperUserMixin, UpdateView):
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
-class StatusHistory(TemplateView):
+class StatusHistory(IsSuperUserMixin, TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
     def get_context_data(self, **kwargs):
