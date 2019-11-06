@@ -727,35 +727,60 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id])
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, self.FORBIDDEN)
         self.assertRedirects(response, url)
 
         self.login_viewer()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, self.FORBIDDEN)
 
         self.login_regular_user()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, self.FORBIDDEN)
         self.logout()
 
         self.login_editor()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, self.FORBIDDEN)
         self.logout()
 
         self.login_superuser()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, self.FORBIDDEN)
         self.logout()
 
 
 class TestStatusViews(utils.AristotleTestUtils, TestCase):
-    def test_status_history_handles_if_no_reversion_history(self):
+    def test_status_history_displays_all_reversions(self):
+        """Test that status reversions are displayed correctly"""
+        self.login_superuser()
+        object_class = MDR.ObjectClass.objects.create(name="Object Class",
+                                                      definition="Object Class",
+                                                      submitter=self.editor)
+        status = MDR.Status.objects.create(
+            concept=object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            changeDetails=f"Registered"
+        )
+        for i in range(1, 6):
+            with reversion.create_revision():
+                status.registrationDate = datetime.date(2000 + i, 1, 1)
+                status.save()
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[status.id, object_class.id, self.ra.id])
+        )
+        self.assertEqual(response.status_code, self.OK)
+
+        versions = response.context['versions']
+        self.assertEqual(versions.count(), 5)
+
+    def test_status_history_handles_no_reversion_history(self):
         """Not all statuses will have a reversion, make sure the view doesn't fail if there are no status histories"""
         self.login_superuser()
         # Create an object class
@@ -833,3 +858,4 @@ class TestStatusViews(utils.AristotleTestUtils, TestCase):
 
         version = Version.objects.get_for_object(status).first()
         self.assertEqual(version.revision.comment, "I changed this because I slipped on my keyboard")
+
