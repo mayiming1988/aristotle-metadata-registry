@@ -6,17 +6,15 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
+    <h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
 
 
-<form action="" method="POST">
-    {% csrf_token %}
-<table class="table">
-{{ form.as_table }}
-</table>
-<a class="btn btn-danger" href="{% url 'aristotle:workgroup' item.id %}">Cancel</a>
-<button class="btn btn-primary" type="submit">Save changes</button>
-</form>
-
-</section>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <table class="table">
+            {{ form.as_table }}
+        </table>
+        <a class="btn btn-danger" href="{% url 'aristotle:workgroup' item.id %}">Cancel</a>
+        <button class="btn btn-primary" type="submit">Save changes</button>
+    </form>
 {% endblock %}
