@@ -164,7 +164,13 @@ class EditStatusForm(ModelForm):
     changeDetails = forms.CharField(
         max_length=512,
         required=True,
-        label=_("Why is the status being changed for these items?"),
+        label=_("Administrative note"),
+        widget=forms.Textarea
+    )
+    change_message = forms.CharField(
+        max_length=512,
+        required=False,
+        label=_("Change message"),
         widget=forms.Textarea
     )
 

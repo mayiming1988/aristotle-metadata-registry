@@ -43,6 +43,7 @@ from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
 from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.mixins import IsSuperUserMixin
+from aristotle_mdr.models import concept_visibility_updated
 
 from reversion.models import Version
 from reversion import revisions as reversion
@@ -713,12 +714,14 @@ class EditStatus(IsSuperUserMixin, UpdateView):
 
     @reversion.create_revision()
     def form_valid(self, form):
-        from aristotle_mdr.models import concept_visibility_updated
-        status_object = form.save()
+        status = form.save()
+
+        # Set the reversion message
         reversion.set_user(self.request.user)
-        reversion.set_comment(construct_change_message_for_form(form, self.model))
-        # Update the search engine indexation for the concept:
-        concept_visibility_updated.send(concept=status_object.concept, sender=type(status_object.concept))
+        reversion.set_comment(form.cleaned_data['change_message'])
+
+        # Update the search engine index for the concept:
+        concept_visibility_updated.send(concept=status.concept, sender=type(status.concept))
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
