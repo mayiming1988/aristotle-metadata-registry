@@ -174,7 +174,6 @@ class EditStatusForm(ModelForm):
 
 
 class NotificationPermissionsForm(forms.Form):
-
     notifications_json = JSONSchemaField(
         schema={
             "type": "object",

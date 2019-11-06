@@ -436,7 +436,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-
 class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
     """ Class to test the version permissions  """
 
@@ -627,8 +626,8 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         """Test that the status edit page 403s for any user but superusers"""
         self.logout()
         url = reverse('friendly_login') + '?next=' + reverse('aristotle:editStatus', args=[self.status.id,
-                                                                                              self.object_class.id,
-                                                                                              self.ra.id])
+                                                                                           self.object_class.id,
+                                                                                           self.ra.id])
         response = self.client.get(
             reverse('aristotle:editStatus', args=[self.status.id, self.object_class.id, self.ra.id])
         )
@@ -695,7 +694,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
     def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
         self.login_superuser()
 
-        # Because there are no versions yet.
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
 
@@ -705,7 +703,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.login_superuser()
 
         with reversion.revisions.create_revision():
-            MDR.Status.objects.update_or_create(
+            MDR.Status.objects.create(
                 concept=self.object_class,
                 registrationAuthority=self.ra,
                 defaults={
@@ -756,5 +754,82 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.logout()
 
 
+class TestStatusViews(utils.AristotleTestUtils, TestCase):
+    def test_status_history_handles_if_no_reversion_history(self):
+        """Not all statuses will have a reversion, make sure the view doesn't fail if there are no status histories"""
+        self.login_superuser()
+        # Create an object class
+        object_class = MDR.ObjectClass.objects.create(name="Object Class",
+                                                      definition="Object Class",
+                                                      submitter=self.editor)
+        # Register it without creating a reversion
+        status = MDR.Status.objects.create(
+            concept=object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1)
+        )
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[status.id, object_class.id, self.ra.id])
+        )
+        self.assertEqual(response.status_code, self.OK)
+        self.assertContains(response, "No history for")
 
+    def test_fields_are_set_correctly_when_editing_status(self):
+        """Test that the EditStatus view correctly sets fields when editing a status"""
+        self.login_superuser()
 
+        # Create an object class
+        object_class = MDR.ObjectClass.objects.create(name="Object Class",
+                                                      definition="Object Class",
+                                                      submitter=self.editor)
+        status = MDR.Status.objects.create(
+            concept=object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1)
+        )
+        data = {'state': 2,
+                'changeDetails': "Endorsed by my METADATA REGISTRY",
+                "registrationDate": datetime.date(2001, 1, 1)}
+
+        response = self.client.post(
+            reverse('aristotle:editStatus', args=[status.id, object_class.id, self.ra.id]),
+            data
+        )
+        status.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(status.state, 2)
+        self.assertEqual(status.changeDetails, "Endorsed by my METADATA REGISTRY")
+
+        self.assertEqual(status.registrationDate, datetime.date(2001, 1, 1))
+
+    def test_status_change_message_is_set_correctly(self):
+        """Test that the change message in the reversion is set correctly"""
+        self.login_superuser()
+
+        # Create an object class
+        object_class = MDR.ObjectClass.objects.create(name="Object",
+                                                      definition="Object",
+                                                      submitter=self.editor)
+
+        status = MDR.Status.objects.create(
+            concept=object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1)
+
+        )
+        data = {
+            "state": 2,
+            "registrationDate": datetime.date(2000, 1, 1),
+            "changeDetails": "Endorsed by MY METADATA REGISTRY",
+            "change_message": "I changed this because I slipped on my keyboard"
+        }
+
+        response = self.client.post(
+            reverse("aristotle:editStatus", args=[status.id, object_class.id, self.ra.id]),
+            data=data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        version = Version.objects.get_for_object(status).first()
+        self.assertEqual(version.revision.comment, "I changed this because I slipped on my keyboard")
