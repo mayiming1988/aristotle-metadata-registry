@@ -1,20 +1,18 @@
-from django.conf.urls import url
 from django.urls import path
 from aristotle_mdr_graphql.schema.schema import schema
-from aristotle_mdr_graphql.views import FancyGraphQLView, ExternalGraphqlView
-from django.views.generic import TemplateView
+from aristotle_mdr_graphql.views import FancyGraphQLView, ExternalGraphqlView, GraphQLWrapperView
 from django.views.decorators.csrf import csrf_exempt
 from textwrap import dedent
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name="aristotle_mdr_graphql/explorer.html"), name='graphql_explorer'),
-    url(r'^api', FancyGraphQLView.as_view(
+    path('', GraphQLWrapperView.as_view(), name='graphql_explorer'),
+    path('api', FancyGraphQLView.as_view(
         graphiql=True,
         schema=schema,
         default_query=dedent("""
             # This query fetches the name of the first 5 metadata items you
             # have permission to see
-            # Use the documentation on the right to build futher queries
+            # Use the documentation on the right to build further queries
 
             query {
               metadata (first: 5) {
@@ -28,5 +26,5 @@ urlpatterns = [
             }
             """)
     ), name='graphql_api'),
-    url('^json', csrf_exempt(ExternalGraphqlView.as_view()), name='external')
+    path('json', csrf_exempt(ExternalGraphqlView.as_view()), name='external')
 ]
