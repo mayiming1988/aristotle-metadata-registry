@@ -1,7 +1,8 @@
-from django.urls import re_path
+from django.urls import path
+
 from aristotle_mdr_api.v4.tags import views
 
 urlpatterns = [
-    re_path(r'item/(?P<iid>\d+)/$', views.ItemTagUpdateView.as_view(), name='item_tags'),
-    re_path(r'(?P<pk>\d+)/$', views.TagView.as_view(), name='tags'),
+    path('item/<int:iid>/', views.ItemTagUpdateView.as_view(), name='item_tags'),
+    path('<int:pk>/', views.TagView.as_view(), name='tags'),
 ]

@@ -5,29 +5,29 @@
 {% block title %}Clear view history{% endblock %}
 {% block content %}
 
-<form method="post" action="{% url 'clear_all_recently_viewed_metadata' %}">{% csrf_token %}
-    <div class="modal-body">
-        <ol class="breadcrumb">
-          <li><a href="{% url 'recently_viewed_metadata' %}">My Profile</a></li>
-          <li class="active">Clear view history</li>
-        </ol>
+    <form method="post" action="{% url 'clear_all_recently_viewed_metadata' %}">{% csrf_token %}
+        <div class="modal-body">
+            <ol class="breadcrumb">
+                <li><a href="{% url 'recently_viewed_metadata' %}">My Profile</a></li>
+                <li class="active">Clear view history</li>
+            </ol>
 
-        <p>
-            You are about to clear the history of metadata you have viewed.
-            This may reduce the relevance of your search results.
-            <strong>You cannot undo this action</strong>.
-        </p>
+            <p>
+                You are about to clear the history of metadata you have viewed.
+                This may reduce the relevance of your search results.
+                <strong>You cannot undo this action</strong>.
+            </p>
 
-    </div>
-    <div class="modal-footer">
-        {% if request.is_ajax %}
-            <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Cancel' %}</button>
-        {% else %}
-            <a class="btn btn-default" href="{% url 'recently_viewed_metadata' %}">{% trans 'Cancel' %}</a>
-        {% endif %}
-        <button type="submit" class="btn btn-danger" value="submit">
-            <i class="fa fa-trash-o"></i> {% trans 'Clear all history' %}
-        </button>
-    </div>
-</form>
+        </div>
+        <div class="modal-footer">
+            {% if request.is_ajax %}
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Cancel' %}</button>
+            {% else %}
+                <a class="btn btn-default" href="{% url 'recently_viewed_metadata' %}">{% trans 'Cancel' %}</a>
+            {% endif %}
+            <button type="submit" class="btn btn-danger" value="submit">
+                <i class="fa fa-trash-o"></i> {% trans 'Clear all history' %}
+            </button>
+        </div>
+    </form>
 {% endblock %}

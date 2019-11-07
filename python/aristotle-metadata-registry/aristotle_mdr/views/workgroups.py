@@ -148,7 +148,7 @@ class AddMembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermi
         return redirect(self.get_success_url())
 
     def get_initial(self):
-        return {'roles': self.request.GET.getlist('role')}
+        return {'role': 'submitter'}
 
     def get_success_url(self):
         return reverse("aristotle:workgroupMembers", args=[self.get_object().pk])
