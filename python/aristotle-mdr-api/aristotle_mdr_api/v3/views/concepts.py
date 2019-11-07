@@ -113,7 +113,6 @@ class ConceptViewSet(
         'list': ConceptListSerializer
     }
 
-
     def get_queryset(self):
         """
         Possible arguments include:

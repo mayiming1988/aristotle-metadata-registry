@@ -37,7 +37,6 @@ from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     TagsMixin
 )
-from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
@@ -48,6 +47,7 @@ from aristotle_mdr.mixins import IsSuperUserMixin
 from reversion.models import Version
 from reversion import revisions as reversion
 
+from collections import Counter
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -262,7 +262,18 @@ class ConceptRenderView(TagsMixin, TemplateView):
             else:
                 to_links.append(l)
 
+        owned_links = [self.serialize_link(link) for link in from_links]
+        to_links = [link for link in to_links if self.serialize_link(link) not in owned_links]
+
         return from_links, to_links
+
+    def serialize_link(self, link) -> Counter:
+        serialized_link = []
+        for linkend in link.linkend_set.all():
+            serialized_link.append(
+                (linkend.role_id, linkend.concept_id)
+            )
+        return Counter(serialized_link)
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -433,7 +444,6 @@ def create_list(request):
             'wizards': wizards
         }
     )
-
 
 def get_app_config_list():
     out = {}

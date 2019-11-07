@@ -431,7 +431,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(roles[0].definition, "Something that must be performed")
         self.assertEqual(roles[0].multiplicity, 1)
 
-
     def test_add_link_root_item_set(self):
         self.login_editor()
         response = self.reverse_get(
@@ -739,3 +738,68 @@ class TestLinkAssortedPages(LinkTestBase, TestCase):
         self.login_superuser()
         response = self.client.get(reverse('aristotle_mdr_links:link_json_for_item', args=[self.item1.pk]))
         self.assertEqual(response.status_code,200)
+
+
+class TestLinksConceptPages(LinkTestBase, TestCase):
+    def test_links_already_displayed_in_relationships_arent_duplicated(self):
+        """Check that when identical links are created from A->B and from B->A, that when the Item page for
+           A is viewed, that the additional link from B->A is not displayed"""
+        # Create a relation
+        see_also = models.Relation.objects.create(name="See Also", definition="See Also")
+        # Create a related role
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
+        )
+        # Owning item
+        owning_object_class = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        to_object_class = ObjectClass.objects.create(
+            name="To Object CLass",
+            definition="A definition",
+            workgroup=self.wg1,
+        )
+        owning_link = models.Link.objects.create(
+            relation=see_also,
+            root_item=owning_object_class
+        )
+        owning_linkend_1 = owning_link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        owning_linkend_2 = owning_link.add_link_end(
+            role=see_also_role,
+            concept=owning_object_class
+        )
+
+        to_link = models.Link.objects.create(
+            relation=see_also,
+            root_item=to_object_class
+        )
+        to_linkend_1 = to_link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        to_linkend_2 = to_link.add_link_end(
+            role=see_also_role,
+            concept=owning_object_class
+        )
+        # Go to the concept view page
+        self.login_viewer()
+        response = self.client.get(owning_object_class.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+
+        # Assert that the to_link has been removed
+        self.assertEqual(response.context['links_to'], [])
+
+
+
+
+
