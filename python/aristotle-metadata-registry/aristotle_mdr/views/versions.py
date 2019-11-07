@@ -17,7 +17,7 @@ from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.constants import REVERSION_FORMATS
 from aristotle_mdr.views.utils import SimpleItemGet
-from aristotle_mdr.utils.gitutils import strip_tags
+from aristotle_mdr.utils.utils import strip_tags
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField
