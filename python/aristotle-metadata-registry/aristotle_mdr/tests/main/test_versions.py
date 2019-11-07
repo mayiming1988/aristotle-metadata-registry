@@ -727,7 +727,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id])
         )
-        self.assertEqual(response.status_code, self.FORBIDDEN)
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, url)
 
         self.login_viewer()
