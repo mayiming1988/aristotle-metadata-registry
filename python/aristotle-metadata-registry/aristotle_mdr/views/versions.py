@@ -234,15 +234,6 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def check_item(self, item, version_permission):
-        """Permissions checking on version"""
-        # Will 403 Forbidden when user can't view the version
-        return self.user_can_view_version(self.request.user, item, version_permission)
-
-    def get_item(self, version):
-        """Get current item from version"""
-        return version.object
-
     def is_this_version_the_most_recent(self):
         """
         Check if the version passed is actually the most recent version for this item.
@@ -312,7 +303,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
     def get_viewable_concepts(self, field_data: Dict) -> Dict[int, MDR._concept]:
         """
-        Get all concepts linked from this version that are viewable by the user
+        Get all concepts linked from this version that are viewable by the user.
         """
         self.ids: List[int] = []
         self.uuids: List[str] = []
