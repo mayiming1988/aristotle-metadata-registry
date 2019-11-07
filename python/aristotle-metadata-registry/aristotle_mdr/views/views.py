@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, List
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -736,7 +736,7 @@ class StatusHistory(IsSuperUserMixin, TemplateView):
         ra = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
 
         context = super().get_context_data(**kwargs)
-        versions = []
+        versions: List = []
 
         if user_can_view_statuses_revisions(self.request.user, ra):
             versions = Version.objects.get_for_object(status).select_related("revision__user")
