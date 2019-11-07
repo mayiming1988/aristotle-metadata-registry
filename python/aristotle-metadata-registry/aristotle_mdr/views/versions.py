@@ -17,7 +17,7 @@ from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.constants import REVERSION_FORMATS
 from aristotle_mdr.views.utils import SimpleItemGet
-from aristotle_mdr.utils.utils import strip_tags
+from aristotle_mdr.utils.gitutils import strip_tags
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField
@@ -213,9 +213,8 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.version = self.get_version_object()
-        self.model = self.version.content_type.model_class()
-        self.is_most_recent = self.is_this_version_the_most_recent()
         self.item = self.version.object
+        self.model = self.version.content_type.model_class()
         self.is_most_recent = self.is_this_version_the_most_recent()
 
         if not issubclass(self.model, MDR._concept):  # Check it's a concept version
