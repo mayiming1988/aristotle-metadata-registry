@@ -445,6 +445,7 @@ def create_list(request):
         }
     )
 
+
 def get_app_config_list():
     out = {}
     aristotle_apps = fetch_metadata_apps()
