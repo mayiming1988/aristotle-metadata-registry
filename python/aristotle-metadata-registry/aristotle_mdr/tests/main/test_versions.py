@@ -706,15 +706,14 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             MDR.Status.objects.create(
                 concept=self.object_class,
                 registrationAuthority=self.ra,
-                defaults={
-                    'changeDetails': "My new details.",
-                    'state': MDR.STATES.candidate,
-                }
+                changeDetails="My new details",
+                state=MDR.STATES.candidate,
             )
             reversion.revisions.set_comment("This is an edit")
 
         response = self.client.get(
-            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id])
+        )
 
         self.assertEqual(len(response.context['versions']), 2)
 
@@ -750,7 +749,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.login_superuser()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, self.FORBIDDEN)
+        self.assertEqual(response.status_code, self.OK)
         self.logout()
 
 
