@@ -216,6 +216,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         self.model = self.version.content_type.model_class()
         self.is_most_recent = self.is_this_version_the_most_recent()
         self.item = self.version.object
+        self.is_most_recent = self.is_this_version_the_most_recent()
 
         if not issubclass(self.model, MDR._concept):  # Check it's a concept version
             raise Http404

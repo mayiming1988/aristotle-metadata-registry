@@ -436,16 +436,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
-    """Class to test the comparision of Value Domain specific fields"""
-
-    def setUp(self):
-        super().setUp()
-
-    def test_value_domain_changes_displayed(self):
-        """Test that values displayed are """
-        pass
-
 
 class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
     """ Class to test the version permissions  """
@@ -730,12 +720,41 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(len(response.context['versions']), 2)
 
-    def test_statuses_reversions_are_only_visible_to_superusers(self):
+    def test_status_reversion_page_only_visible_to_superusers(self):
+        """Test that the status reversion page 403s for any user but superusers"""
         self.logout()
-        self.login_editor()
+        url = reverse('friendly_login') + '?next=' + reverse('aristotle:statusHistory', args=[self.status.id,
+                                                                                              self.object_class.id,
+                                                                                              self.ra.id])
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, url)
 
+        self.login_viewer()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
 
-        # Vesions are not visible to editors at the moment. Maybe later we need to update test.
-        self.assertEquals(response.context['versions'], None)
+        self.login_regular_user()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 403)
+        self.logout()
+
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 200)
+        self.logout()
+
+
+
+
