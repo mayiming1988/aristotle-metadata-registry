@@ -253,7 +253,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_links(self) -> Tuple[List]:
+    def get_links(self) -> Tuple[List, List]:
         """Return all to-links and from-links for a particular concept"""
         from_links = []
         to_links = []
