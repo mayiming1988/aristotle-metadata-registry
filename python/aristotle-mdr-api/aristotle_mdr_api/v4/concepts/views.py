@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, UnAuthenticatedUserCanView
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
+from aristotle_mdr.views.versions import VersionsMixin
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
@@ -207,7 +208,7 @@ class ConceptLinksView(ObjectAPIView):
         )
 
 
-class ListVersionsView(ObjectAPIView):
+class ListVersionsView(ObjectAPIView, VersionsMixin):
     """ List the versions of an item  """
 
     def get(self, request, *args, **kwargs):
@@ -216,7 +217,7 @@ class ListVersionsView(ObjectAPIView):
         """
         # Get the versions
         metadata_item = self.get_object()
-        versions = reversion.models.Version.objects.get_for_object(metadata_item)
+        versions = self.get_versions(concept, self.request.user)
         versions = versions.order_by("-revision__date_created")
 
         # Serialize the versions
@@ -227,12 +228,12 @@ class ListVersionsView(ObjectAPIView):
             status.HTTP_200_OK)
 
 
-class ListVersionsPermissionsView(ObjectAPIView):
+class ListVersionsPermissionsView(ObjectAPIView, VersionsMixin):
     " List the version permissions of an item "
 
     def get(self, request, *args, **kwargs):
         metadata_item = self.get_object()
-        versions = reversion.models.Version.objects.get_for_object(metadata_item)
+        versions = self.get_versions(metadata_item, self.request.user)
         versions.order_by("-revision__date_created")
 
         # Lookup all the respective versions
@@ -247,7 +248,7 @@ class ListVersionsPermissionsView(ObjectAPIView):
                         status.HTTP_200_OK)
 
 
-class UpdateVersionPermissionsView(generics.ListAPIView):
+class UpdateVersionPermissionsView(generics.ListAPIView, VersionsMixin):
     """Updates the visibility permissions of all versions associated with an id"""
     version_ids: List = []
 
@@ -262,9 +263,9 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         self.item = get_object_or_404(_concept, pk=pk).item
         if not user_can_edit(self.request.user, self.item):
             raise PermissionDenied()
-        # Get associated versions
-        versions = reversion.models.Version.objects.filter(object_id=self.item.id)
 
+        # Get associated versions
+        versions = self.get_versions(self.item, self.request.user)
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)
@@ -300,15 +301,15 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         return self.update(request, *args, **kwargs)
 
 
-class GetVersionsPermissionsView(ObjectAPIView):
+class GetVersionsPermissionsView(ObjectAPIView, VersionsMixin):
     """ Gets the visibility permissions of a version """
 
     def get(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)
 
         metadata_item = self.get_object()
-        version = reversion.models.Version.objects.get_for_object(metadata_item)
-        version = version.filter(pk=version_pk).first()
+        version = self.get_versions()
+        version = version.filter(pk=version_pk)[0]
 
         # Get the versions viewing permissions
         version_permission = VersionPermissions.objects.get_object_or_none(version=version)

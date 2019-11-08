@@ -36,7 +36,6 @@ from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     TagsMixin
 )
-from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
@@ -74,7 +73,6 @@ class DynamicTemplateView(TemplateView):
 
 
 def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
-
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
     obj = model_class.objects.get(id=object_id)
@@ -343,7 +341,6 @@ class ConceptView(ConceptRenderView):
 
 
 class ObjectClassView(ConceptRenderView):
-
     objtype = MDR.ObjectClass
 
     def check_item(self, item):
@@ -355,7 +352,6 @@ class ObjectClassView(ConceptRenderView):
 
 
 class DataElementView(ConceptRenderView):
-
     objtype = MDR.DataElement
 
     def check_item(self, item):
