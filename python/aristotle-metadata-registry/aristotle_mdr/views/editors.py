@@ -1,5 +1,4 @@
 import reversion
-import uuid
 from django.http import HttpResponseRedirect
 from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
@@ -139,8 +138,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             extra_formsets.append({
                 'formset': slot_formset,
-                'title': 'Slots',
                 'type': 'slot',
+                'title': 'Slots',
                 'saveargs': None
             })
 
@@ -156,17 +155,18 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             extra_formsets.append({
                 'formset': recordrelation_formset,
-                'title': 'RecordRelation',
                 'type': 'record_relation',
+                'title': 'RecordRelation',
                 'saveargs': None
             })
 
         if self.reference_links_active:
+            from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
+
             recordrelation_formset = self.get_referencelinks_formset()(
                 instance=self.item.concept,
                 data=postdata
             )
-            from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
 
             # Override the queryset to restrict to the records the user has permission to view
             for record_relation_form in recordrelation_formset:
@@ -174,8 +174,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             extra_formsets.append({
                 'formset': recordrelation_formset,
-                'title': 'ReferenceLink',
                 'type': 'reference_links',
+                'title': 'ReferenceLink',
                 'saveargs': None
             })
 
@@ -188,8 +188,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             extra_formsets.append({
                 'formset': id_formset,
-                'title': 'Identifiers',
                 'type': 'identifiers',
+                'title': 'Identifiers',
                 'saveargs': None
             })
 
