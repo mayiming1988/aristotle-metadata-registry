@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, Tuple, List
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -252,11 +252,12 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_links(self):
+    def get_links(self) -> Tuple[List]:
+        """Return all to-links and from-links for a particular concept"""
         from_links = []
         to_links = []
 
-        for l in get_all_links_for_concept(self.item):
+        for l in get_all_links_for_concept(self.item, self.request.user):
             if l.root_item_id == self.item.pk:
                 from_links.append(l)
             else:

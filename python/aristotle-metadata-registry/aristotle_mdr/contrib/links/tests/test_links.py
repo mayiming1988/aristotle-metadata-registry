@@ -799,6 +799,46 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
         # Assert that the to_link has been removed
         self.assertEqual(response.context['links_to'], [])
 
+    def test_permission_checking_on_links(self):
+        see_also = models.Relation.objects.create(name="See Also", definition="See Also")
+        # Create a related role
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
+        )
+        # Owning item
+        owning_object_class = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        to_object_class = ObjectClass.objects.create(
+            name="To Object CLass",
+            definition="A definition",
+            workgroup=self.wg1,
+        )
+
+        link = models.Link.objects.create(
+            relation=see_also,
+            root_item=owning_object_class
+        )
+        linkend = link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        # Go to the concept view page
+        self.logout()
+        response = self.client.get(owning_object_class.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+
+        # Assert that the to_link has been removed
+        self.assertEqual(response.context['links_to'], [])
+
+
 
 
 
