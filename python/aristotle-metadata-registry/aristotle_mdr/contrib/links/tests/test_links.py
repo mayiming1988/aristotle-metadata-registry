@@ -3,13 +3,15 @@ from django.urls import reverse
 from django.test import TestCase, tag
 
 from aristotle_mdr.contrib.links import models, perms
-from aristotle_mdr.models import ObjectClass, STATES
+from aristotle_mdr.models import ObjectClass, STATES, Status
 from aristotle_mdr.tests import utils
 from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
+
+import datetime
 
 
 def setUpModule():
@@ -799,7 +801,8 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
         # Assert that the to_link has been removed
         self.assertEqual(response.context['links_to'], [])
 
-    def test_permission_checking_on_links(self):
+    def test_permission_checking_on_link_for_unauthenticated_user(self):
+        """Check that a link to an item the user does not have permission to see is not published"""
         see_also = models.Relation.objects.create(name="See Also", definition="See Also")
         # Create a related role
         see_also_role = models.RelationRole.objects.create(
@@ -809,34 +812,49 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
             ordinal=1,
             relation=see_also
         )
-        # Owning item
-        owning_object_class = ObjectClass.objects.create(
+        # Root object class
+        root_object_class = ObjectClass.objects.create(
             name="Owning Item",
             definition="Definition",
             workgroup=self.wg1,
+        )
+        # Make the main item publicly accessible
+        Status.objects.create(
+            concept=root_object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            state=STATES.standard,
         )
         to_object_class = ObjectClass.objects.create(
             name="To Object CLass",
             definition="A definition",
             workgroup=self.wg1,
         )
-
         link = models.Link.objects.create(
             relation=see_also,
-            root_item=owning_object_class
+            root_item=root_object_class
         )
-        linkend = link.add_link_end(
+        link.add_link_end(
             role=see_also_role,
             concept=to_object_class
         )
-        # Go to the concept view page
+        link.add_link_end(
+            role=see_also_role,
+            concept=root_object_class
+        )
         self.logout()
-        response = self.client.get(owning_object_class.get_absolute_url())
-
+        response = self.client.get(root_object_class.get_absolute_url())
         self.assertEqual(response.status_code, 200)
 
-        # Assert that the to_link has been removed
+        # Assert that the to_link has been removed for the unauthenticated user
+        self.assertEqual(response.context['links_from'], [])
         self.assertEqual(response.context['links_to'], [])
+
+        # Assert that the link is there for a superuser
+        self.login_superuser()
+        response = self.client.get(root_object_class.get_absolute_url())
+        self.assertEqual(response.context['links_from'], [link])
+
 
 
 
