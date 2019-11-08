@@ -33,30 +33,29 @@ class RelationViewPage(LoggedInViewConceptPages, TestCase):
                 multiplicity=3,
             )
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='definition')
 
 
 class RelationAdminPage(AdminPageForConcept, TestCase):
     itemType = models.Relation
     form_defaults = {
-        'relationrole_set-TOTAL_FORMS':0,
-        'relationrole_set-INITIAL_FORMS':0,
-        'relationrole_set-MAX_NUM_FORMS':1,
+        'relationrole_set-TOTAL_FORMS': 0,
+        'relationrole_set-INITIAL_FORMS': 0,
+        'relationrole_set-MAX_NUM_FORMS': 1,
     }
 
 
 class RelationCreationWizard(ConceptWizardPage, TestCase):
-    model=models.Relation
+    model = models.Relation
 
     @tag('edit_formsets')
     def test_weak_editor_during_create(self):
-
         self.login_editor()
 
         item_name = 'My New Relation'
         step_1_data = {
-            self.wizard_form_name+'-current_step': 'initial',
+            self.wizard_form_name + '-current_step': 'initial',
             'initial-name': item_name,
         }
 
@@ -66,10 +65,10 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
         self.assertEqual(wizard['steps'].current, 'results')
 
         step_2_data = {
-            self.wizard_form_name+'-current_step': 'results',
-            'initial-name':item_name,
-            'results-name':item_name,
-            'results-definition':"Test Definition",
+            self.wizard_form_name + '-current_step': 'results',
+            'initial-name': item_name,
+            'results-name': item_name,
+            'results-definition': "Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
 
@@ -86,9 +85,9 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.assertTrue(self.model.objects.filter(name=item_name).exists())
-        self.assertEqual(self.model.objects.filter(name=item_name).count(),1)
+        self.assertEqual(self.model.objects.filter(name=item_name).count(), 1)
         item = self.model.objects.filter(name=item_name).first()
-        self.assertRedirects(response,url_slugify_concept(item))
+        self.assertRedirects(response, url_slugify_concept(item))
 
         roles = item.relationrole_set.all().order_by('ordinal')
 
@@ -145,12 +144,12 @@ class LinkTestBase(utils.AristotleTestUtils):
             root_item=self.item1
         )
         self.link1_end1 = self.link1.add_link_end(
-            role = self.relation_role1,
-            concept = self.item1
+            role=self.relation_role1,
+            concept=self.item1
         )
         self.link1_end2 = self.link1.add_link_end(
-            role = self.relation_role2,
-            concept = self.item2
+            role=self.relation_role2,
+            concept=self.item2
         )
 
         self.link2 = models.Link.objects.create(
@@ -158,12 +157,12 @@ class LinkTestBase(utils.AristotleTestUtils):
             root_item=self.item2
         )
         self.link2_end1 = self.link2.add_link_end(
-            role = self.relation_role1,
-            concept = self.item2
+            role=self.relation_role1,
+            concept=self.item2
         )
         self.link2_end2 = self.link2.add_link_end(
-            role = self.relation_role2,
-            concept = self.item4
+            role=self.relation_role2,
+            concept=self.item4
         )
 
         self.blank_relation = models.Relation.objects.create(
@@ -228,7 +227,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.get(self.item2.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.relation.name)
-        self.assertFalse(perms.user_can_change_link(self.editor,self.link2))
+        self.assertFalse(perms.user_can_change_link(self.editor, self.link2))
         self.assertNotContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]))
 
     def test_editor_user_can_view_some_edit_link_pages(self):
@@ -238,15 +237,14 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.post(
             reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]),
             {
-                "role_%s"%self.relation_role1.pk: [self.item1.pk],
-                "role_%s"%self.relation_role2.pk: [self.item3.pk]
+                "role_%s" % self.relation_role1.pk: [self.item1.pk],
+                "role_%s" % self.relation_role2.pk: [self.item3.pk]
             }
         )
         self.assertTrue(self.item1 in self.link1.concepts())
         self.assertTrue(self.item3 not in self.link1.concepts())
         self.assertTrue(self.item2 in self.link1.concepts())
         self.assertEqual(response.status_code, 403)
-
 
         response = self.client.get(reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]))
         self.assertEqual(response.status_code, 200)
@@ -256,8 +254,8 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.post(
             reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]),
             {
-                "role_%s"%self.relation_role1.pk: [self.item1.pk],
-                "role_%s"%self.relation_role2.pk: [self.item3.pk]
+                "role_%s" % self.relation_role1.pk: [self.item1.pk],
+                "role_%s" % self.relation_role2.pk: [self.item3.pk]
             }
         )
         self.assertEqual(response.status_code, 302)  # Success!
@@ -286,7 +284,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertContains(response, "add_link_wizard-current_step")
 
         step_0_data = {
-            self.wizard_form_name+'-current_step': '0',
+            self.wizard_form_name + '-current_step': '0',
         }
 
         response = self.client.post(self.wizard_url, step_0_data)
@@ -307,19 +305,18 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(response.status_code, 200)
 
         step_1_data = {
-            self.wizard_form_name+'-current_step': '1',
+            self.wizard_form_name + '-current_step': '1',
             '1-role': self.relation_role1.pk
         }
         response = self.client.post(self.wizard_url, step_1_data)
         self.assertEqual(response.status_code, 200)
         self.assertWizardStep(response, 2)
 
-
         step_2_data = {
-            self.wizard_form_name+'-current_step': '2'
+            self.wizard_form_name + '-current_step': '2'
         }
         for role in self.relation.relationrole_set.all():
-            step_2_data.update({'2-role_%s'%role.pk: self.item1.id})
+            step_2_data.update({'2-role_%s' % role.pk: self.item1.id})
 
         response = self.client.post(self.wizard_url, step_2_data)
         wizard = response.context['wizard']
@@ -329,7 +326,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertWizardStep(response, 3)
 
         step_3_data = {
-            self.wizard_form_name+'-current_step': '3'
+            self.wizard_form_name + '-current_step': '3'
         }
         response = self.client.post(self.wizard_url, step_3_data)
         self.assertRedirects(response, finish_url, fetch_redirect_response=False)
@@ -430,7 +427,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(roles[0].name, "A role")
         self.assertEqual(roles[0].definition, "Something that must be performed")
         self.assertEqual(roles[0].multiplicity, 1)
-
 
     def test_add_link_root_item_set(self):
         self.login_editor()
@@ -691,23 +687,23 @@ class TestLinkPages(LinkTestBase, TestCase):
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):
         user = self.su
-        self.assertTrue(perms.user_can_change_link(user,self.link1))
-        self.assertTrue(perms.user_can_change_link(user,self.link2))
+        self.assertTrue(perms.user_can_change_link(user, self.link1))
+        self.assertTrue(perms.user_can_change_link(user, self.link2))
 
     def test_editor_can_edit_some_links(self):
         user = self.editor
-        self.assertTrue(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertTrue(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_viewer_can_edit_no_links(self):
         user = self.viewer
-        self.assertFalse(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertFalse(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_registrar_can_edit_no_links(self):
         user = self.registrar
-        self.assertFalse(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertFalse(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_who_can_make_links(self):
         # Anyone who has an active account is an editor, so everyone can make links
@@ -729,8 +725,8 @@ class TestLinkPerms(LinkTestBase, TestCase):
 
         with self.assertRaises(ValidationError):
             self.link_end_bad = self.new_link.add_link_end(
-                role = self.relation_role1,
-                concept = self.item1
+                role=self.relation_role1,
+                concept=self.item1
             )
 
 
@@ -738,4 +734,4 @@ class TestLinkAssortedPages(LinkTestBase, TestCase):
     def test_link_json_page(self):
         self.login_superuser()
         response = self.client.get(reverse('aristotle_mdr_links:link_json_for_item', args=[self.item1.pk]))
-        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.status_code, 200)
