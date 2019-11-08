@@ -1,6 +1,5 @@
 import sys
 import tempfile
-import dj_database_url
 from aristotle_mdr.required_settings import *
 import os
 
