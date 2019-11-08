@@ -1,5 +1,7 @@
 import json
 import logging
+from typing import Any, List
+
 from typing import Any, Tuple, List
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
@@ -72,7 +74,6 @@ class DynamicTemplateView(TemplateView):
 
 
 def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
-
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
     obj = model_class.objects.get(id=object_id)
@@ -353,7 +354,6 @@ class ConceptView(ConceptRenderView):
 
 
 class ObjectClassView(ConceptRenderView):
-
     objtype = MDR.ObjectClass
 
     def check_item(self, item):
@@ -365,7 +365,6 @@ class ObjectClassView(ConceptRenderView):
 
 
 class DataElementView(ConceptRenderView):
-
     objtype = MDR.DataElement
 
     def check_item(self, item):
@@ -740,7 +739,7 @@ class StatusHistory(IsSuperUserMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        versions = None
+        versions: List = []
 
         if user_can_view_statuses_revisions(self.request.user, self.RA):
             versions = Version.objects.get_for_object(self.status).select_related("revision__user")
