@@ -708,6 +708,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
                 registrationAuthority=self.ra,
                 changeDetails="My new details",
                 state=MDR.STATES.candidate,
+                registrationDate=datetime.date(2000, 1,1)
             )
             reversion.revisions.set_comment("This is an edit")
 
@@ -715,7 +716,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id])
         )
 
-        self.assertEqual(len(response.context['versions']), 2)
+        self.assertEqual(len(response.context['versions']), 1)
 
     def test_status_reversion_page_only_visible_to_superusers(self):
         """Test that the status reversion page 403s for any user but superusers"""
