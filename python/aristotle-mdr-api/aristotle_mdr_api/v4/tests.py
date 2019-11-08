@@ -401,7 +401,6 @@ class CustomFieldsTestCase(BaseAPITestCase):
             format='json'
         )
         self.assertEqual(response.status_code, 200)
-
         self.assertEqual(cf_models.CustomField.objects.all().count(), 2)
 
         # Check that the system names are set correctly in the database

@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 standard_fields = ('uuid', 'concept_type','visibility_status',)
+
+
 class ConceptSerializerBase(serializers.ModelSerializer):
     concept_type = serializers.SerializerMethodField()
     visibility_status = serializers.SerializerMethodField()
@@ -41,10 +43,12 @@ class ConceptSerializerBase(serializers.ModelSerializer):
         out = {"public":instance.is_public(),'locked':instance.is_locked()}
         return out
 
+
 class ConceptListSerializer(DescriptionStubSerializerMixin,ConceptSerializerBase):
     class Meta:
         model = models._concept
         fields = standard_fields + ('definition', 'name')
+
 
 class ConceptDetailSerializer(ConceptSerializerBase):
     fields = serializers.SerializerMethodField('get_extra_fields')
