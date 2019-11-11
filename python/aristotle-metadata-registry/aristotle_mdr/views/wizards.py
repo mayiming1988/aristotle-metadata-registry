@@ -703,7 +703,7 @@ class DataElementWizard(MultiStepAristotleWizard):
         ("find_de_from_comp", MDRForms.wizards.DE_Find_DE_Results_from_components),
         ("find_dec_results", MDRForms.wizards.DE_Find_DEC_Results),
         ("make_dec", MDRForms.wizards.subclassed_wizard_2_Results(MDR.DataElementConcept)),
-        ("make_vd", MDRForms.wizards.subclassed_wizard_2_Results(MDR.ValueDomain)),
+        ("make_vd", MDRForms.wizards.subclassed_wizard_2_Results(MDR.DataElementConcept)),
         ("find_de_results", MDRForms.wizards.DE_Find_DE_Results),
         ("completed", MDRForms.wizards.DE_Complete),
     ]

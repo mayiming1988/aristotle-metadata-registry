@@ -19,11 +19,11 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr', '0028_replace_old_ded_through'),
-        ('aristotle_mdr_slots', '0006_auto_20180531_0337')
+        # ('aristotle_mdr_slots', '0006_auto_20180531_0337')
     ]
 
     operations = [
-        migrations.RunPython(add_slots, reverse_add_slots),
+        # migrations.RunPython(add_slots, reverse_add_slots),
         migrations.RemoveField(
             model_name='_concept',
             name='short_name',

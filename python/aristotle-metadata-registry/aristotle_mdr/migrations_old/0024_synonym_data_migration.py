@@ -40,9 +40,9 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr', '0023_auto_20180206_0332'),
-        ('aristotle_mdr_slots', '0004_switch_to_concept_relations')
+        # ('aristotle_mdr_slots', '0004_switch_to_concept_relations')
     ]
 
     operations = [
-        migrations.RunPython(add_slots, reverse_add_slots),
+        # migrations.RunPython(add_slots, reverse_add_slots),
     ]

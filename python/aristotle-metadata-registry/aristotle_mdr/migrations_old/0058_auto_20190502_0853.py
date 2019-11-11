@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr', '0057_auto_20190329_1609'),
-        ('aristotle_mdr_custom_fields', '0002_auto_20190212_1805'),
+        # ('aristotle_mdr_custom_fields', '0002_auto_20190212_1805'),
         ('contenttypes', '0002_remove_content_type_name'),
     ]
 

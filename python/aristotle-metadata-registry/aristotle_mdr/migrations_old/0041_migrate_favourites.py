@@ -33,9 +33,9 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr', '0040_rename_favourites'),
-        ('aristotle_mdr_favourites', '0004_auto_20180913_2021')
+        # ('aristotle_mdr_favourites', '0004_auto_20180913_2021')
     ]
 
     operations = [
-        migrations.RunPython(migrate_favs_forward, migrate_favs_backward)
+        # migrations.RunPython(migrate_favs_forward, migrate_favs_backward)
     ]
