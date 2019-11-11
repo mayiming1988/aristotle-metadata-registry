@@ -42,23 +42,22 @@ class RelationViewPage(LoggedInViewConceptPages, TestCase):
 class RelationAdminPage(AdminPageForConcept, TestCase):
     itemType = models.Relation
     form_defaults = {
-        'relationrole_set-TOTAL_FORMS':0,
-        'relationrole_set-INITIAL_FORMS':0,
-        'relationrole_set-MAX_NUM_FORMS':1,
+        'relationrole_set-TOTAL_FORMS': 0,
+        'relationrole_set-INITIAL_FORMS': 0,
+        'relationrole_set-MAX_NUM_FORMS': 1,
     }
 
 
 class RelationCreationWizard(ConceptWizardPage, TestCase):
-    model=models.Relation
+    model = models.Relation
 
     @tag('edit_formsets')
     def test_weak_editor_during_create(self):
-
         self.login_editor()
 
         item_name = 'My New Relation'
         step_1_data = {
-            self.wizard_form_name+'-current_step': 'initial',
+            self.wizard_form_name + '-current_step': 'initial',
             'initial-name': item_name,
         }
 
@@ -68,10 +67,10 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
         self.assertEqual(wizard['steps'].current, 'results')
 
         step_2_data = {
-            self.wizard_form_name+'-current_step': 'results',
-            'initial-name':item_name,
-            'results-name':item_name,
-            'results-definition':"Test Definition",
+            self.wizard_form_name + '-current_step': 'results',
+            'initial-name': item_name,
+            'results-name': item_name,
+            'results-definition': "Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
 
@@ -88,9 +87,9 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.assertTrue(self.model.objects.filter(name=item_name).exists())
-        self.assertEqual(self.model.objects.filter(name=item_name).count(),1)
+        self.assertEqual(self.model.objects.filter(name=item_name).count(), 1)
         item = self.model.objects.filter(name=item_name).first()
-        self.assertRedirects(response,url_slugify_concept(item))
+        self.assertRedirects(response, url_slugify_concept(item))
 
         roles = item.relationrole_set.all().order_by('ordinal')
 
@@ -147,12 +146,12 @@ class LinkTestBase(utils.AristotleTestUtils):
             root_item=self.item1
         )
         self.link1_end1 = self.link1.add_link_end(
-            role = self.relation_role1,
-            concept = self.item1
+            role=self.relation_role1,
+            concept=self.item1
         )
         self.link1_end2 = self.link1.add_link_end(
-            role = self.relation_role2,
-            concept = self.item2
+            role=self.relation_role2,
+            concept=self.item2
         )
 
         self.link2 = models.Link.objects.create(
@@ -160,12 +159,12 @@ class LinkTestBase(utils.AristotleTestUtils):
             root_item=self.item2
         )
         self.link2_end1 = self.link2.add_link_end(
-            role = self.relation_role1,
-            concept = self.item2
+            role=self.relation_role1,
+            concept=self.item2
         )
         self.link2_end2 = self.link2.add_link_end(
-            role = self.relation_role2,
-            concept = self.item4
+            role=self.relation_role2,
+            concept=self.item4
         )
 
         self.blank_relation = models.Relation.objects.create(
@@ -202,36 +201,100 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]))
 
     def test_anon_user_cannot_view_edit_links(self):
-        self.ra.register(
-            item=self.item1,
-            state=self.ra.public_state,
-            user=self.su
+        see_also = models.Relation.objects.create(name="See Also", definition="See Also")
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
+        )
+        # Root object class
+        root_object_class = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        # Make the main item publicly accessible
+        Status.objects.create(
+            concept=root_object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            state=STATES.standard,
+        )
+        to_object_class = ObjectClass.objects.create(
+            name="To Object CLass",
+            definition="A definition",
+            workgroup=self.wg1,
+        )
+        Status.objects.create(
+            concept=to_object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            state=STATES.standard
+        )
+
+        link = models.Link.objects.create(
+            relation=see_also,
+            root_item=root_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=root_object_class
         )
         self.logout()
-        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(root_object_class.get_absolute_url())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.relation.name)
+        self.assertContains(response, see_also)
         self.assertNotContains(response, "Edit link")
-        self.assertNotContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]))
+        self.assertNotContains(response, reverse('aristotle_mdr_links:edit_link', args=[link.pk]))
 
     def test_editor_user_can_view_edit_links(self):
-        self.login_editor()
-        response = self.client.get(self.item1.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.relation.name)
-        self.assertContains(response, "Edit link")
-        self.assertContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]))
+        """Test that an editor can view editor links for items they have permission to see"""
+        see_also = models.Relation.objects.create(name="Relation",
+                                                  definition="Not really necessary",
+                                                  workgroup=self.wg1)
 
-        self.ra.register(
-            item=self.item2,
-            state=self.ra.public_state,
-            user=self.su
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
         )
-        response = self.client.get(self.item2.get_absolute_url())
+        root_object_class = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        to_object_class = ObjectClass.objects.create(
+            name="To Object CLass",
+            definition="A definition",
+            workgroup=self.wg1,
+        )
+        link = models.Link.objects.create(
+            relation=see_also,
+            root_item=root_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=root_object_class
+        )
+
+        self.login_editor()
+        response = self.client.get(root_object_class.get_absolute_url())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.relation.name)
-        self.assertFalse(perms.user_can_change_link(self.editor,self.link2))
-        self.assertNotContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]))
+        self.assertContains(response, see_also)
+        self.assertContains(response, "Edit link")
+        self.assertContains(response, reverse('aristotle_mdr_links:edit_link', args=[link.pk]))
 
     def test_editor_user_can_view_some_edit_link_pages(self):
         self.login_editor()
@@ -240,15 +303,14 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.post(
             reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]),
             {
-                "role_%s"%self.relation_role1.pk: [self.item1.pk],
-                "role_%s"%self.relation_role2.pk: [self.item3.pk]
+                "role_%s" % self.relation_role1.pk: [self.item1.pk],
+                "role_%s" % self.relation_role2.pk: [self.item3.pk]
             }
         )
         self.assertTrue(self.item1 in self.link1.concepts())
         self.assertTrue(self.item3 not in self.link1.concepts())
         self.assertTrue(self.item2 in self.link1.concepts())
         self.assertEqual(response.status_code, 403)
-
 
         response = self.client.get(reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]))
         self.assertEqual(response.status_code, 200)
@@ -258,8 +320,8 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.post(
             reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]),
             {
-                "role_%s"%self.relation_role1.pk: [self.item1.pk],
-                "role_%s"%self.relation_role2.pk: [self.item3.pk]
+                "role_%s" % self.relation_role1.pk: [self.item1.pk],
+                "role_%s" % self.relation_role2.pk: [self.item3.pk]
             }
         )
         self.assertEqual(response.status_code, 302)  # Success!
@@ -288,7 +350,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertContains(response, "add_link_wizard-current_step")
 
         step_0_data = {
-            self.wizard_form_name+'-current_step': '0',
+            self.wizard_form_name + '-current_step': '0',
         }
 
         response = self.client.post(self.wizard_url, step_0_data)
@@ -309,19 +371,18 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(response.status_code, 200)
 
         step_1_data = {
-            self.wizard_form_name+'-current_step': '1',
+            self.wizard_form_name + '-current_step': '1',
             '1-role': self.relation_role1.pk
         }
         response = self.client.post(self.wizard_url, step_1_data)
         self.assertEqual(response.status_code, 200)
         self.assertWizardStep(response, 2)
 
-
         step_2_data = {
-            self.wizard_form_name+'-current_step': '2'
+            self.wizard_form_name + '-current_step': '2'
         }
         for role in self.relation.relationrole_set.all():
-            step_2_data.update({'2-role_%s'%role.pk: self.item1.id})
+            step_2_data.update({'2-role_%s' % role.pk: self.item1.id})
 
         response = self.client.post(self.wizard_url, step_2_data)
         wizard = response.context['wizard']
@@ -331,7 +392,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertWizardStep(response, 3)
 
         step_3_data = {
-            self.wizard_form_name+'-current_step': '3'
+            self.wizard_form_name + '-current_step': '3'
         }
         response = self.client.post(self.wizard_url, step_3_data)
         self.assertRedirects(response, finish_url, fetch_redirect_response=False)
@@ -527,7 +588,6 @@ class TestLinkPages(LinkTestBase, TestCase):
                 'relation': str(self.relation.pk)
             }
         ]
-
         response = self.post_to_wizard(
             wizard_data,
             reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
@@ -575,13 +635,56 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertNotContains(response, 'alert alert-danger')
 
     def test_link_viewable_from_root(self):
+        """Test that a link is viewable from the root item"""
 
-        self.login_viewer()
-        response = self.reverse_get(
-            'aristotle:item',
-            reverse_args=[self.item1.id, 'objectclass', 'item1'],
-            status_code=200
+        see_also = models.Relation.objects.create(name="Relation", definition="Not really necessary")
+
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
         )
+        # Root object class
+        root_object_class = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        # Make the main item publicly accessible
+        Status.objects.create(
+            concept=root_object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            state=STATES.standard,
+        )
+        to_object_class = ObjectClass.objects.create(
+            name="To Object CLass",
+            definition="A definition",
+            workgroup=self.wg1,
+        )
+        Status.objects.create(
+            concept=to_object_class,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2000, 1, 1),
+            state=STATES.standard
+        )
+        link = models.Link.objects.create(
+            relation=see_also,
+            root_item=root_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=to_object_class
+        )
+        link.add_link_end(
+            role=see_also_role,
+            concept=root_object_class
+        )
+        self.login_viewer()
+        response = self.client.get(root_object_class.get_absolute_url())
+
         self.assertContains(response, '<h2>Relationships</h2>')
         self.assertEqual(len(response.context['links_from']), 1)
 
@@ -692,23 +795,23 @@ class TestLinkPages(LinkTestBase, TestCase):
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):
         user = self.su
-        self.assertTrue(perms.user_can_change_link(user,self.link1))
-        self.assertTrue(perms.user_can_change_link(user,self.link2))
+        self.assertTrue(perms.user_can_change_link(user, self.link1))
+        self.assertTrue(perms.user_can_change_link(user, self.link2))
 
     def test_editor_can_edit_some_links(self):
         user = self.editor
-        self.assertTrue(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertTrue(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_viewer_can_edit_no_links(self):
         user = self.viewer
-        self.assertFalse(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertFalse(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_registrar_can_edit_no_links(self):
         user = self.registrar
-        self.assertFalse(perms.user_can_change_link(user,self.link1))
-        self.assertFalse(perms.user_can_change_link(user,self.link2))
+        self.assertFalse(perms.user_can_change_link(user, self.link1))
+        self.assertFalse(perms.user_can_change_link(user, self.link2))
 
     def test_who_can_make_links(self):
         # Anyone who has an active account is an editor, so everyone can make links
@@ -730,8 +833,8 @@ class TestLinkPerms(LinkTestBase, TestCase):
 
         with self.assertRaises(ValidationError):
             self.link_end_bad = self.new_link.add_link_end(
-                role = self.relation_role1,
-                concept = self.item1
+                role=self.relation_role1,
+                concept=self.item1
             )
 
 
@@ -739,7 +842,7 @@ class TestLinkAssortedPages(LinkTestBase, TestCase):
     def test_link_json_page(self):
         self.login_superuser()
         response = self.client.get(reverse('aristotle_mdr_links:link_json_for_item', args=[self.item1.pk]))
-        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.status_code, 200)
 
 
 class TestLinksConceptPages(LinkTestBase, TestCase):
@@ -854,10 +957,3 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
         self.login_superuser()
         response = self.client.get(root_object_class.get_absolute_url())
         self.assertEqual(response.context['links_from'], [link])
-
-
-
-
-
-
-
