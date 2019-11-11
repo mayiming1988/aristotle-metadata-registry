@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        # ('aristotle_mdr', '0075_auto_20190916_1602'),
+        ('aristotle_mdr', '0075_auto_20190916_1602'),
     ]
 
     replaces = [
