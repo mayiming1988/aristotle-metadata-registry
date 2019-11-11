@@ -90,7 +90,7 @@ class Link(TimeStampedModel):
 
 class LinkEnd(TimeStampedModel):  # 9.1.2.7
     link = models.ForeignKey(Link, on_delete=models.CASCADE)
-    role = models.ForeignKey(RelationRole, blank=True, null=True, on_delete=models.CASCADE, to_field='id')
+    role = models.ForeignKey(RelationRole, on_delete=models.CASCADE)
     concept = ConceptForeignKey(MDR._concept, on_delete=models.CASCADE)
 
     def clean(self):
