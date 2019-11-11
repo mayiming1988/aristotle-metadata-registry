@@ -40,8 +40,7 @@ class PublishedMixin(object):
 
     def public(self):
         """
-        Returns a queryset that returns all published items that the given user has
-        permission to view.
+        Returns a queryset that returns all published items
 
         It is **chainable** with other querysets.
         """

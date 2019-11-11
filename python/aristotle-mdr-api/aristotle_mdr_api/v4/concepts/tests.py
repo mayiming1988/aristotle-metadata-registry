@@ -9,7 +9,7 @@ from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_
 
 import reversion
 from reversion.models import Version
-
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -211,7 +211,7 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_api_updates_version_permissions(self):
-        self.login_user()
+        self.login_superuser()
 
         post_data = [{
             "version_id": self.version_with_permission.id,
@@ -244,7 +244,8 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_api_can_create_version_permissions(self):
-        self.login_user()
+        """Test that the API works to create version permissions"""
+        self.login_superuser()
 
         post_data = [{
             "version_id": self.version_without_permission.id,
@@ -265,7 +266,9 @@ class ConceptAPITestCase(BaseAPITestCase):
             VISIBILITY_PERMISSION_CHOICES.workgroup)
 
     def test_api_cant_edit_non_item_version_permissions(self):
-        self.login_user()
+        """Test that a request including the version permission for another item does not edit the
+         version permission for another item"""
+        self.login_superuser()
 
         post_data = [
             {"version_id": self.version_with_permission.id,
@@ -278,14 +281,52 @@ class ConceptAPITestCase(BaseAPITestCase):
             reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
             post_data, format='json'
         )
-
         self.assertEqual(response.status_code, 400)
 
         # Assert that no visibility object was created in the database
-
         self.assertIsNone(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission))
 
         # Check that the other version permissions were not updated
-        self.assertEqual(VersionPermissions.objects.get_object_or_none
-                             (version=self.version_with_permission).visibility,
-                         VISIBILITY_PERMISSION_CHOICES.workgroup)
+        self.assertEqual(VersionPermissions.objects.get_object_or_none(version=self.version_with_permission).visibility,
+                         VISIBILITY_PERMISSION_CHOICES.workgroup
+                         )
+
+    def test_superuser_can_list_version_permissions(self):
+        """"""
+        self.login_superuser()
+        object_class = mdr_models.ObjectClass.objects.create(name="Object Class",
+                                                             definition="Is this an object class?",
+                                                             workgroup=self.wg,
+                                                             stewardship_organisation=self.so)
+        with reversion.create_revision():
+            object_class.definition = "Yes, it is an object class"
+            object_class.save()
+
+        versions = Version.objects.get_for_object(object_class)
+        self.assertEqual(versions.count(), 1)
+
+        response = self.client.get(
+            reverse('api_v4:item:list-version-permissions', args=[object_class.id])
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual({"permissions": [{}]}, json.loads(response.content))
+
+    def test_regular_user_not_in_workgroup_cannot_list_version_permissions(self):
+        self.login_user()
+
+        object_class = mdr_models.ObjectClass.objects.create(name="Object Class",
+                                                             definition="Is this an object class?",
+                                                             workgroup=self.wg,
+                                                             stewardship_organisation=self.so)
+        with reversion.create_revision():
+            object_class.definition = "Yes, it is an object class"
+            object_class.save()
+
+        versions = Version.objects.get_for_object(object_class)
+        self.assertEqual(versions.count(), 1)
+
+        response = self.client.get(
+            reverse('api_v4:item:list-version-permissions', args=[object_class.id])
+        )
+        self.assertEqual(response.status_code, 403)
