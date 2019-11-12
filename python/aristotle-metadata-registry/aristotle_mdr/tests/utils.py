@@ -851,6 +851,13 @@ class TimingTestUtils:
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
                          WizardTestUtils, FormsetTestUtils, TimingTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
+    OK = 200
+    MOVED_PERMANENTLY = 301
+    FOUND = 302
+    BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    FORBIDDEN = 403
+    NOT_FOUND = 404
 
     def favourite_item(self, user, item):
         from aristotle_mdr.contrib.favourites.models import Favourite, Tag
