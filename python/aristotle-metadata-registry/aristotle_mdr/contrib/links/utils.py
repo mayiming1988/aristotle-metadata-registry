@@ -27,9 +27,10 @@ def get_all_links_for_concept(concept, user):
     )
     # Restrict it down to only the visible concepts
     visible_concepts = set(_concept.objects.all().visible(user).values_list('pk', flat=True))
+    visible_links = []
     for link in links:
         for linkend in link.linkend_set.all():
-            if linkend.concept.pk not in visible_concepts:
-                links = links.exclude(pk=link.pk)
+            if linkend.concept.pk in visible_concepts:
+                visible_links.append(link)
 
-    return links
+    return visible_links
