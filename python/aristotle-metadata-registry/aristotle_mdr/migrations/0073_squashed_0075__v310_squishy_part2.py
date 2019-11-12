@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr_backwards', '0004_auto_20190503_1505'),
+        ('aristotle_mdr_backwards', '0001_squashed_0004_squish'),
         ('aristotle_mdr_review_requests', '0005_auto_20190809_1233'),
         ('aristotle_mdr', '0001_squashed_0072__v310_squishy_part1'),
     ]
