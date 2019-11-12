@@ -337,7 +337,8 @@ BLEACH_ALLOWED_ATTRIBUTES = {
     'tr': ['colspan', 'rowspan'],
     'th': ['colspan', 'rowspan'],
     'colgroup': ['span'],
-    'col': ['span']
+    'col': ['span'],
+    'strong': ['title'],
 }
 
 # Validators

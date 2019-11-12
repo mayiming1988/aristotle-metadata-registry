@@ -1,17 +1,15 @@
+import json
 from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
-from django.views.generic import View
+from django.views.generic import View, TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import Http404, HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
-
-from aristotle_mdr_api.token_auth.mixins import TokenAuthMixin
-from aristotle_mdr_graphql.schema.schema import schema  # Is that enought schema
-
 from graphene_django.views import GraphQLView
 from graphql.error import format_error
-import json
+from aristotle_mdr_api.token_auth.mixins import TokenAuthMixin
+from aristotle_mdr_graphql.schema.schema import schema  # Is that enough schema
 
 import logging
 logger = logging.getLogger(__name__)
@@ -23,6 +21,10 @@ class GraphqlEnabledMixin:
         if not settings.GRAPHQL_ENABLED:
             raise Http404
         return super().dispatch(request, *args, **kwargs)
+
+
+class GraphQLWrapperView(GraphqlEnabledMixin, TemplateView):
+    template_name = "aristotle_mdr_graphql/explorer.html"
 
 
 class FancyGraphQLView(GraphqlEnabledMixin, GraphQLView):

@@ -35,7 +35,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     changeDetails = forms.CharField(
         max_length=512,
         required=True,
-        label=_("Why is the status being changed for these items?"),
+        label=_("Administrative Note"),
         widget=forms.Textarea
     )
     registrationAuthorities = forms.ChoiceField(
@@ -130,11 +130,9 @@ class CompareConceptsForm(forms.Form):
 
 
 class EditUserForm(ModelForm):
-
     profile_picture = MDR.PossumProfile._meta.get_field('profilePicture').formfield()
 
     class Meta:
-
         model = get_user_model()
         fields = ('email', 'full_name', 'short_name')
         labels = {
@@ -164,13 +162,18 @@ class EditStatusForm(ModelForm):
     changeDetails = forms.CharField(
         max_length=512,
         required=True,
-        label=_("Why is the status being changed for these items?"),
+        label=_("Administrative note"),
+        widget=forms.Textarea
+    )
+    change_message = forms.CharField(
+        max_length=512,
+        required=False,
+        label=_("Change message"),
         widget=forms.Textarea
     )
 
 
 class NotificationPermissionsForm(forms.Form):
-
     notifications_json = JSONSchemaField(
         schema={
             "type": "object",
