@@ -199,7 +199,7 @@ class ConceptSerializerFactory():
         else:
             return field.name
 
-    def _get_relation_fields(self, model_class):
+    def get_relation_fields(self, model_class):
         """
         Internal helper function to get related fields
         Returns a tuple of fields
@@ -246,7 +246,7 @@ class ConceptSerializerFactory():
                             'workgroup', 'submitter')
 
         concept_fields = self._get_concept_fields(concept_class)
-        relation_fields = self._get_relation_fields(concept_class)
+        relation_fields = self.get_relation_fields(concept_class)
 
         included_fields = concept_fields + relation_fields + universal_fields
 
