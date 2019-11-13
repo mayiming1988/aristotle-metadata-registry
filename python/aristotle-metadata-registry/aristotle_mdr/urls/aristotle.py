@@ -86,7 +86,7 @@ urlpatterns = [
     path('item/<int:iid>/objectclass/<slug:name_slug>/', views.ObjectClassView.as_view(), name='objectclass_view'),
     re_path(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
     re_path(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
-    re_path(r'^item/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
+    path('item/<uuid:uuid>/', views.concept_by_uuid, name='item_uuid'),
 
     re_path(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.MeasureView.as_view(), name='measure'),
     path('managed_items/<slug:model_slug>/<int:iid>', view=views.ManagedItemView.as_view(), name='view_managed_item'),
@@ -101,10 +101,7 @@ urlpatterns = [
     path('download/options/<slug:download_type>/', views.downloads.DownloadOptionsView.as_view(), name='download_options'),
     path('download/bulk/<slug:download_type>/', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
     path('download/<slug:download_type>/<int:iid>/', views.downloads.DownloadView.as_view(), name='download'),
-    re_path('dlstatus/(?P<taskid>[a-z0-9\-]+)/?$',
-            views.downloads.DownloadStatusView.as_view(),
-            name='download_status',
-            ),
+    path('dlstatus/<str:taskid>/', views.downloads.DownloadStatusView.as_view(), name='download_status'),
 
     path('action/supersede/<int:iid>', views.actions.SupersedeItemView.as_view(), name='supersede'),
     path('action/proposed/supersede/<int:iid>', views.actions.ProposedSupersedeItemView.as_view(), name='proposed_supersede'),
