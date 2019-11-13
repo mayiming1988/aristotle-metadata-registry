@@ -101,7 +101,10 @@ urlpatterns = [
     path('download/options/<slug:download_type>/', views.downloads.DownloadOptionsView.as_view(), name='download_options'),
     path('download/bulk/<slug:download_type>/', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
     path('download/<slug:download_type>/<int:iid>/', views.downloads.DownloadView.as_view(), name='download'),
-    path('dlstatus/<str:taskid>/', views.downloads.DownloadStatusView.as_view(), name='download_status'),
+    re_path(r'^dlstatus/(?P<taskid>[a-z0-9\-]+)/?$',
+            views.downloads.DownloadStatusView.as_view(),
+            name='download_status',
+            ),
 
     path('action/supersede/<int:iid>', views.actions.SupersedeItemView.as_view(), name='supersede'),
     path('action/proposed/supersede/<int:iid>', views.actions.ProposedSupersedeItemView.as_view(), name='proposed_supersede'),
