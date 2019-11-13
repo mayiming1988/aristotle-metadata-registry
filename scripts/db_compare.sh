@@ -66,7 +66,7 @@ dump_database() {
         --no-owner \
         --no-privileges \
         --user postgres \
-        $1 | python "${top}/scripts/sqlsort.py" > $2
+        $1 | python3 "${top}/scripts/sqlsort.py" > $2
 }
 
 # Backup from each branch
