@@ -54,6 +54,7 @@ backup_from_branch() {
 }
 
 # Dump database schema to sql commands
+# Output is passed through sql sort
 # Argument 1: Name of database
 # Argument 2: Path to file for output
 dump_database() {
@@ -63,7 +64,7 @@ dump_database() {
         --no-owner \
         --no-privileges \
         --user postgres \
-        $1 > $2
+        $1 | python "${top}/scripts/sqlsort.py" > $2
 }
 
 # Backup from each branch
