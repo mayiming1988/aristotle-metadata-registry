@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, List
+from typing import Any, Tuple, List
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -49,6 +49,7 @@ from reversion import revisions as reversion
 from typing import Dict
 
 
+from collections import Counter
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -252,17 +253,29 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_links(self):
+    def get_links(self) -> Tuple[List, List]:
+        """Return all to-links and from-links for a particular concept"""
         from_links = []
         to_links = []
 
-        for l in get_all_links_for_concept(self.item):
+        for l in get_all_links_for_concept(self.item, self.request.user):
             if l.root_item_id == self.item.pk:
                 from_links.append(l)
             else:
                 to_links.append(l)
 
+        owned_links = [self.serialize_link(link) for link in from_links]
+        to_links = [link for link in to_links if self.serialize_link(link) not in owned_links]
+
         return from_links, to_links
+
+    def serialize_link(self, link) -> Counter:
+        serialized_link = []
+        for linkend in link.linkend_set.all():
+            serialized_link.append(
+                (linkend.role_id, linkend.concept_id)
+            )
+        return Counter(serialized_link)
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
