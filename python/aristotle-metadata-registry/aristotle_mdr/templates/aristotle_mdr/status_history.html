@@ -17,42 +17,49 @@
     <h2>
         Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
     </h2>
-
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th scope="col">{% trans 'Date/time' %}</th>
-            <th>{% trans 'Date registration effective' %}</th>
-            <th>{% trans 'Date registration expires' %}</th>
-            <th>{% trans 'State' %}</th>
-            <th scope="col">{% trans 'User' %}</th>
-            <th scope="col">{% trans 'Comment' %}</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for version in versions %}
+    {% if versions %}
+        <table class="table table-striped">
+            <thead>
             <tr>
-                <th scope="row">
-                    {% if version.url %}
-                        <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
-                    {% else %}
-                        {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
-                    {% endif %}
-                </th>
-                <td>{{ version.field_dict.registrationDate }}</td>
-                <td>{{ version.field_dict.until_date }}</td>
-                <td>{{ version.field_dict.state|state_to_text }}</td>
-                <td>
-                    {% if version.revision.user %}
-                        {{ version.revision.user.display_name }}
-                    {% endif %}
-                </td>
-                <td>
-                    {{version.revision.comment|linebreaks|default:"-"}}
-                </td>
+                <th scope="col">{% trans 'Date/time' %}</th>
+                <th>{% trans 'Date registration effective' %}</th>
+                <th>{% trans 'Date registration expires' %}</th>
+                <th>{% trans 'State' %}</th>
+                <th scope="col">{% trans 'User' %}</th>
+                <th scope="col">{% trans 'Administrative note' %}</th>
+                <th scope="col">{% trans 'Change comment' %}</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for version in versions %}
+                <tr>
+                    <th scope="row">
+                        {% if version.url %}
+                            <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
+                        {% else %}
+                            {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
+                        {% endif %}
+                    </th>
+                    <td>{{ version.field_dict.registrationDate }}</td>
+                    <td>{{ version.field_dict.until_date }}</td>
+                    <td>{{ version.field_dict.state|state_to_text }}</td>
+                    <td>
+                        {% if version.revision.user %}
+                            {{ version.revision.user.display_name }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ version.field_dict.changeDetails }}
+                    </td>
+                    <td>
+                        {{version.revision.comment|linebreaks|default:"-"}}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+    <div class="well well-sm">No history for {{ item.name }} found </div>]
+    {% endif %}
 
 {% endblock %}
