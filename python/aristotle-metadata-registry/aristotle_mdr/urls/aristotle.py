@@ -82,21 +82,21 @@ urlpatterns = [
     path('item/<int:iid>/child_states/', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
     # Concept page overrides
-    path('item/<int:iid>/dataelement/<path:name_slug>/', views.DataElementView.as_view(), name='dataelement'),
-    path('item/<int:iid>/objectclass/<path:name_slug>/', views.ObjectClassView.as_view(), name='objectclass_view'),
+    path('item/<int:iid>/dataelement/<slug:name_slug>/', views.DataElementView.as_view(), name='dataelement'),
+    path('item/<int:iid>/objectclass/<slug:name_slug>/', views.ObjectClassView.as_view(), name='objectclass_view'),
     re_path(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
     re_path(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     re_path(r'^item/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     re_path(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.MeasureView.as_view(), name='measure'),
-    path('managed_items/<path:model_slug>/<path:iid>', view=views.ManagedItemView.as_view(), name='view_managed_item'),
+    path('managed_items/<slug:model_slug>/<int:iid>', view=views.ManagedItemView.as_view(), name='view_managed_item'),
 
     # path('create/', views.item, name='item'),
     path('create/', views.create_list, name='create_list'),
     path('create/wizard/aristotle_mdr/dataelementconcept', views.wizards.DataElementConceptWizard.as_view(), name='createDataElementConcept'),
     path('create/wizard/aristotle_mdr/dataelement', views.wizards.DataElementWizard.as_view(), name='createDataElement'),
-    path('create/<path:app_label>/<path:model_name>/', views.wizards.create_item, name='createItem'),
-    path('create/<path:model_name>/', views.wizards.create_item, name='createItem'),
+    path('create/<slug:app_label>/<str:model_name>/', views.wizards.create_item, name='createItem'),
+    path('create/<str:model_name>/', views.wizards.create_item, name='createItem'),
 
     path('download/options/<slug:download_type>/', views.downloads.DownloadOptionsView.as_view(), name='download_options'),
     path('download/bulk/<slug:download_type>/', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),

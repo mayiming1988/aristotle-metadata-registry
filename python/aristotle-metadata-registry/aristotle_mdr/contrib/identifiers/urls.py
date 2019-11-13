@@ -3,7 +3,7 @@ from aristotle_mdr.contrib.identifiers.views import scoped_identifier_redirect, 
 
 
 urlpatterns = [
-    path('identifier/<path:ns_prefix>/<path:iid>/<path:version>', scoped_identifier_redirect, name='scoped_identifier_redirect_version'),
-    path('identifier/<path:ns_prefix>/<path:iid>', scoped_identifier_redirect, name='scoped_identifier_redirect'),
-    path('identifier/<path:ns_prefix>', namespace_redirect, name='namespace_redirect'),
+    path('identifier/<str:ns_prefix>/<int:iid>/<str:version>', scoped_identifier_redirect, name='scoped_identifier_redirect_version'),
+    path('identifier/<str:ns_prefix>/<int:iid>', scoped_identifier_redirect, name='scoped_identifier_redirect'),
+    path('identifier/<str:ns_prefix>', namespace_redirect, name='namespace_redirect'),
 ]
