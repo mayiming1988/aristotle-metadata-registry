@@ -2,7 +2,7 @@
 set -e
 about="Compare the database schema for aristotle from 2 different git branches"
 usage="Usage: $0 oldbranch newbranch"
-helptext="$about\n\n$usage"
+helptext="${about}\n\n${usage}"
 
 if [[ -z "$1" || -z "$2" || "$1" == "--help" ]]; then
     echo -e "$helptext"
@@ -11,9 +11,11 @@ fi
 
 # Get top of repo
 top="$(git rev-parse --show-toplevel)"
-outputdir="$top"
+# Get current git branch
+current_branch="$(git symbolic-ref --short HEAD)"
 
 # Set variables
+outputdir="$top"
 branch_old="$1"
 branch_new="$2"
 # Get database names from branch names with slahes and dots replaced by "_"
@@ -70,6 +72,9 @@ dump_database() {
 # Backup from each branch
 backup_from_branch $branch_old $dbname_old
 backup_from_branch $branch_new $dbname_new
+
+# Checkout back to original branch
+git checkout $current_branch
 
 # pg_dump from each database
 dump_database $dbname_old $fname_old
