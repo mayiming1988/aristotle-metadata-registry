@@ -2,18 +2,15 @@ import reversion
 import json as JSON
 from rest_framework import serializers
 from drf_writable_nested import WritableNestedModelSerializer
-
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-
 from aristotle_mdr.models import (
     aristotleComponent,
     _concept
 )
-from aristotle_mdr import utils
 from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
@@ -27,7 +24,6 @@ from aristotle_mdr.contrib.serializers.concept_general_field_subserializers impo
     CustomValuesSerializer,
     OrganisationRecordsSerializer,
 )
-
 from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers import (
     PermissibleValueSerializer,
     SupplementaryValueSerializer,
@@ -60,28 +56,31 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
 
     def validate(self, attrs):
 
-        for field_name, data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
-            if type(data) is list:
-                if self.instance is None:
-                    for elem in data:
-                        if 'id' in elem:
-                            msg = _("Parameter `id` is not allowed in POST requests for metadata creation.")
-                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                        if 'pk' in elem:
-                            msg = _("Parameter `pk` is not allowed in POST requests for metadata creation.")
-                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
+        request = self.context.get("request")
+
+        for field_name, field_data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
+
+            if type(field_data) is list:
+                if request.method == 'POST':
+                    for fk_dict in field_data:
+                        for key in ['id', 'pk', 'uuid']:
+                            if key in fk_dict:
+                                msg = _("Parameter `{}` is not allowed in POST requests for metadata creation.".format(key))
+                                raise serializers.ValidationError(msg, code='Aristotle API Request Error')
                 else:
                     if not hasattr(self.instance, field_name):
-                        msg = _('Object {} of type `{}` does not have any field named "{}"'.format(
-                            self.instance, type(self.instance), field_name)
+                        msg = _(
+                            'Object `{}` of type `{}` does not have any field named `{}`'.format(
+                                self.instance, type(self.instance), field_name
+                            )
                         )
                         raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                    allowed_ids_for_object_field = set(getattr(self.instance, field_name).values_list('id', flat=True))
-                    for elem in data:
-                        subcomponent_id = elem.get('id')
-                        if subcomponent_id and subcomponent_id not in allowed_ids_for_object_field:
-                            msg = _('Id {} does not match with any existing id for {} in {}.'.format(
-                                subcomponent_id, field_name, self.instance)
+                    allowed_identifiers = set([str(i) for i in getattr(self.instance, field_name).values_list('pk', flat=True)])
+                    for fk_dict in field_data:
+                        subcomponent_identifier = fk_dict.get('id')
+                        if subcomponent_identifier and subcomponent_identifier not in allowed_identifiers:
+                            msg = _('Item id `{}` does not match with any existing identifier for `{}` in `{}`.'.format(
+                                subcomponent_identifier, field_name, self.instance)
                             )
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
@@ -192,7 +191,7 @@ class ConceptSerializerFactory:
         """
         fields = []
         for field in model_class._meta.get_fields():
-            if not field.is_relation or field.many_to_one:  # Exclude data field or foreign key field
+            if not field.is_relation or field.many_to_one:  # Exclude data fields or foreign key fields
                 if not field.name.startswith('_'):  # Don't serialize internal fields
                     fields.append(field.name)
 

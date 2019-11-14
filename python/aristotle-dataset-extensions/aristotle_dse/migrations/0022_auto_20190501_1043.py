@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from aristotle_mdr.utils.migrations import CustomFieldMover
+from aristotle_mdr.utils.migration_utils import CustomFieldMover
 
 
 class Migration(migrations.Migration):
@@ -33,4 +33,3 @@ class Migration(migrations.Migration):
             custom_field_kwargs={"order": 1},
         ),
     ]
-    

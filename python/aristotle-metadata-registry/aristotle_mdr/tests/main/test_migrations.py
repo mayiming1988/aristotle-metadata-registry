@@ -1,14 +1,13 @@
-from aristotle_mdr import models
-from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.models import STATES
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
-
+from unittest import skip
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from unittest import skip
+from aristotle_mdr import models
+from aristotle_mdr.contrib.slots import models as slots_models
+from aristotle_mdr.models import STATES
+from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
+from aristotle_mdr.utils import migration_utils
 
 
 class TestUtils(TestCase):
@@ -60,12 +59,11 @@ class TestUtils(TestCase):
         oc1 = models.ObjectClass.objects.get(id=oc1.id)
         self.assertEqual(oc1.version, '2.222')
 
-
+@skip("Old migration test. It will be squashed.")
 class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
     """Test that the addition of the unique system_name field, and the
        generation of the system_name is working effectively """
     app = 'aristotle_mdr_custom_fields'
-
     migrate_from = '0010_customfield_system_name'
     migrate_to = '0011_customfield_generate_system_name'
 
@@ -138,7 +136,7 @@ class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
         collided_field_2 = CustomField.objects.get(pk=self.collided_field_2.pk)
         self.assertRegex(collided_field_2.system_name, r'\d')
 
-
+@skip("Old migration test. It will be squashed.")
 class TestSynonymMigration(MigrationsTestCase, TestCase):
     migrate_from = '0023_auto_20180206_0332'
     migrate_to = '0024_synonym_data_migration'
@@ -167,7 +165,7 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
         self.assertEqual(syn_slot.concept.definition, self.oc1.definition)
         self.assertEqual(syn_slot.value, 'great')
 
-
+@skip("Old migration test. It will be squashed.")
 class TestDedMigration(MigrationsTestCase, TestCase):
     migrate_from = '0026_auto_20180411_2323'
     migrate_to = '0027_add_ded_through_models'
@@ -208,7 +206,6 @@ class TestDedMigration(MigrationsTestCase, TestCase):
         ded_obj = ded.objects.get(pk=self.ded1.pk)
 
         # Test through objects order
-
         items = ded_inputs_through.objects.filter(data_element_derivation=ded_obj)
         self.assertEqual(len(items), 1)
         item = items[0]
@@ -225,7 +222,7 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
         self.assertEqual(set(de_pks), set(orig_de_pks))
 
-
+@skip("Old migration test. It will be squashed.")
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
     app = 'aristotle_mdr_user_management'
     migrate_from = '0001_initial'
@@ -249,7 +246,7 @@ class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
         self.assertFalse(user.objects.filter(email='FIRST@example.com').exists())
         self.assertFalse(user.objects.filter(email='Second@example.com').exists())
 
-
+@skip("Old migration test. It will be squashed.")
 class TestRaActiveMigration(MigrationsTestCase, TestCase):
     migrate_from = '0032_add_new_active'
     migrate_to = '0033_ra_levels'
@@ -346,6 +343,7 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
         )
 
 
+@skip("Old migration test. It will be squashed.")
 @tag('favsmigration')
 class TestFavouritesMigration(MigrationsTestCase, TestCase):
     migrate_from = '0040_rename_favourites'
@@ -383,8 +381,8 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
         self.assertEqual(itemfavs.count(), 1)
 
 
+@skip("Old migration test. It will be squashed.")
 class TestLinkRootMigration(MigrationsTestCase, TestCase):
-    app = 'aristotle_mdr_links'
     migrate_from = [
         ('aristotle_mdr', '0046_auto_20181107_0433'),
         ('aristotle_mdr_links', '0006_link_root_item'),
@@ -448,8 +446,8 @@ class TestLinkRootMigration(MigrationsTestCase, TestCase):
         self.assertEqual(link.root_item.id, self.item1.id)
 
 
+@skip("Old migration test. It will be squashed.")
 class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
-    app = 'aristotle_mdr'
     migrate_from = '0046_auto_20181107_0433'
     migrate_to = '0049_make_non_nullable_so'
 
@@ -500,6 +498,72 @@ class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
         #     self.ra.created == self.org.created
         # )
         self.ra = RAClass.objects.get(pk=self.ra.pk)
-        print(self.ra)  # .stewardship_organisation)
-
         self.assertTrue(self.ra.stewardship_organisation == s_org)
+
+
+class UUIDToPrimaryKeyTestBaseForAbstractValues(MigrationsTestCase, TestCase):
+
+    def setUpBeforeMigration(self, apps):
+        self.ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
+        self.PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
+        self.ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
+        self.ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
+
+        self.conceptual_domain = self.ConceptualDomain.objects.create(
+            name="Test Conceptual Domain"
+        )
+
+        self.vd = self.ValueDomain.objects.create(
+            name="My ValueDomain",
+            definition="My definition"
+        )
+
+        self.value_meaning = self.ValueMeaning.objects.create(
+            name="test Value Meaning",
+            definition="test definition",
+            conceptual_domain=self.conceptual_domain,
+            order=0,
+        )
+
+
+class TestUUIDFieldDataMigration(UUIDToPrimaryKeyTestBaseForAbstractValues):
+    migrate_from = '0079_add_temp_field'
+    migrate_to = '0080_copy_and_paste_foreign_value'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        self.permissible_value = self.PermissibleValue.objects.create(
+            order=0,
+            value='A',
+            meaning='Apple',
+            valueDomain=self.vd,
+            value_meaning=self.value_meaning
+        )
+
+    def test_value_meaning_data_has_been_copy_pasted_to_value_meaning_temp_uuid_field(self):
+        self.permissible_value.refresh_from_db()
+        self.assertEqual(self.permissible_value.value_meaning_temp, self.permissible_value.value_meaning.uuid)
+
+
+class TestForeignKeyDataWasCopyPasted(UUIDToPrimaryKeyTestBaseForAbstractValues):
+    migrate_from = '0082_add_foreign_key_field'
+    migrate_to = '0083_copy_and_paste_to_foreign_key'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+        self.permissible_value = self.PermissibleValue.objects.create(
+            order=0,
+            value='A',
+            meaning='Apple',
+            valueDomain=self.vd,
+            value_meaning_temp=self.value_meaning.uuid
+        )
+
+    def test_foreign_key_data_was_copy_pasted(self):
+        PermissibleValue = self.apps.get_model('aristotle_mdr', 'PermissibleValue')
+        pv = PermissibleValue.objects.last()
+        self.permissible_value.refresh_from_db()
+        self.assertTrue(PermissibleValue._meta.get_field('value_meaning').is_relation)  # The new field is a foreign key (relation) field.
+        self.assertEqual(self.permissible_value.value_meaning, self.value_meaning)  # Check that new foreign key is working.
+        self.assertEqual(pv.value_meaning.uuid, self.value_meaning.uuid)  # Check that new foreign key is working.

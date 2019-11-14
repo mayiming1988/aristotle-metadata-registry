@@ -5,36 +5,36 @@ import uuid
 
 
 def generate_uuids_for_dedderivesthrough(apps, schema_editor):
-    model = apps.get_model('aristotle_mdr', 'dedderivesthrough')
-    for row in model.objects.all():
+    DedDerivesThrough = apps.get_model('aristotle_mdr', 'dedderivesthrough')
+    for row in DedDerivesThrough.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 
 
 def generate_uuids_for_dedinputsthrough(apps, schema_editor):
-    model = apps.get_model('aristotle_mdr', 'dedinputsthrough')
-    for row in model.objects.all():
+    DedInputsThrough = apps.get_model('aristotle_mdr', 'dedinputsthrough')
+    for row in DedInputsThrough.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 
 
 def generate_uuids_for_permissiblevalue(apps, schema_editor):
-    model = apps.get_model('aristotle_mdr', 'permissiblevalue')
-    for row in model.objects.all():
+    PermissibleValue = apps.get_model('aristotle_mdr', 'permissiblevalue')
+    for row in PermissibleValue.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 
 
 def generate_uuids_for_supplementaryvalue(apps, schema_editor):
-    model = apps.get_model('aristotle_mdr', 'supplementaryvalue')
-    for row in model.objects.all():
+    SupplementaryValue = apps.get_model('aristotle_mdr', 'supplementaryvalue')
+    for row in SupplementaryValue.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 
 
 def generate_uuids_for_valuemeaning(apps, schema_editor):
-    model = apps.get_model('aristotle_mdr', 'valuemeaning')
-    for row in model.objects.all():
+    ValueMeaning = apps.get_model('aristotle_mdr', 'valuemeaning')
+    for row in ValueMeaning.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 

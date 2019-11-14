@@ -353,6 +353,7 @@
         },
         "django-reversion-compare": {
             "hashes": [
+                "sha256:989e9d3937446c6e9b6200dc5d8562f75140b0fce4ecd4c24bc472f6b3f80528",
                 "sha256:a0e77925d8f373f7536c6749aa197a136a55246765ac2c1b456244fdd8b086bb",
                 "sha256:c7b08298b5ce93ccd07a639c6506842649e5f4efd8ffd53317a08323456add15"
             ],
@@ -394,6 +395,12 @@
                 "sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99"
             ],
             "version": "==0.15.2"
+        },
+        "drf-writable-nested": {
+            "hashes": [
+                "sha256:5c54eca93d74dc22014fb7ea54b6dbd559a058587596feba4d79078e32a83e16"
+            ],
+            "version": "==0.5.1"
         },
         "drf-yasg": {
             "hashes": [
@@ -594,6 +601,7 @@
             "hashes": [
                 "sha256:05f1c631e8d9ab877886955da825e48b459e097886a21448ab17b34c60cfd66c",
                 "sha256:6a866c9659e62a81abd72cdb32b400762d76085b964beb0b15106d573a539677",
+                "sha256:a315a665c266db28fb751891d0661fe5e750ced812cb4eadb3ce63afba9a7475",
                 "sha256:ef1da35b78d534197e7ce4a604a4a190e9aa769e56634957535f3479a50d8cd1"
             ],
             "version": "==0.6.1"
@@ -685,7 +693,7 @@
         "pypandoc": {
             "editable": true,
             "git": "https://github.com/harrywhite4/pypandoc",
-            "ref": "2a17a9eedd30732ad5a05bbc130a3d46f8ac9c62"
+            "ref": "master"
         },
         "pypdf2": {
             "hashes": [
@@ -873,18 +881,18 @@
     "develop": {
         "boto3": {
             "hashes": [
-                "sha256:03130f43e15f02af7040946f7d4ebbba410fba5ee210b48ca8ba8407d2960b87",
-                "sha256:0b294a58635ed882a3821854f00264e6b3e65f2114c85c64109ad2280c7d5608"
+                "sha256:3f8e0517760b8d3c03d72edd9f9e6dbd6974446fba8fc931fd174720651ba7d5",
+                "sha256:d0cc24b5199b8ee4d0330a3245c377c45e2435cd7b190ce8d485f5f9a9ae8c40"
             ],
             "index": "pypi",
-            "version": "==1.10.5"
+            "version": "==1.10.7"
         },
         "botocore": {
             "hashes": [
-                "sha256:13bf9d0d9b9cda278349c9ba0c35c96570795438d5bd29e5188e110b3f5a5183",
-                "sha256:cfce2c7d6a218d693ed6daa8a41040761e35d7a728d1cf43ae14c4132fb146f3"
+                "sha256:3601ad3bc81ae87481572bbbe753f5177e5e380f86f184a9e95b3164710d616f",
+                "sha256:a2905b7c916e30469be6912b9e1a4361116b1ea35618876fdb621b160d13e095"
             ],
-            "version": "==1.13.5"
+            "version": "==1.13.7"
         },
         "cachetools": {
             "hashes": [
@@ -991,7 +999,8 @@
         "django-tools": {
             "hashes": [
                 "sha256:a5765d40f816436a46f214bf178484361ce45dafcff2e753b8ced3db5daef037",
-                "sha256:c81b7fd467a036c9d7d5bff0b907cbd50a7bee30f49bdb81ca6fa285524a069c"
+                "sha256:c81b7fd467a036c9d7d5bff0b907cbd50a7bee30f49bdb81ca6fa285524a069c",
+                "sha256:eb651abd0a4ea4fa9ef27d3996060f03c0d504135bf1db265cc756256b5222a4"
             ],
             "index": "pypi",
             "version": "==0.45.3"

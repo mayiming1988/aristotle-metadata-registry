@@ -1,4 +1,4 @@
-from aristotle_mdr.contrib.serializers.utils import SubSerializer, UUIDRelatedField
+from aristotle_mdr.contrib.serializers.utils import AristotleComponentSerializer
 from aristotle_mdr.models import (
     SupplementaryValue,
     PermissibleValue,
@@ -9,42 +9,42 @@ from aristotle_mdr.models import (
 from aristotle_mdr.contrib.links.models import RelationRole
 
 
-class PermissibleValueSerializer(SubSerializer):
+class PermissibleValueSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = PermissibleValue
-        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id', 'uuid']  # TODO: CHANGE THE UUID TO BE UUIDRelatedField.
+        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
 
 
-class SupplementaryValueSerializer(SubSerializer):
+class SupplementaryValueSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = SupplementaryValue
         fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
 
 
-class ValueMeaningSerializer(SubSerializer):
+class ValueMeaningSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = ValueMeaning
         exclude = ('conceptual_domain',)
 
 
-class DedInputsThroughSerializer(SubSerializer):
+class DedInputsThroughSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = DedInputsThrough
         exclude = ('data_element_derivation',)
 
 
-class DedDerivesThroughSerializer(SubSerializer):
+class DedDerivesThroughSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = DedDerivesThrough
         exclude = ('data_element_derivation',)
 
 
-class RelationRoleSerializer(SubSerializer):
+class RelationRoleSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = RelationRole

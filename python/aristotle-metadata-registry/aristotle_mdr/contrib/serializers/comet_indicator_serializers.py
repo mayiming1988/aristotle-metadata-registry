@@ -1,32 +1,32 @@
 from comet import models
-from aristotle_mdr.contrib.serializers.utils import SubSerializer
+from aristotle_mdr.contrib.serializers.utils import AristotleComponentSerializer
 
 
-class IndicatorNumeratorSerializer(SubSerializer):
+class IndicatorNumeratorSerializer(AristotleComponentSerializer):
     class Meta:
         model = models.IndicatorNumeratorDefinition
         exclude = ('indicator',)
 
 
-class IndicatorDenominatorSerializer(SubSerializer):
+class IndicatorDenominatorSerializer(AristotleComponentSerializer):
     class Meta:
-        model = models.IndicatorNumeratorDefinition
+        model = models.IndicatorDenominatorDefinition
         exclude = ('indicator',)
 
 
-class IndicatorDisaggregationSerializer(SubSerializer):
+class IndicatorDisaggregationSerializer(AristotleComponentSerializer):
     class Meta:
-        model = models.IndicatorNumeratorDefinition
+        model = models.IndicatorDisaggregationDefinition
         exclude = ('indicator',)
 
 
-class IndicatorInclusionSerializer(SubSerializer):
+class IndicatorInclusionSerializer(AristotleComponentSerializer):
     class Meta:
         model = models.IndicatorInclusion
         exclude = ('indicator',)
 
 
-class FrameworkDimensionSerializer(SubSerializer):
+class FrameworkDimensionSerializer(AristotleComponentSerializer):
     class Meta:
         model = models.FrameworkDimension
         exclude = ('framework',)

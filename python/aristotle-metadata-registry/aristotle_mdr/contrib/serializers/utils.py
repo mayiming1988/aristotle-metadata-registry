@@ -16,7 +16,7 @@ class UUIDRelatedField(serializers.RelatedField):
         except ObjectDoesNotExist:
             msg = _("UUID `{}` does not match with any existing UUID for "
                     "this type of metadata object.".format(str(data)))
-            raise ValidationError(msg, code='does not exist')
+            raise ValidationError(msg, code='Aristotle Serializer Error')
 
     def to_representation(self, value):
         return str(value.uuid)
@@ -31,6 +31,14 @@ class SubSerializer(serializers.ModelSerializer):
     def get_id(self, item):
         """Get pk here in case we are not using the auto id field"""
         return item.pk
+
+
+class AristotleComponentSerializer(serializers.ModelSerializer):
+    """
+    Base class for Aristotle Components.
+    """
+
+    id = serializers.UUIDField(required=False)
 
 
 def get_comet_field_serializer_mapping():
