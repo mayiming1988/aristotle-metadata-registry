@@ -28,7 +28,6 @@ class CustomField(TimeStampedModel):
                                    unique=True,
                                    help_text='A name used for uniquely identifying the custom field',
                                    default='')
-
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
     help_text_long = RichTextField(

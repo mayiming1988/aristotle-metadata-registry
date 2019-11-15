@@ -4,14 +4,10 @@ from django.db.models import Q, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.core.exceptions import ObjectDoesNotExist
-from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
-from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
-
-from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
 
 
@@ -31,17 +27,12 @@ class PublishedMixin(object):
             return self.filter(q)
 
         q |= self.is_published_auth
-        # q |= Q(
-        #     workgroup__in=user.profile.workgroups,
-        #     publication_details__permission=visibility_permission_choices.workgroup
-        # )
 
         return self.filter(q)
 
     def public(self):
         """
-        Returns a queryset that returns all published items that the given user has
-        permission to view.
+        Returns a queryset that returns all published items
 
         It is **chainable** with other querysets.
         """
@@ -191,7 +182,6 @@ class RegistrationAuthorityQuerySet(models.QuerySet):
 
 
 class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
-
     def visible(self, user):
         """
         Returns a queryset that returns all items that the given user has

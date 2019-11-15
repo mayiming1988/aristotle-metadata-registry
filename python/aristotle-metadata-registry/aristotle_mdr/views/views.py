@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, Tuple, List
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -31,23 +31,25 @@ from aristotle_mdr.utils import (
     fetch_aristotle_downloaders,
     fetch_metadata_apps,
     url_slugify_concept,
-    construct_change_message_for_form,
 )
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     TagsMixin
 )
-from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
 from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.mixins import IsSuperUserMixin
+from aristotle_mdr.models import concept_visibility_updated
 
 from reversion.models import Version
 from reversion import revisions as reversion
+from typing import Dict
 
+
+from collections import Counter
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -72,7 +74,6 @@ class DynamicTemplateView(TemplateView):
 
 
 def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
-
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
     obj = model_class.objects.get(id=object_id)
@@ -252,17 +253,29 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_links(self):
+    def get_links(self) -> Tuple[List, List]:
+        """Return all to-links and from-links for a particular concept"""
         from_links = []
         to_links = []
 
-        for l in get_all_links_for_concept(self.item):
+        for l in get_all_links_for_concept(self.item, self.request.user):
             if l.root_item_id == self.item.pk:
                 from_links.append(l)
             else:
                 to_links.append(l)
 
+        owned_links = [self.serialize_link(link) for link in from_links]
+        to_links = [link for link in to_links if self.serialize_link(link) not in owned_links]
+
         return from_links, to_links
+
+    def serialize_link(self, link) -> Counter:
+        serialized_link = []
+        for linkend in link.linkend_set.all():
+            serialized_link.append(
+                (linkend.role_id, linkend.concept_id)
+            )
+        return Counter(serialized_link)
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -341,7 +354,6 @@ class ConceptView(ConceptRenderView):
 
 
 class ObjectClassView(ConceptRenderView):
-
     objtype = MDR.ObjectClass
 
     def check_item(self, item):
@@ -353,7 +365,6 @@ class ObjectClassView(ConceptRenderView):
 
 
 class DataElementView(ConceptRenderView):
-
     objtype = MDR.DataElement
 
     def check_item(self, item):
@@ -714,41 +725,39 @@ class EditStatus(IsSuperUserMixin, UpdateView):
 
     @reversion.create_revision()
     def form_valid(self, form):
-        from aristotle_mdr.models import concept_visibility_updated
-        status_object = form.save()
+        status = form.save()
+
+        # Set the reversion message
         reversion.set_user(self.request.user)
-        reversion.set_comment(construct_change_message_for_form(form, self.model))
-        # Update the search engine indexation for the concept:
-        concept_visibility_updated.send(concept=status_object.concept, sender=type(status_object.concept))
+        reversion.set_comment(form.cleaned_data['change_message'])
+
+        # Update the search engine index for the concept:
+        concept_visibility_updated.send(concept=status.concept, sender=type(status.concept))
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
 class StatusHistory(IsSuperUserMixin, TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        versions = None
+    def get_context_data(self, **kwargs) -> Dict:
+        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        ra = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
 
-        if user_can_view_statuses_revisions(self.request.user, self.RA):
-            versions = Version.objects.get_for_object(self.status).select_related("revision__user")
+        context = super().get_context_data(**kwargs)
+        versions: List = []
+
+        if user_can_view_statuses_revisions(self.request.user, ra):
+            versions = Version.objects.get_for_object(status).select_related("revision__user")
 
         context.update(
-            {'item': self.item,
-             'ra': self.RA,
-             'status': self.status,
+            {'item': item,
+             'ra': ra,
+             'status': status,
              'versions': versions,
              }
         )
-
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
-        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
-        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
-
-        return super().dispatch(request, args, kwargs)
 
 
 def extensions(request):
