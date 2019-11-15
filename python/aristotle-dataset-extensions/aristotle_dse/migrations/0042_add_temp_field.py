@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_dse', '0041_change_pk_to_uuid_for_non_referenced_dse_models'),
-        ('aristotle_mdr', '0084_remove_temp_field')
+        ('aristotle_mdr', '0085_auto_20191024_0100')
     ]
 
     operations = [

@@ -169,11 +169,7 @@ class ManagedItem(baseAristotleObject):
 
 class aristotleComponent(models.Model):
 
-    @property
-    def id(self):
-        return self.pk
-
-    uuid = models.UUIDField(
+    id = models.UUIDField(
         primary_key=True,
         help_text=_(
             "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"
@@ -251,18 +247,11 @@ class AbstractValue(aristotleComponent):
         help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist"),
         blank=True
     )
-    # value_meaning = models.ForeignKey(  # 11.3.2.7.1
-    #     'ValueMeaning',
-    #     blank=True,
-    #     null=True,
-    #     help_text=_('A reference to the value meaning that this designation relates to'),
-    #     on_delete=models.SET_NULL,
-    # )
     value_meaning = models.ForeignKey(  # 11.3.2.7.1
         'ValueMeaning',
         blank=True,
         null=True,
-        to_field="uuid",
+        to_field="id",
         help_text=_('A reference to the value meaning that this designation relates to'),
         on_delete=models.SET_NULL,
     )

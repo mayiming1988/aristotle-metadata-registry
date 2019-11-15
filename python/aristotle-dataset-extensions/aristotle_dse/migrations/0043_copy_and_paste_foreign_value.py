@@ -16,6 +16,18 @@ def duplicate_models_foreign_keys(apps, schema_editor):
     data_copy_and_paste_foreign_value(DistributionDataElementPathSpecialisationClassesThrough, 'distributiondataelementpath', 'uuid', 'distributiondataelementpath_temp')
 
 
+def duplicate_models_foreign_keys_reverse(apps, schema_editor):
+    DSSGroupingLinkedGroupThrough = apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
+    DSSDEInclusion = apps.get_model('aristotle_dse', 'dssdeinclusion')
+    DSSDEInclusionSpecialisationClassesThrough = apps.get_model('aristotle_dse', 'dssdeinclusionspecialisationclassesthrough')
+    DistributionDataElementPathSpecialisationClassesThrough = apps.get_model('aristotle_dse', 'distributiondataelementpathspecialisationclassesthrough')
+    data_copy_and_paste_foreign_value(DSSGroupingLinkedGroupThrough, 'from_dssgrouping_temp', 'uuid', 'from_dssgrouping')
+    data_copy_and_paste_foreign_value(DSSGroupingLinkedGroupThrough, 'to_dssgrouping_temp', 'uuid', 'to_dssgrouping')
+    data_copy_and_paste_foreign_value(DSSDEInclusionSpecialisationClassesThrough, 'dssdeinclusion_temp', 'uuid', 'dssdeinclusion')
+    data_copy_and_paste_foreign_value(DSSDEInclusion, 'group_temp', 'uuid', 'group')
+    data_copy_and_paste_foreign_value(DistributionDataElementPathSpecialisationClassesThrough, 'distributiondataelementpath_temp', 'uuid', 'distributiondataelementpath')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -23,5 +35,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(duplicate_models_foreign_keys, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(duplicate_models_foreign_keys, reverse_code=duplicate_models_foreign_keys_reverse),
     ]

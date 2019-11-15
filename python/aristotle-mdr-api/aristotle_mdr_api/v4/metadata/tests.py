@@ -135,6 +135,12 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             stewardship_organisation=self.so,
         )
 
+        self.measure = mdr_models.Measure.objects.create(
+            name="Testing Measure",
+            definition="Testing Measure Definiton",
+            stewardship_organisation=self.so,
+        )
+
         self.login_user()
 
     def test_api_list_or_create_metadata_get_request(self):
@@ -306,6 +312,13 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
     def test_api_list_or_create_metadata_post_request_for_value_domain_with_subcomponents(self):
 
         dt = mdr_models.DataType.objects.create(name="Test DT", workgroup=self.wg)
+        unit_of_measure = mdr_models.UnitOfMeasure.objects.create(
+            measure=self.measure,
+            symbol="$%$$%",
+        )
+        conceptual_domain = mdr_models.ConceptualDomain.objects.create(
+            name="Test Conceptual Domain",
+        )
 
         post_data = {
             "name": "My Value Domain",
@@ -321,8 +334,8 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             "data_type": dt.uuid,
             "format": "N",
             "maximum_length": 1,
-            # "unit_of_measure": None,  # TODO: FIX THIS!
-            # "conceptual_domain": None,
+            "unit_of_measure": unit_of_measure.uuid,
+            "conceptual_domain": conceptual_domain.uuid,
             "description": "",
             "permissiblevalue_set": [
                 {
@@ -383,6 +396,8 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['supplementaryvalue_set']), 2)  # We have 2 supplementary value objects.
         self.assertEqual(len(response.data['permissiblevalue_set']), 2)  # We have 2 permissible value objects.
         self.assertEqual(response.data['data_type'], str(dt.uuid))  # The DataType was actually saved.
+        self.assertEqual(response.data['unit_of_measure'], str(unit_of_measure.uuid))  # UnitOfMeasure was saved.
+        self.assertEqual(response.data['conceptual_domain'], str(conceptual_domain.uuid))  # ConceptualDomain was saved.
         self.assertEqual(post_data['name'], last_vd.name)  # ValueDomain is in db.
         self.assertEqual(post_data['permissiblevalue_set'][0]['value'], last_vd.permissibleValues[0].value)
         self.assertEqual(post_data['permissiblevalue_set'][0]['meaning'], last_vd.permissibleValues[0].meaning)
@@ -406,7 +421,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             "origin_URI": "",
             "origin": "",
             "comments": "",
-            # "statistical_unit": None,  WE NEED TO IMPLEMENT A TEST WITH STATISTICAL UNITS.
+            "statistical_unit": self.oc.uuid,
             "collection_method": "My collection method.",
             "groups": [],
             "dssdeinclusion_set": [
@@ -606,6 +621,13 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
             order=5
         )
 
+        self.sv_3 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 3",
+            meaning="I also belong to VD #1",
+            valueDomain=self.vd_1,
+            order=1
+        )
+
     def test_update_data_element_with_put_request(self):
 
         put_data = {
@@ -667,16 +689,16 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
 
-    @skip("WE NEED TO UN-SKIP THIS TEST AFTER WE IMPLEMENT UUIDS EVERYWHERE")
-    def test_sub_items_in_json_data_can_update_actual_items_when_their_uuid_is_provided(self):
+    def test_sub_items_in_json_data_can_update_actual_items_when_their_id_is_provided(self):
+
+        new_vd_name = "My new vd name"
 
         patch_data = {
-            "name": "My new vd name",
+            "name": new_vd_name,
             "supplementaryvalue_set": [
                 {
                     "value": "Yeah SV!",
-                    "order": 5,
-                    "uuid": self.sv_1.uuid,
+                    "id": self.sv_1.id,
                 }
             ]
         }
@@ -691,10 +713,12 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.de.refresh_from_db()
         self.sv_1.refresh_from_db()
 
+        self.assertEqual(response.data['name'], new_vd_name)  # We just changed the name of this value domain.
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
-        self.assertEqual(self.sv_1.id, response.data['supplementaryvalue_set'][0]['id'])
+        self.assertEqual(str(self.sv_1.id), response.data['supplementaryvalue_set'][0]['id'])
         self.assertEqual(self.sv_1.value, response.data['supplementaryvalue_set'][0]['value'])
         self.assertEqual(self.sv_1.order, response.data['supplementaryvalue_set'][0]['order'])
+        self.assertEqual(self.vd_1.supplementaryvalue_set.all().count(), 1)  # Now there is only 1 sv in this vd (not 2)
 
     def test_avoid_updating_sub_items_that_are_not_linked_to_the_parent_item(self):
 
@@ -739,15 +763,17 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
 
-    # CREATE TESTS TO CHECK THE PATCH AND UPDATE BEHAVIOUR WHEN TRYING TO UPDATE SUBCOMPONENTS LIKE PERMISSIBLE_VALUE_SET
     def test_subcomponents_updated_with_uuid_using_patch_request(self):
+
+        new_meaning = "My definition has changed."
+        new_value = "This is the new value."
 
         patch_data = {
             "supplementaryvalue_set": [
                 {
-                    "uuid": self.sv_1.uuid,
-                    "meaning": "My definition has changed.",
-                    "value": "This is the new value",
+                    "id": self.sv_1.id,
+                    "meaning": new_meaning,
+                    "value": new_value,
                     "order": 2,
                 }
             ]
@@ -759,6 +785,10 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
             patch_data,
             format='json',
         )
+
+        self.assertEqual(response.data['supplementaryvalue_set'][0].get('id'), str(self.sv_1.id))  # It is the same object.
+        self.assertEqual(response.data['supplementaryvalue_set'][0].get('meaning'), new_meaning)  # It is updated!
+        self.assertEqual(response.data['supplementaryvalue_set'][0].get('value'), new_value)  # It is updated!
 
     def test_reversion_object_created_during_update_api_calls_with_put_request(self):
 

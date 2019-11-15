@@ -490,7 +490,7 @@ class DSSDEInclusion(DSSInclusion):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        to_field='uuid',
+        to_field='id',
     )
     specialisation_classes = ConceptManyToManyField(
         aristotle.models.ObjectClass,

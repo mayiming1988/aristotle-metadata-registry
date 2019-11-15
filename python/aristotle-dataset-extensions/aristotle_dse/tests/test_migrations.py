@@ -13,7 +13,7 @@ class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
         ('contenttypes', '0002_remove_content_type_name'),
     ]
     migrate_to = [
-        ('aristotle_dse','0022_auto_20190501_1043')
+        ('aristotle_dse', '0022_auto_20190501_1043')
     ]
 
     def setUpBeforeMigration(self, apps):
@@ -351,6 +351,7 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(
     migrate_to = '0043_copy_and_paste_foreign_value'
 
     def setUpBeforeMigration(self, apps):
+
         super().setUpBeforeMigration(apps)
 
         # Make sure the temporary fields are UUID fields:
@@ -378,6 +379,7 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(
         self.assertEqual(dssdei.group, self.dssgrouping_1)
 
     def test_migration(self):
+
         DSSDEInclusion = self.apps.get_model('aristotle_dse', 'dssdeinclusion')
         DSSGroupingLinkedGroupThrough = self.apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
         DSSGrouping = self.apps.get_model('aristotle_dse', 'dssgrouping')

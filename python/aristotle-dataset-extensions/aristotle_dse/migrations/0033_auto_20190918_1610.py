@@ -7,7 +7,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0032_auto_20190918_1609'),
+        ('aristotle_dse', '0032_generate_uuids'),
     ]
 
     operations = [

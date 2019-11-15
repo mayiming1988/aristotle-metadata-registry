@@ -75,11 +75,11 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                             )
                         )
                         raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                    allowed_identifiers = set(getattr(self.instance, field_name).values_list('pk', flat=True))
+                    allowed_identifiers = set([str(i) for i in getattr(self.instance, field_name).values_list('pk', flat=True)])
                     for fk_dict in field_data:
                         subcomponent_identifier = fk_dict.get('id')
                         if subcomponent_identifier and subcomponent_identifier not in allowed_identifiers:
-                            msg = _('Iem id `{}` does not match with any existing identifier for `{}` in `{}`.'.format(
+                            msg = _('Item id `{}` does not match with any existing identifier for `{}` in `{}`.'.format(
                                 subcomponent_identifier, field_name, self.instance)
                             )
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')

@@ -13,7 +13,7 @@ class DSSGroupingLinkedGroupThrough(models.Model):
         blank=True,
         null=True,
         to='DSSGrouping',
-        to_field='uuid',
+        to_field='id',
         related_name='to_dssgrouping_reverse',
         on_delete=models.CASCADE,
     )
@@ -21,7 +21,7 @@ class DSSGroupingLinkedGroupThrough(models.Model):
         blank=True,
         null=True,
         to='DSSGrouping',
-        to_field='uuid',
+        to_field='id',
         related_name='from_dssgrouping_reverse',
         on_delete=models.CASCADE,
     )
@@ -39,7 +39,7 @@ class DSSDEInclusionSpecialisationClassesThrough(models.Model):
         blank=True,
         null=True,
         to="DSSDEInclusion",
-        to_field='uuid',
+        to_field='id',
         on_delete=models.CASCADE,
     )
     objectclass = ConceptForeignKey(
@@ -62,7 +62,7 @@ class DistributionDataElementPathSpecialisationClassesThrough(models.Model):
         blank=True,
         null=True,
         to="DistributionDataElementPath",
-        to_field='uuid',
+        to_field='id',
         on_delete=models.CASCADE,
     )
     objectclass = ConceptForeignKey(

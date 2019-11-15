@@ -40,7 +40,7 @@ class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
         'self',
         null=True,
         blank=True,
-        to_field='uuid',
+        to_field='id',
         related_name='child_dimensions',
         on_delete=models.CASCADE,
     )
