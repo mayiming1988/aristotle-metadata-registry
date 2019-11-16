@@ -7,7 +7,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comet', '0017_auto_20190809_1241'),
+        ('comet', '0001_squashed_0018_initial_squishy'),
     ]
 
     operations = [
@@ -60,20 +60,5 @@ class Migration(migrations.Migration):
                 help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
                 null=True
             ),
-        ),
-        migrations.AlterField(
-            model_name='frameworkdimension',
-            name='level',
-            field=models.PositiveIntegerField(editable=False),
-        ),
-        migrations.AlterField(
-            model_name='frameworkdimension',
-            name='lft',
-            field=models.PositiveIntegerField(editable=False),
-        ),
-        migrations.AlterField(
-            model_name='frameworkdimension',
-            name='rght',
-            field=models.PositiveIntegerField(editable=False),
         ),
     ]
