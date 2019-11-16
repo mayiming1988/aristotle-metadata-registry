@@ -5,9 +5,13 @@ from aristotle_mdr.contrib.custom_fields import models as cf_models
 from aristotle_mdr.contrib.slots import models as slots_models
 from graphene_django.types import DjangoObjectType
 from aristotle_mdr_graphql import resolvers
-from .aristotle_filterset_classes import IdentifierFilterSet, StatusFilterSet
+from .aristotle_filterset_classes import (
+    IdentifierFilterSet, StatusFilterSet,
+    SupersedeRelationshipFilterSet
+)
 from .fields import DjangoListFilterField, ObjectField
-from .aristotle_nodes import StatusNode, ScopedIdentifierNode
+from .aristotle_nodes import StatusNode, ScopedIdentifierNode, SupersedeRelationshipNode
+# from aristotle_mdr_graphql.schema.aristotle_mdr import SupersedeRelationshipNode
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +38,12 @@ class AristotleConceptObjectType(DjangoObjectType):
     aristotle_id = graphene.String()
     metadata_type = graphene.String()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
+    superseded_items_relation_set = DjangoListFilterField(
+        SupersedeRelationshipNode, filterset_class=SupersedeRelationshipFilterSet
+    )
+    superseded_by_items_relation_set = DjangoListFilterField(
+        SupersedeRelationshipNode, filterset_class=SupersedeRelationshipFilterSet
+    )
     statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)
     custom_values_as_object = ObjectField()
     slots_as_object = ObjectField()

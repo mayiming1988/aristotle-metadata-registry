@@ -193,7 +193,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
-        need_distinct = False  # Wether we need to add a distinct
+        need_distinct = False  # Whether we need to add a distinct
         from aristotle_mdr.models import StewardOrganisation
         from aristotle_mdr.models import Workgroup
 
@@ -446,16 +446,42 @@ class StatusQuerySet(models.QuerySet):
         return states.select_related('registrationAuthority')
 
 
-class SupersedesManager(models.Manager):
+class SupersedesQueryset(models.QuerySet):
+    def visible(self, user):
+        from aristotle_mdr.models import _concept
+        visible_concepts = _concept.objects.visible(user)
+        editable_concepts = _concept.objects.visible(user)
 
-    def get_queryset(self):
-        return super().get_queryset().filter(proposed=False)
+        if user.is_anonymous:
+            return self.filter(
+                newer_item__in=visible_concepts,
+                older_item__in=visible_concepts,
+                proposed=False
+            )
+
+        if user.is_superuser:
+            return self.all()
+
+        return self.filter(
+            Q(newer_item__in=editable_concepts, proposed=True) |
+            Q(newer_item__in=visible_concepts)
+        )
+
+    def approved(self):
+        return self.filter(proposed=False)
+
+    def proposed(self):
+        return self.filter(proposed=True)
 
 
-class ProposedSupersedesManager(models.Manager):
+class ApprovedSupersedesQueryset(SupersedesQueryset):
+    def queryset(self):
+        return super().filter(proposed=False)
 
-    def get_queryset(self):
-        return super().get_queryset().filter(proposed=True)
+
+class ProposedSupersedesQueryset(SupersedesQueryset):
+    def queryset(self):
+        return super().filter(proposed=True)
 
 
 class PublishedItemQuerySet(PublishedMixin, models.QuerySet):

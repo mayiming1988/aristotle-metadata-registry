@@ -81,6 +81,7 @@ class AristotleResolver(object):
 
             if issubclass(queryset.model, mdr_models.aristotleComponent):
                 return queryset
+
             return queryset.none()
 
         elif isinstance(retval, QuerySet):

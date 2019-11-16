@@ -8,7 +8,7 @@ from aristotle_mdr.contrib.stewards import models as aristotle_steward_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
 from aristotle_mdr_graphql.utils import get_dynamic_type_node_from_model, get_dynamic_type_node_from_concept_model
 from aristotle_mdr_graphql import resolvers
-from aristotle_mdr_graphql.aristotle_filterset_classes import CollectionFilterSet
+from aristotle_mdr_graphql.aristotle_filterset_classes import CollectionFilterSet, SupersedeRelationshipFilterSet
 from aristotle_mdr_graphql.types import AristotleConceptObjectType
 
 ConceptNode = get_dynamic_type_node_from_concept_model(model=mdr_models._concept)
