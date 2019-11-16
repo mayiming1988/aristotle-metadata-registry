@@ -9,7 +9,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import uuid
 
-from aristotle_mdr.utils.migrations import (
+from aristotle_mdr.utils.migration_utils import (
     classproperty,
     StewardMigration,
     DBOnlySQL

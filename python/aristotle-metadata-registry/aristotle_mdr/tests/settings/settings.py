@@ -90,7 +90,7 @@ INSTALLED_APPS = (
     'aristotle_glossary',
     'extension_test',
     'aristotle_dse',
-    'comet'
+    'comet',
 ) + INSTALLED_APPS
 
 
