@@ -46,6 +46,7 @@ class Migration(migrations.Migration):
         ('comet', '0014_auto_20190716_0859'),
         ('comet', '0016_auto_20190801_1119'),
         ('comet', '0017_auto_20190809_1241'),
+        ('comet', '0018_auto_20191111_2147'),
     ]
 
     operations = [
