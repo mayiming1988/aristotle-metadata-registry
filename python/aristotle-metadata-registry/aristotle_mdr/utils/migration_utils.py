@@ -6,7 +6,6 @@ running this code.
 import django.db.models
 from django.db import migrations, models
 from django.db.migrations.operations.base import Operation
-from django.conf import settings
 
 import ckeditor_uploader.fields
 from .utils import classproperty
@@ -123,46 +122,6 @@ class StewardMigration(migrations.Migration):
         for item in model.objects.all():
             item.stewardship_organisation_id = cls.so_uuid
             item.save()
-
-
-def create_uuid_objects(app_label, model_name, migrate_self=True):
-    def inner(apps, schema_editor):
-        from aristotle_mdr.models import UUID, baseAristotleObject
-        from django.apps import apps as apppps
-        from django.contrib.contenttypes.models import ContentType
-
-        object_type = apppps.get_model(app_label, model_name)
-        if not issubclass(object_type, baseAristotleObject):
-            return
-
-        for ct in ContentType.objects.all():
-            kls = ct.model_class()
-            if kls is None:
-                # Uninstalled app
-                continue
-            if not issubclass(kls, baseAristotleObject):
-                continue
-            if not issubclass(kls, object_type):
-                continue
-            if kls is object_type and not migrate_self:
-                continue
-
-            for instance in kls.objects.all():
-                details = dict(
-                    app_label=instance._meta.app_label,
-                    model_name=instance._meta.model_name,
-                )
-
-                u, c = UUID.objects.get_or_create(
-                    uuid=instance.uuid_id,
-                    defaults=details
-                )
-                if issubclass(kls, object_type) and kls is not object_type:
-                    u.app_label=instance._meta.app_label
-                    u.model_name=instance._meta.model_name
-                    u.save()
-
-    return inner
 
 
 class DBOnlySQL(migrations.RunSQL):
@@ -454,7 +413,7 @@ class CustomFieldMover(Operation):
         self.custom_field_kwargs = custom_field_kwargs
 
     def describe(self):
-        return "Move field to custom field for " % (self.model_name, self.bases)
+        return "Move field to custom field for {}".format(self.model_name)
 
     def state_forwards(self, app_label, state):
         pass
@@ -504,3 +463,67 @@ class CustomFieldMover(Operation):
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         pass
+
+
+def data_copy_and_paste(model, from_field, to_field):
+    """
+    The purpose of this function is to "copy-paste" data from one `foreign key` field to another.
+    This function is particularly useful for data migrations.
+    :param model: Model source of both Foreign Key fields.
+    :param from_field: String representation of the field name which is the source of the data.
+    :param to_field: String representation of the field name which is the destination of the data.
+    """
+    for row in model.objects.all():
+        setattr(row, to_field, getattr(row, from_field))
+        row.save(update_fields=[to_field])
+
+
+def data_copy_and_paste_foreign_value(model, from_field, foreign_field, to_field):
+    """
+    The purpose of this function is to "copy-paste" data from a model in a `foreign key` field to another on a local field.
+    This function is particularly useful for data migrations.
+    :param model: Model source of both Foreign Key fields.
+    :param from_field: String representation of the field name which is the source of the data.
+    :param foreign_field: String representation of the field name in the foreign model to copy.
+    :param to_field: String representation of the field name which is the destination of the data.
+    """
+    for row in model.objects.all():
+        if getattr(row, from_field):
+            setattr(row, to_field, getattr(getattr(row, from_field), foreign_field))
+            row.save(update_fields=[to_field])
+
+
+def data_copy_and_paste_from_m2m_through_model(model, through_model, fk_through_field_name, with_self=False):
+    """
+    The purpose of this function is to "copy-paste" data from one `many to many` through model to another.
+    Important: The fields of both through tables must have the same name.
+    This function is particularly useful for data migrations.
+    :param model: Model source of both Foreign Key fields.
+    :param through_model: The destination through table model, which the current (existing through) data is going to
+    be copied to.
+    :param fk_through_field_name: String representation of the Foreign Key field name contained in the old through table
+    which is the source of the data.
+    :param with_self: Boolean. Default: False. Set to True if ManyToMany field is referencing itself (by using `self`).
+    """
+
+    from django.core.exceptions import ObjectDoesNotExist
+
+    model_name = model.__name__.lower()
+
+    if with_self:
+        model_name = 'to_{}'.format(model_name)
+
+    through_objects_list = []
+
+    for row in model.objects.all():
+        for through_obj in getattr(model, fk_through_field_name).through.objects.filter(**{model_name: row}):
+            dict_of_fields = {}
+            for field in through_obj._meta.fields:
+                if field.is_relation:
+                    try:
+                        my_object = field.related_model.objects.get(pk=field.value_from_object(through_obj))
+                    except ObjectDoesNotExist:
+                        my_object = field.related_model.objects.get(uuid=field.value_from_object(through_obj))
+                    dict_of_fields.update({field.name: my_object})
+            through_objects_list.append(through_model(**dict_of_fields))
+    through_model.objects.bulk_create(through_objects_list)

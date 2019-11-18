@@ -279,7 +279,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
         return context
 
-    def get_form(self):
+    def get_form(self, form_class=None):
         return None
 
     def dispatch(self, request, *args, **kwargs):
@@ -532,9 +532,11 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
 
 
 class ExtraFormsetMixin:
-    # Mixin of utils function for adding additional formsets to a view
-    # extra_formsets must contain formset, type, title and saveargs
-    # See EditItemView for example usage
+    """
+    Mixin of utils function for adding additional formsets to a view.
+    Extra_formsets must contain formset, type, title and saveargs.
+    See EditItemView for example usage.
+    """
 
     def save_formsets(self, extra_formsets):
         for formsetinfo in extra_formsets:

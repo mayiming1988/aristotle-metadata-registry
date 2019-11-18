@@ -1,14 +1,13 @@
-from aristotle_mdr import models
-from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.models import STATES
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
-
+from unittest import skip
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from unittest import skip
+from aristotle_mdr import models
+from aristotle_mdr.contrib.slots import models as slots_models
+from aristotle_mdr.models import STATES
+from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
+from aristotle_mdr.utils import migration_utils
 
 
 class TestUtils(TestCase):

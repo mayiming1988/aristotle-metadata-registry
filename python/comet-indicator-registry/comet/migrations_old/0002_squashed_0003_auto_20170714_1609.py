@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.db import migrations, models
 import uuid
+
 
 def gen_indicatorset_uuid(apps, schema_editor):
     MyModel = apps.get_model('comet', 'indicatorsettype')
@@ -30,8 +30,8 @@ class Migration(migrations.Migration):
             model_name='indicatorsettype',
             name='uuid',
             field=models.UUIDField(default=uuid.uuid1, editable=False, unique=True, null=False,
-                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries'
-            ),
+                                   help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries'
+                                   ),
         ),
         migrations.AlterField(
             model_name='indicator',

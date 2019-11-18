@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save
 from django.core.exceptions import FieldDoesNotExist
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -12,10 +12,23 @@ from aristotle_mdr.models import _concept
 from aristotle_mdr.utils import (url_slugify_issue)
 from aristotle_mdr.contrib.async_signals.utils import fire
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
-from jsonfield import JSONField
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+class IssueLabel(models.Model):
+    class Meta:
+        ordering = ["label"]
+
+    label = models.CharField(max_length=200)
+    stewardship_organisation = models.ForeignKey(
+        'aristotle_mdr.StewardOrganisation',
+        null=True, blank=True, default=None,
+        on_delete=models.CASCADE,
+        to_field="uuid"
+    )
+    description = models.TextField(blank=True)
 
 
 class Issue(TimeStampedModel):
@@ -49,7 +62,7 @@ class Issue(TimeStampedModel):
     proposal_value = models.TextField(blank=True)
 
     labels = models.ManyToManyField(
-        'IssueLabel',
+        IssueLabel,
         blank=True,
     )
 
@@ -127,20 +140,6 @@ class IssueComment(TimeStampedModel):
 
     def can_edit(self, user):
         return user.id == self.author.id
-
-
-class IssueLabel(models.Model):
-    class Meta:
-        ordering=["label"]
-
-    label = models.CharField(max_length=200)
-    stewardship_organisation = models.ForeignKey(
-        'aristotle_mdr.StewardOrganisation',
-        null=True, blank=True, default=None,
-        on_delete=models.CASCADE,
-        to_field="uuid"
-    )
-    description = models.TextField(blank=True)
 
 
 @receiver(post_save, sender=Issue)

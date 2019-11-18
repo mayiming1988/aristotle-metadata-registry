@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from aristotle_mdr.utils.migrations import (move_field_to_slot,
-                                            move_slot_to_field)
+from aristotle_mdr.utils.migration_utils import (move_field_to_slot,
+                                                 move_slot_to_field)
 
 
 def add_slots(apps, schema_editor):
