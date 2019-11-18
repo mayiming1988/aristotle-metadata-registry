@@ -69,10 +69,6 @@ jobs:
           POSTGRES_DB: aristotle_db
         ports:
           - 5432/tcp # Will assign a random free port in reality
-        options:
-          # Health check to double check when it's ready
-          "--health-cmd pg_isready --health-interval 10s --health-timeout 5s --health retires"
-
       redis:
         image: redis:latest
 
