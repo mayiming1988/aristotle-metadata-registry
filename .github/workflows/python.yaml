@@ -66,7 +66,9 @@ jobs:
 
     - name: Install tox dependencies
       run: |
-        sudo apt-get update  && sudo apt-get install libpq-dev && sudo apt-get install python3-dev
+      sudo apt-get update
+      sudo apt-get install libpq-dev
+      sudo apt-get install python3-dev
 
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
