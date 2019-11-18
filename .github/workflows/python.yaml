@@ -65,7 +65,9 @@ jobs:
         npm run devbuild
 
     - name: Install tox dependencies
-      run: pip install psycopg2-binary
+      run: |
+        sudo apt-get update  && sudo=apt-get install libpq-dev
+        pip install psycopg2-binary
 
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
