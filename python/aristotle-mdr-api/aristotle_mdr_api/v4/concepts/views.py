@@ -239,7 +239,7 @@ class ListVersionsPermissionsView(ObjectAPIView, VersionsMixin):
 
     def get(self, request, *args, **kwargs):
         metadata_item = self.get_object()
-        versions = self.get_versions(metadata_item, self.request.user)
+        versions = self.get_concept_versions_for_user(metadata_item, self.request.user)
         versions.order_by("-revision__date_created")
 
         # Lookup all the respective versions
@@ -271,7 +271,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView, VersionsMixin):
             raise PermissionDenied()
 
         # Get associated versions
-        versions = self.get_versions(self.item, self.request.user)
+        versions = self.get_concept_versions_for_user(self.item, self.request.user)
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)
