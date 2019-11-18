@@ -64,6 +64,9 @@ jobs:
         npm install
         npm run devbuild
 
+    - name: Install tox dependencies
+      run: pip install pyscopg2-binary
+
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
 
