@@ -64,7 +64,7 @@ jobs:
         npm install
         npm run devbuild
 
-    - name: Install tox dependencies
+    - name: Install postgres dependencies
       run: |
       sudo apt-get update
       sudo apt-get install libpq-dev
