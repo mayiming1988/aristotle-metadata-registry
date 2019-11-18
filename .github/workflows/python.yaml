@@ -1,5 +1,5 @@
 name: Main Python Tests
-on: [pull_request, push]
+on: [pull_request]
 
 jobs:
   main_testing:
