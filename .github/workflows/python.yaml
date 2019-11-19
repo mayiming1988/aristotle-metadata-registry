@@ -46,6 +46,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
+      SEARCH: elastic
+
     runs-on: ubuntu-latest
 
     steps:
