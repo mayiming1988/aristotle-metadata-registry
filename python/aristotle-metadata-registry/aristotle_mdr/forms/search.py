@@ -541,7 +541,6 @@ class PermissionSearchForm(TokenSearchForm):
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
 
-
         # Is there no filter and no query -> no search was performed
         has_filter = self.kwargs or self.token_models or self.applied_filters
         if not has_filter and not self.query_text:
@@ -582,7 +581,6 @@ class PermissionSearchForm(TokenSearchForm):
         if stewardship_organisation is not None:
             # Apply the stewardship organisation filter
             sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
-
 
         # f for facets
         extra_facets_details = {}
