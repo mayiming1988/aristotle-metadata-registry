@@ -42,7 +42,22 @@ jobs:
     name: Main Testing
     strategy:
       matrix:
-        python_module: [amr, dse, cir, gql, api]
+        python_module: [Aristotle_Metadata, Dataset_Extensions, Comet_Indicators, GraphQL, API]
+        include:
+          - python_module: Aristotle_Metadata
+            TOX_MODULE: amr
+
+          - python_module: Dataset_Extensions
+            TOX_MODULE: dse
+
+          - python_module: Comet_Indicators
+            TOX_MODULE: cir
+
+          - python_module: GraphQl
+            TOX_MODULE: gql
+
+          - python_module: API
+            TOX_MODULE: api
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
@@ -78,7 +93,7 @@ jobs:
         sudo apt-get install libpq-dev -y
 
     - name: Run tests
-      run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
+      run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.TOX_MODULE }}
 
     services:
       postgres:
