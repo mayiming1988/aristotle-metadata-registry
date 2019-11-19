@@ -42,21 +42,25 @@ jobs:
     name: Main Testing
     strategy:
       matrix:
-        python_module: [Aristotle_Metadata, Dataset_Extensions, Comet_Indicators, GraphQL, API]
+        python_module: ['Aristotle Metadata Registry',
+                        'Dataset Extensions',
+                        'Comet Indicator Registry',
+                        'GraphQL',
+                        'API']
         include:
-          - python_module: Aristotle_Metadata
+          - python_module: 'Aristotle Metadata Registry'
             TOX_MODULE: amr
 
-          - python_module: Dataset_Extensions
+          - python_module: 'Dataset Extensions'
             TOX_MODULE: dse
 
-          - python_module: Comet_Indicators
+          - python_module: 'Comet Indicator Registry'
             TOX_MODULE: cir
 
-          - python_module: GraphQl
+          - python_module: 'GraphQL'
             TOX_MODULE: gql
 
-          - python_module: API
+          - python_module: 'API'
             TOX_MODULE: api
 
     env:
