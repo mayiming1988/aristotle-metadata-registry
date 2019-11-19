@@ -42,7 +42,7 @@ jobs:
     name: Main Testing
     strategy:
       matrix:
-        python_module: [amr, dse, cir, gql, api, bgw]
+        python_module: [amr, dse, cir, gql, api]
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
