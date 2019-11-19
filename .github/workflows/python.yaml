@@ -67,7 +67,12 @@ jobs:
     - name: Install postgres dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install libpq-dev python3-dev -y
+        sudo apt-get install libpq-dev -y
+
+    - name: Check dependencies
+      run: |
+        gcc --version
+        pg_config --version
 
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
