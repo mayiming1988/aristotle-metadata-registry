@@ -51,6 +51,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Restart elasticsearch
+      run: |
+        sudo sysctl -w vm.max_map_count=262144
+        docker restart $(docker ps -a -q
+        docker ps
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
@@ -71,8 +76,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install libpq-dev -y
-    - name: Test if elasticsearch is running
-      run: docker ps
+
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.python_module }}
 
