@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
 {% load i18n %}
+{% load aristotle_tags %}
 
 {% block breadcrumbs %}
     <ol class="breadcrumb">
@@ -15,7 +16,18 @@
     <form action="" method="POST">
         {% csrf_token %}
         <table class="table">
-            {{ form.as_table }}
+            {% for field in form %}
+                <tr>
+                    <th>
+                        {{ field.errors }}
+                        {{ field | append_asterisk_if_req }}
+                    </th>
+                    <th>
+                        {{ field }}
+                    </th>
+                </tr>
+            {% endfor %}
+
         </table>
         <a class="btn btn-danger" href="{% url 'aristotle:userHome' %}">Cancel</a>
         <button class="btn btn-primary" type="submit">Create New Review</button>
