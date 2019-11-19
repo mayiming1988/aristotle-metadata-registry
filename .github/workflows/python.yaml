@@ -39,7 +39,7 @@ jobs:
           mypy $(find ./python/ -maxdepth 3 -name '__init__.py' -printf '%h\n')
 
   main_testing:
-    name: "Main Testing"
+    name: Main Testing
     strategy:
       matrix:
         python_module: [amr, dse, cir, gql, api, bgw]
@@ -85,7 +85,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: aristotle_db
-        ports
+        ports:
           - 5432:5432
       redis:
         image: redis:latest
@@ -93,4 +93,4 @@ jobs:
       elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
         ports:
-        - 9200:9200
+          - 9200/tcp
