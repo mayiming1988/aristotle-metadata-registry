@@ -334,9 +334,6 @@ class TokenSearchForm(FacetedSearchForm):
         if not self.is_valid():
             return self.no_query_found()
 
-        if not self.cleaned_data.get('q'):
-            return self.no_query_found()
-
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
@@ -535,9 +532,15 @@ class PermissionSearchForm(TokenSearchForm):
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
         sqs = super().search()
+
+        # If we got an empty search queryset, no need for further processing
+        if isinstance(sqs, EmptyPermissionSearchQuerySet):
+            return sqs
+
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
+
 
         # Is there no filter and no query -> no search was performed
         has_filter = self.kwargs or self.token_models or self.applied_filters
@@ -545,10 +548,8 @@ class PermissionSearchForm(TokenSearchForm):
             return self.no_query_found()
 
         if self.applied_filters and not self.query_text:
-            # If there is a filter, but no query, then we'll force some results.
-            sqs = self.searchqueryset.order_by('-modified')
+            # Set flag when filtering with no query (used in template)
             self.filter_search = True
-            self.attempted_filter_search = True
 
         # Get filter data from query
         states = self.cleaned_data.get('state', None)
@@ -581,6 +582,7 @@ class PermissionSearchForm(TokenSearchForm):
         if stewardship_organisation is not None:
             # Apply the stewardship organisation filter
             sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
+
 
         # f for facets
         extra_facets_details = {}
