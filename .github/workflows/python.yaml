@@ -55,7 +55,7 @@ jobs:
       run: |
         sudo sysctl -w vm.max_map_count=262144
         docker restart $(docker ps -a -q)
-        docker ps
+
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
