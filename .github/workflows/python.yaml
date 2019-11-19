@@ -39,6 +39,7 @@ jobs:
           mypy $(find ./python/ -maxdepth 3 -name '__init__.py' -printf '%h\n')
 
   main_testing:
+    name: "Main Testing"
     strategy:
       matrix:
         python_module: [amr, dse, cir, gql, api, bgw]
