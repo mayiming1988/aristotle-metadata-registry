@@ -44,7 +44,7 @@ jobs:
         python_module: [amr, dse, cir, gql, api, bgw]
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost/aristotle_db
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
     runs-on: ubuntu-latest
 
     steps:
@@ -85,7 +85,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: aristotle_db
         ports:
-          - 5432/tcp # Will assign a random free port in reality
+          - 5432:5432
       redis:
         image: redis:latest
 
