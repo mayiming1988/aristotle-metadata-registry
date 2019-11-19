@@ -170,6 +170,9 @@ def user_is_registation_authority_manager(user, ra=None):
 
 def user_can_add_status(user, item):
     """Can the user add a status to this item in some RA"""
+
+    if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
+        return False
     if user.is_anonymous:
         return False
     if user.is_superuser:

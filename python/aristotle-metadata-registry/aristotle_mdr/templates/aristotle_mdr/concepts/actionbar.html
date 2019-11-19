@@ -13,10 +13,11 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-right" role="menu">
                 {% if can_edit %}
-                    <li><a class="" href="{% url 'aristotle:edit_item' item.id %}"
-                           >
-                        <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Open item editor'%}
-                    </a></li>
+                    <li>
+                        <a class="" href="{% url 'aristotle:edit_item' item.id %}">
+                            <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Open item editor'%}
+                        </a>
+                    </li>
                 {% endif %}
                 <li><a class="" href="{% url 'aristotle:clone_item' item.id %}">
                     <i class="fa fa-fw fa-code-fork"></i> {% trans 'Clone this item'%}
@@ -28,7 +29,8 @@
                 <li>
                     <a class="" href="{% url 'aristotle_reviews:review_create' %}?items={{item.id}}">
                         <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
-                    </a></li>
+                    </a>
+                </li>
 
                 {% if item.stewardship_organisation and can_publish %}
                     <li><a href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
@@ -46,17 +48,17 @@
 
                 {% if user_can_supersede %}
                     <li>
-                      <a class="" href="{% url 'aristotle:supersede' item.id %}">
-                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}
-                      </a>
+                        <a class="" href="{% url 'aristotle:supersede' item.id %}">
+                            <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}
+                        </a>
                     </li>
                 {% endif %}
 
                 {% if can_edit %}
                     <li>
-                      <a class="" href="{% url 'aristotle:proposed_supersede' item.id %}">
-                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersedes'%}
-                      </a>
+                        <a class="" href="{% url 'aristotle:proposed_supersede' item.id %}">
+                            <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersedes'%}
+                        </a>
                     </li>
                 {% endif %}
 
