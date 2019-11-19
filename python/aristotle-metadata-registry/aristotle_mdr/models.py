@@ -1,5 +1,6 @@
 import uuid
 import reversion  # import revisions
+from reversion.signals import post_revision_commit
 from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
@@ -1974,22 +1975,63 @@ def create_user_profile(sender, instance, created, **kwargs):
 post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 
 
-@receiver(post_save)
-def concept_saved(sender, instance, **kwargs):
+@receiver([post_save, post_revision_commit])
+def concept_saved(sender, **kwargs):
     if not issubclass(sender, _concept):
         return
 
-    if not instance.non_cached_fields_changed:
-        # If the only thing that has changed is a cached public/locked status
-        # then don't notify.
-        return
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    kwargs['changed_fields'] = instance.changed_fields
-    # If the concept saved was not triggered by a superseding action:
-    if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
-        fire("concept_changes.concept_saved", obj=instance, **kwargs)
+    # if not instance.non_cached_fields_changed:
+    #     # If the only thing that has changed is a cached public/locked status
+    #     # then don't notify.
+    #     return
+    # if kwargs.get('raw'):
+    #     # Don't run during loaddata
+    #     return
+    # kwargs['changed_fields'] = instance.changed_fields
+    # # If the concept saved was not triggered by a superseding action:
+    # if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
+    #     fire("concept_changes.concept_saved", obj=instance, **kwargs)
+
+    logger.critical("                 ")
+    instance = kwargs.get('instance')
+    logger.critical("THIS IS THE INSTANCE")
+    logger.critical(instance)
+    logger.critical("THIS IS THE SENDER:")
+    logger.critical(sender)
+
+
+    # # If the sender is a function, then this must be a `create_revision` function.
+    # if callable(sender):
+    #     if reversion.is_active():
+    #         kwargs['requester'] = reversion.get_user()
+    #         logger.critical("THESE ARE THE CURRENT KWARGS:")
+    #         logger.critical(kwargs)
+    # else:
+    #     if issubclass(sender, _concept):
+    #         # Don't send notification if the only thing that has changed is a cached public/locked status:
+    #         if not instance.non_cached_fields_changed:
+    #             return
+    #         kwargs['changed_fields'] = instance.changed_fields
+    #     else:
+    #         return
+    #
+    #
+    # # # Don't run during loaddata:
+    # # if kwargs.get('raw'):
+    # #     return
+    #
+    # # If the concept saved was not triggered by a superseding action:
+    # if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
+    #     fire("concept_changes.concept_saved", obj=instance, **kwargs)
+
+
+# def on_revision_commit(instances, **kwargs):
+#     for instance in instances:
+#         if isinstance(instance, _concept):
+#             pass  # Your signal handler code here.
+#
+#
+# post_revision_commit.connect(on_revision_commit)
 
 
 @receiver(pre_save)
