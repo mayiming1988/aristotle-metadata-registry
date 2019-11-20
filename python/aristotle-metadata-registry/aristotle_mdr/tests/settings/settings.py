@@ -80,11 +80,13 @@ elif os.environ.get('SEARCH') == 'elastic':
         from aristotle_mdr.tests.settings.templates.search.elasticsearch import HAYSTACK_CONNECTIONS
 
         ELASTIC_SEARCH_BACKEND = True
+
 elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
     from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
 
     WOOSH_SEARCH_BACKEND = True
+
 else:
     print("Vanilla haystack variant")
     from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS

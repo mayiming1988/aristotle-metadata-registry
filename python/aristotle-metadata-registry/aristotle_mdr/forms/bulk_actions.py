@@ -208,7 +208,7 @@ class RemoveFavouriteForm(LoggedInBulkActionForm):
             item__in=list(items)
         )
         favourites.delete()
-        return _('{} items removed from favourites.'.format(favourites.count()))
+        return '%(num_items)s items removed from favourites.' % {'num_items': favourites.count()}
 
 
 class ChangeStateForm(ChangeStatusForm, BulkActionForm):
@@ -217,6 +217,12 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     action_text = _('Change registration status')
     items_label = "These are the items that will be registered. " \
                   "Add or remove additional items with the autocomplete box."
+
+    cascadeRegistration = forms.ChoiceField(
+        initial=0,
+        choices=[(0, _('No - only register the selected items')), (1, _('Yes - register the selected items, and all their child items'))],
+        label=_("Do you want to request a status change for associated items")
+    )
 
     @classmethod
     def can_use(cls, user):
@@ -227,12 +233,19 @@ class BulkMoveMetadataMixin:
     @staticmethod
     def generate_moving_message(org_name, successfully_moved_items: int, failed_items=None) -> str:
         if not failed_items:
-            message = _("{} items moved into the workgroup '{}'.".format(successfully_moved_items, org_name))
+            message = _("%(num_items)s items moved into the workgroup '%(new_wgs)s'.") % {
+                'num_items': successfully_moved_items,
+                'new_wgs': org_name
+            }
         else:
             message = _(
-                "{} items moved into the workgroup '{}'.\nSome items failed, they had the id's: {}".format(
-                    successfully_moved_items, org_name, ",".join(failed_items))
-            )
+                "%(num_items)s items moved into the workgroup '%(new_wgs)s'. \n"
+                "Some items failed, they had the id's: %(bad_ids)s"
+            ) % {
+                'new_wgs': org_name,
+                'num_items': successfully_moved_items,
+                'bad_ids': ", ".join(failed_items),
+            }
         return message
 
 
