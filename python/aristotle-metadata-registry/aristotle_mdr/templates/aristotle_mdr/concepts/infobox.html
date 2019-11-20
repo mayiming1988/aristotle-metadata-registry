@@ -60,6 +60,10 @@
                             {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
                                 <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
                                 </time>
+                            {% else %}
+                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
+                                    {{ last_edit.revision.date_created|naturaltime }}
+                                </time>
                             {% endif %}
                         {% else %}
                             <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
