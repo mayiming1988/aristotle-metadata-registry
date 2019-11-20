@@ -617,12 +617,21 @@ def get_status_from_dict(dictionary, current_status, key, with_icon=True):
 
 
 @register.filter
-def append_asterisk_if_req(field):
+def append_asterisk_if_required(field):
     """
     Add an asterisk symbol to the required fields of a form.
     Thanks to Moses Koledoye: https://stackoverflow.com/questions/37389855/django-label-tag-required-asterisk
     """
     if field.field.required:
-        return field.label + '*'
+        return field.label + ': *'
     else:
-        return field.label
+        return field.label + ':'
+
+
+@register.filter
+def add_help_text_icon(field):
+    """
+    Add a question mark symbol containing the field help text on "mouse hover" event.
+    """
+    if field.field.help_text:
+        return mark_safe('<sup><i class="fa fa-question-circle" title="{}"></i></sup>'.format(field.field.help_text))

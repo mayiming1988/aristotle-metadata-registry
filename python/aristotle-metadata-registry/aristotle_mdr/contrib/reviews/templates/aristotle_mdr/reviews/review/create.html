@@ -1,6 +1,7 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
 {% load i18n %}
 {% load aristotle_tags %}
+{% load bootstrap3 %}
 
 {% block breadcrumbs %}
     <ol class="breadcrumb">
@@ -18,13 +19,17 @@
         <table class="table">
             {% for field in form %}
                 <tr>
-                    <th>
+                    <td>
                         {{ field.errors }}
-                        {{ field | append_asterisk_if_req }}
-                    </th>
-                    <th>
-                        {{ field }}
-                    </th>
+                        {{ field | append_asterisk_if_required }}
+                    </td>
+                    <td>
+                        {% if field.name == "title" %}
+                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-12" %}
+                        {% else %}
+                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
 
