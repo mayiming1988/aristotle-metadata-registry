@@ -4,6 +4,10 @@ on:
     paths:
       - 'assets/**'
       - '!assets/src/styles/**'
+  push:
+    branches:
+      - master
+      - develop
 
 jobs:
   javascript_lint:

@@ -6,6 +6,10 @@ on:
       - 'Pipfile.lock'
       - 'Pipfile'
       - '.github/workflows/python.yaml' # Run on every change to itself
+  push:
+    branches:
+      - master
+      - develop
 
 jobs:
   python_lint:
