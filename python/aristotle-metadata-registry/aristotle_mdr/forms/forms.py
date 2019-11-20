@@ -34,7 +34,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=True,
+        required=False,
         label=_("Administrative Note"),
         widget=forms.Textarea
     )
