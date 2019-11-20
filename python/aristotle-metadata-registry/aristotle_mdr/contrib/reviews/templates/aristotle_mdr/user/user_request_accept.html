@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load aristotle_tags %}
 
-{% block title %}Accept Request{% endblock %}
+{% block title %}Approve review request{% endblock %}
 
 {% block form_tag %}
 <form method="post" action="{% url 'aristotle_reviews:accept_review' review.id %}">
