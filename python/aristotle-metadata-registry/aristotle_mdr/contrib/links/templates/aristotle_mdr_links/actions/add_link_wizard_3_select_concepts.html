@@ -8,13 +8,18 @@
 
 {% block wizard_content %}
     <div>
-        {% blocktrans %}
-        You are about to add concepts to the roles for relation
-            <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
-        {% endblocktrans %}
-        <div class='well'>
-        {{ relation.definition|bleach }}
-        </div>
+        <p>
+          {% blocktrans %}
+          You are about to add concepts to the roles for relation 
+          {% endblocktrans %}
+          <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
+        </p>
+
+        {% if relation.definition %}
+          <div class='well'>
+            {{ relation.definition|bleach }}
+          </div>
+        {% endif %}
     </div>
     <div>
         <div>
