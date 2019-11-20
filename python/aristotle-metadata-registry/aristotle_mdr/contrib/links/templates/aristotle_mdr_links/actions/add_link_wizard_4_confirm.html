@@ -12,7 +12,7 @@
           {% blocktrans %}
           You are about to add concepts to the roles for relation 
           {% endblocktrans %}
-          <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
+          <a target="_blank" href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
         </p>
         {% if relation.definition %}
           <div class='well'>
@@ -35,7 +35,7 @@
                         <ul>
                         {% for concept in concepts %}
                         <li>
-                            <a href="{{concept.get_absolute_url}}">
+                            <a target="_blank" href="{{concept.get_absolute_url}}">
                               {{ concept.name }}
                             </a>
                         </li>
