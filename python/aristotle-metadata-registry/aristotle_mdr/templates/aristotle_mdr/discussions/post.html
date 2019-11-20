@@ -29,7 +29,7 @@
 <div class="thread">
     <div class="comment panel-success panel">
         <div class="panel-heading">
-            <span class="author">{{ post.author }}</span>
+            <span class="author">{{ post.author.display_name }}</span>
             <small class="date" title='{{ post.created }}'>Posted {{ post.created|naturaltime }}</small>
             {% if post.edited %}
                 , <span class="edit" title='{{ post.modified }}'>edited {{ post.modified|naturaltime }}</span>
@@ -66,7 +66,7 @@
     {% else %}
     <div class="comment panel panel-{% cycle 'default' 'info' %}" id="comment_{{comment.id }}">
         <div class="panel-heading">
-            <span class="author">{{ comment.author }}</span>
+            <span class="author">{{ comment.author.display_name }}</span>
             <small class="date" title='{{ comment.created }}'>Posted {{ comment.created|naturaltime }}</small>
             {% if comment.modified %}
                 , <small><span class="edit"  title='{{ comment.modified }}'>edited {{ comment.modified|naturaltime }}</span></small>
@@ -82,7 +82,6 @@
     </div>
     {% endif %}
 {% endfor %}
-
 </div>
 {% if post.closed %}
         <div class=" alert alert-warning">
