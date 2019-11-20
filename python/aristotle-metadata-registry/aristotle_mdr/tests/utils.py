@@ -619,8 +619,6 @@ class LoggedInViewPages(object):
     def assertContainsHtml(self, response, *args):
         for html in args:
             try:
-                import pdb
-                pdb.set_trace()
                 self.assertContains(response, html, html=True)
             except AssertionError as e:  # pragma: no cover
                 # Needs no coverage as the test should pass to be successful
