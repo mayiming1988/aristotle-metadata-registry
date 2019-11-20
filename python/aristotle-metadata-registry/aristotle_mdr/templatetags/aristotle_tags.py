@@ -626,12 +626,3 @@ def append_asterisk_if_required(field):
         return field.label + ': *'
     else:
         return field.label + ':'
-
-
-@register.filter
-def add_help_text_icon(field):
-    """
-    Add a question mark symbol containing the field help text on "mouse hover" event.
-    """
-    if field.field.help_text:
-        return mark_safe('<sup><i class="fa fa-question-circle" title="{}"></i></sup>'.format(field.field.help_text))
