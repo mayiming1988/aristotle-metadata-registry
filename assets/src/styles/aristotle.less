@@ -21,6 +21,18 @@
         width:100%;
     }
 }
+@media (min-width:@screen-md-regular)  {
+    body {
+        display: -ms-flexbox;
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+    }
+     body > #content.container {
+        flex-grow: 10;
+     }
+}
+
 @media (min-width:@screen-sm-min)  {
     #infobox-wrap {padding:0;border:none;background-color:white;}
     #infobox {margin:0;}
