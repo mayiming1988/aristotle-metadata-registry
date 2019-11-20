@@ -8,7 +8,7 @@ on:
       - '.github/workflows/python.yaml' # Run on every change to itself
 
 jobs:
-  python-lint:
+  python_lint:
     name: Linting
     runs-on: ubuntu-latest
     steps:
@@ -23,7 +23,7 @@ jobs:
       - name: Lint
         run: flake8
 
-  python-typing:
+  python_typing:
     name: Type Checking
     runs-on: ubuntu-latest
     steps:
@@ -41,6 +41,7 @@ jobs:
           mypy $(find ./python/ -maxdepth 3 -name '__init__.py' -printf '%h\n')
 
   main_testing:
+    needs: [python_lint, python_typing]
     name: Main Testing
     strategy:
       matrix:

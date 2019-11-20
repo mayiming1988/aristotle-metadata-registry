@@ -25,6 +25,7 @@ jobs:
           cd assets
           npm run lint
   javascript_tests:
+    needs : javascript_lint
     name: Tests
     runs-on: ubuntu-latest
     steps:
