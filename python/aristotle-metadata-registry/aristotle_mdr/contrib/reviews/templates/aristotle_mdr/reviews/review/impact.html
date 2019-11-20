@@ -42,8 +42,8 @@
                 {# <tt>{{ concept.info }}</tt> #}
             </td>
             <td>{{ concept.info.type }}</td>
-            <td>{{ concept.info.old.text|default:"No previous registration" }}</td>
-            <td>{{ concept.info.old.old_reg_date|default:"No previous registration" }}</td>
+            <td>{{ concept.info.old.text|default:"-" }}</td>
+            <td>{{ concept.info.old.old_reg_date|default:"-" }}</td>
             <td>{{ concept.info.new_state.text }}</td>
             <td>
                 <time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time>
