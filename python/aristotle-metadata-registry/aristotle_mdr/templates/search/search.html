@@ -179,8 +179,7 @@
                 </ul>
             </div>
         {% endif %}
-
-        <div class="col-xs-12 results_header">
+        <div class="results_header">
             {% if query or form.filter_search %}
                 <div class="row">
                     <h3 class="col-sm-3">Results</h3>
@@ -493,10 +492,9 @@
                     </div>
                 </div>
             {% else %}
-        `
+                {# The search returned no results #}
                 {% if form.auto_broaden_search %}
                     {# Search that was broadened because of overly restrictive filters #}
-                    <br>
                     <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for "{{ form.q.value }}" with your requested filters.
@@ -508,7 +506,7 @@
                 {% endif %}
                 {% if form.filter_search %}
                     {# Searching only using filters and no query text #}
-                    <div class="alert alert-warning mar" role="alert">
+                    <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for your requested filters.
                         </p>
@@ -517,6 +515,12 @@
                         </p>
                     </div>
                 {% endif %}
+                <h3>Suggestions:</h3>
+                <ul>
+                    <li>Make sure that all words are spelled correctly.</li>
+                    <li>Try different keywords.</li>
+                    <li>Try more general keywords.</li>
+                </ul>
             {% endif %}
         {% elif form.errors %}
         {% else %}
