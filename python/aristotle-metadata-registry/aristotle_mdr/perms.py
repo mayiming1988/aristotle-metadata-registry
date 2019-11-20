@@ -174,11 +174,11 @@ def user_can_add_status(user, item):
     if user.is_anonymous:
         return False
 
+    if user.is_superuser:  # A superuser is able to access the admin pages.
+        return True
+
     if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
         return False
-
-    if user.is_superuser:
-        return True
 
     # If this item has any requested reviews for a registration authority this user is a registrar of:
     if item.rr_review_requests.visible(user):
