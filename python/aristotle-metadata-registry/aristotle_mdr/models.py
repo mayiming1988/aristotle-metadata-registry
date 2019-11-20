@@ -1456,7 +1456,6 @@ class ValueDomain(concept):
         help_text=('Description or specification of a rule, reference, or '
                    'range for a set of all values for a Value Domain.')
     )
-
     @property
     def permissibleValues(self):
         return self.permissiblevalue_set.all()

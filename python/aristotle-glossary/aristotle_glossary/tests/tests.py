@@ -5,6 +5,7 @@ import datetime
 
 import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
+from aristotle_dse.models import DataSetSpecification, DSSDEInclusion
 import aristotle_glossary.models as gmodels
 
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
@@ -140,7 +141,6 @@ class GlossaryViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class GlossaryUnitTest(TestCase):
-
     def test_glossary_signal_method_works(self):
 
         gitem, ocitem = self.create_glossary_item_and_object_class()
@@ -152,9 +152,7 @@ class GlossaryUnitTest(TestCase):
         self.assertEqual(ocitem.related_glossary_items.first().pk, gitem.pk)
 
     def test_reindex_metadata_item_async_fires(self):
-
         gitem, ocitem = self.create_glossary_item_and_object_class()
-
         gitem.refresh_from_db()
         # EXACTLY THE SAME AS ABOVE, BUT HERE WE'RE HOPING THE SIGNAL DOES
         # THE REINDEX FOR US
@@ -163,6 +161,32 @@ class GlossaryUnitTest(TestCase):
         self.assertEqual(gitem.index.first().pk, ocitem.pk)
         self.assertEqual(ocitem.related_glossary_items.count(), 1)
         self.assertEqual(ocitem.related_glossary_items.first().pk, gitem.pk)
+
+    def test_reindex_metadata_item_captures_child_aristotle_components(self):
+        """Test that the reindex_metadata_item command accurately indexes child aristotleComponents"""
+        # Add a DSS
+        dss = DataSetSpecification.objects.create(name="DataSetSpecification",
+                                                  definition="A dataset specification",
+                                                  workgroup=None)
+        # Add a DE
+        de = models.DataElement.objects.create(name="Data Element",
+                                               definition="Data Element",
+                                               workgroup=None)
+        # Add a GlossaryItem
+        glossary_item = gmodels.GlossaryItem.objects.create(name="Glossary Item",
+                                                            workgroup=None)
+        # Add to the specific information of a DSSDEInclusion
+        dss_de_inclusion = DSSDEInclusion.objects.create(data_element=de,
+                                                         dss=dss)
+        dss_de_inclusion.specific_information = f'<a data-aristotle-concept-id="{glossary_item.pk}">Link</a>'
+        dss_de_inclusion.save()
+        dss.save()
+
+        dss.refresh_from_db()
+        # Confirm that glossary item has been added to 'related_glossary_items'
+        self.assertEqual(dss.related_glossary_items.count(), 1)
+        self.assertEqual(dss.related_glossary_items.first().pk, glossary_item.pk)
+
 
     def create_glossary_item_and_object_class(self):
         gitem = gmodels.GlossaryItem.objects.create(name="Glossary item", workgroup=None)
