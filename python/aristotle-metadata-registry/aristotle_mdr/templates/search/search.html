@@ -184,7 +184,7 @@
             {% if query or form.filter_search %}
                 <div class="row">
                     <h3 class="col-sm-3">Results</h3>
-                    {% if form.auto_broaden_search and page.object_list %}
+                    {% if form.auto_broaden_search %}
                         <div class="alert alert-warning" role="alert">
                             <p>
                                 There were no results for "{{ form.q.value }}" with your requested filters.
@@ -494,9 +494,8 @@
                     </div>
                 </div>
             {% else %}
+                <h3>No results found.</h3>
                 {% if form.auto_broaden_search %}
-                    {# Search that was broadened because of overly restrictive filters #}
-                    <br>
                     <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for "{{ form.q.value }}" with your requested filters.
@@ -507,13 +506,12 @@
                     </div>
                 {% endif %}
                 {% if form.filter_search %}
-                    {# Searching only using filters and no query text #}
                     <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for your requested filters.
                         </p>
                         <p>
-                            Please change your selected filters and try again.
+                            Please change your search parameters and try again.
                         </p>
                     </div>
                 {% endif %}
