@@ -236,12 +236,11 @@
                                         <strong>Tried searching instead for:</strong>
                                         <span>
                                             {% for word,suggestion in form.spelling_suggestions %}
-                                                {% if suggestion %}
-                                                    <em>{{ suggestion }}</em>
+                                            {% if suggestion %}<em>{{ suggestion }}</em>,
                                                 {% else %}
-                                                    {{ word }}
+                                                    {{ word }},
                                                 {% endif %}
-                                            {% endfor %}, but no results were found.
+                                            {% endfor %} but no results were found.
                                         </span>
                                     {% endif %}
                                 </div>
@@ -494,6 +493,7 @@
                     </div>
                 </div>
             {% else %}
+        `
                 {% if form.auto_broaden_search %}
                     {# Search that was broadened because of overly restrictive filters #}
                     <br>
@@ -508,7 +508,7 @@
                 {% endif %}
                 {% if form.filter_search %}
                     {# Searching only using filters and no query text #}
-                    <div class="alert alert-warning" role="alert">
+                    <div class="alert alert-warning mar" role="alert">
                         <p>
                             There were no results for your requested filters.
                         </p>
