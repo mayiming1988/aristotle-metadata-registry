@@ -30,7 +30,7 @@
                     </a>
                 </li>
                 <li class="divider"></li>
-                {% if user.profile.registrar_count > 0 %}
+                {% if is_registrar %}
                     <li>
                         <a class="" href="{% url 'aristotle_reviews:review_create' %}?items={{item.id}}">
                             <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
@@ -47,7 +47,7 @@
                     </li>
                 {% endif %}
 
-                {% if can_add_status and user.profile.registrar_count > 0 %}
+                {% if can_add_status and is_registrar %}
                     <li>
                         <a class="" href="{% url 'aristotle:changeStatus' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">
                             <i class="fa fa-fw fa-university"></i> {% trans 'Add registration status'%}
@@ -55,7 +55,7 @@
                     </li>
                 {% endif %}
 
-                {% if user_can_supersede %}
+                {% if can_supersede %}
                     <li>
                         <a class="" href="{% url 'aristotle:supersede' item.id %}">
                             <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}

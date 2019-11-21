@@ -16,8 +16,10 @@
         <li class="active">Endorse metadata for review request</li>
     </ol>
 
-    <header>You are chosing to endorse content at a level different to that requested under the By approving this review, this form will change the status of the listed items in your registration authorities.
-    </header>
+    <p class="margin-below">
+        You are choosing to endorse content with a different status to that requested under the Review <em>{{ review.title_short }}</em>.
+        By approving this review, the status of the items listed below will be change in the {{ ra.name }} registration authority
+    </p>
     {% include 'aristotle_mdr/helpers/accept_review_info.html' %}
     <section>
         <div class="status_change_description">
