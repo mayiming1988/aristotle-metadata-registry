@@ -27,7 +27,7 @@
     </ol>
     <div class="row">
 
-        <aside id="infoBox" class="col-xs-12 col-sm-4 pull-right">
+        <aside id="workgroup_infobox" class="col-xs-12 col-sm-4 pull-right">
             <div>
             {% if perms.aristotle_mdr.change_workgroup %}
                 <a href="{% url 'aristotle:workgroup_edit' workgroup.id %}" class="btn btn-default"><i class="fa fa-pencil"></i> {% trans 'Edit details'%}</a>
@@ -53,8 +53,7 @@
                     {% endif %}
                 </div>
             {% endif %}
-            <strong>Workgroup Details</strong>
-            <hr>
+            <header>Workgroup Details</header>
             <dl>
                 <dt>Managers</dt>
                 <dd>
@@ -75,6 +74,7 @@
                     </a>
                 </dd>
                 <dt>Items</dt>
+                <dd>
                     <a href="{% url 'aristotle:workgroupItems' iid=item.id %}">
                         {% with total=workgroup.items.count %}
                             {% comment %} Cache the count then reuse for performance.{% endcomment %}
