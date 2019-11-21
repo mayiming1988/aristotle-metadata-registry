@@ -277,7 +277,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         self.search_terms = self.get_cleaned_data_for_step('initial')
         name = self.search_terms['name']
         name = name.strip()
-        self.duplicate_items = self.model.objects.all()
+        self.duplicate_items = self.model.objects.filter(name__iexact=name).public().all()
         return self.duplicate_items
 
     def find_similar(self, model=None):
