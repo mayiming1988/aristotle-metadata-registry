@@ -368,7 +368,11 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = context['form'].custom_fields
+        context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
+        context['slots_active'] = self.slots_active
         context['show_id_tab'] = self.identifiers_active
+
+        context['additional_records_active'] = self.additional_records_active
+        context['reference_links_active'] = self.reference_links_active
 
         return context
