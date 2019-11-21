@@ -314,7 +314,6 @@ class ConceptAPITestCase(BaseAPITestCase):
 
     def test_regular_user_not_in_workgroup_cannot_list_version_permissions(self):
         self.login_user()
-
         object_class = mdr_models.ObjectClass.objects.create(name="Object Class",
                                                              definition="Is this an object class?",
                                                              workgroup=self.wg,

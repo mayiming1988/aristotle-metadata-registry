@@ -15,7 +15,7 @@
 {% block infoContent %}
     <h2>Revisions for {{object.name}}.</h2>
 
-    {% if not versions.count %}
+    {% if not versions %}
         <div class="alert alert-warning">
             There are no historical versions of this item you have permission to view.
         </div>

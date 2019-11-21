@@ -553,7 +553,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             help_text='Custom',
             order=0
         )
-
         postdata = utils.model_to_dict_with_change_time(self.item)
         postdata[cf.form_field_name] = 4
         response = self.reverse_post(
@@ -940,7 +939,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.workgroup, None)
 
     def test_submitter_can_save_via_edit_page_with_change_comment(self):
-
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
