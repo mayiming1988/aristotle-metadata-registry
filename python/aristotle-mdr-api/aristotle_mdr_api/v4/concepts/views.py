@@ -52,8 +52,8 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
         queue = collections.deque([item])
         nodes = []
         edges = []
-        q_objects = Q()
 
+        # BFS across superseding relations
         while queue and len(queue) < self.max_graph_depth:
             # Don't go too deep because that will be very slow
             current_item = queue.popleft()
@@ -68,7 +68,7 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
             for superseded_by_relation in current_item.superseded_by_items_relation_set.filter(proposed=False).all():
                 newer = superseded_by_relation.newer_item
                 if newer.id not in seen_items_ids:
-                    if perms.user_can_view(self.request.user, current_item):
+                    if perms.user_can_view(self.request.user, newer):
                         nodes.append(ConceptSerializer(newer).data)
                         queue.append(newer)
                         seen_items_ids.add(newer.id)
@@ -80,21 +80,16 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
                         nodes.append(ConceptSerializer(sup_rel.older_item).data)
                         queue.append(sup_rel.older_item)
                         seen_items_ids.add(sup_rel.older_item.id)
+
             seen_items_ids.add(current_item.id)
 
-        seen_items_ids = list(seen_items_ids)
-
-        for item in seen_items_ids:
-            q_objects.add(Q(older_item__id=item), Q.OR)
-            q_objects.add(Q(newer_item__id=item), Q.OR)
-
-        supersede_relationships_queryset = SupersedeRelationship.objects.filter(q_objects)
+        edge_query = Q(older_item_id__in=seen_items_ids) | Q(newer_item_id__in=seen_items_ids)
+        supersede_relationships_queryset = SupersedeRelationship.objects.filter(edge_query)
 
         for item in supersede_relationships_queryset:
             edges.append(SupersedeRelationshipSerialiser(item).data)
 
         json_response = {'nodes': nodes, 'edges': edges}
-
         return Response(
             json_response,
             status=status.HTTP_200_OK
