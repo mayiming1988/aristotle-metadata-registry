@@ -32,18 +32,18 @@ logger = logging.getLogger(__name__)
 
 
 class ConceptView(generics.RetrieveAPIView):
-    permission_classes=(UnAuthenticatedUserCanView,)
+    permission_classes = (UnAuthenticatedUserCanView,)
+    permission_key = 'metadata'
 
-    permission_key='metadata'
-
-    serializer_class=serializers.ConceptSerializer
-    queryset=_concept.objects.all()
+    serializer_class = serializers.ConceptSerializer
+    queryset = _concept.objects.all()
 
 
 class SupersedesGraphicalConceptView(ObjectAPIView):
     """Retrieve a Graphical Representation of the Supersedes Relationships"""
-    permission_classes=(AuthCanViewEdit,)
+    permission_classes = (UnAuthenticatedUserCanView,)
     permission_key = 'metadata'
+    max_graph_depth = 50
 
     def get(self, request, pk, format=None):
         item = self.get_object()
@@ -54,7 +54,8 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
         edges = []
         q_objects = Q()
 
-        while queue and len(queue) < 50:
+        while queue and len(queue) < self.max_graph_depth:
+            # Don't go too deep because that will be very slow
             current_item = queue.popleft()
             if current_item.id not in seen_items_ids:
                 if perms.user_can_view(self.request.user, current_item):
@@ -63,14 +64,16 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
                                                        "font": {"size": 15}}
                     nodes.append(serialised_item)
 
-            for sup_by_rel in current_item.superseded_by_items_relation_set.filter(proposed=False).all():
-                newer = sup_by_rel.newer_item
+            # Iterate across the newer items
+            for superseded_by_relation in current_item.superseded_by_items_relation_set.filter(proposed=False).all():
+                newer = superseded_by_relation.newer_item
                 if newer.id not in seen_items_ids:
                     if perms.user_can_view(self.request.user, current_item):
                         nodes.append(ConceptSerializer(newer).data)
                         queue.append(newer)
                         seen_items_ids.add(newer.id)
 
+            # Iterate across the older items
             for sup_rel in current_item.superseded_items_relation_set.filter(proposed=False).all():
                 if sup_rel.older_item.id not in seen_items_ids:
                     if perms.user_can_view(self.request.user, current_item):
@@ -121,12 +124,13 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         nodes.append(source_item)
 
         if hasattr(item, 'relational_attributes'):
+
             for d in item.relational_attributes.values():
                 for rel_attr in d['qs']:
                     if perms.user_can_view(self.request.user, rel_attr):
                         serialised_rel_attr = ConceptSerializer(rel_attr).data
                         serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
-                        if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                        if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
                             nodes.append(serialised_rel_attr)
                             edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
                             seen_items_ids.add(serialised_rel_attr["id"])
@@ -138,10 +142,11 @@ class GeneralGraphicalConceptView(ObjectAPIView):
                     if perms.user_can_view(self.request.user, related_concept_instance):
                         serialised_concept = ConceptSerializer(related_concept_instance).data
                         serialised_concept["type"] = self.camel_case_split(related_concept_instance.__class__.__name__)
-                        if serialised_concept["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                        if serialised_concept["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
                             nodes.append(serialised_concept)
                             edges.append({"from": item.id, "to": serialised_concept["id"]})
                             seen_items_ids.add(serialised_concept["id"])
+
             if field.is_relation and field.one_to_many and issubclass(field.related_model, aristotleComponent):
                 for aris_comp_field in field.related_model._meta.get_fields():
                     if aris_comp_field.is_relation and aris_comp_field.many_to_one and\
@@ -152,7 +157,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
                             if component_instance is not None:
                                 serialised_concept_instance = ConceptSerializer(component_instance).data
                                 serialised_concept_instance["type"] = self.camel_case_split(component_instance.__class__.__name__)
-                                if serialised_concept_instance["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                                if serialised_concept_instance["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
                                     nodes.append(serialised_concept_instance)
                                     edges.append({"from": serialised_concept_instance["id"], "to": item.id})
                                     seen_items_ids.add(serialised_concept_instance["id"])
