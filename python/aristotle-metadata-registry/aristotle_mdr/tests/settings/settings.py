@@ -92,12 +92,11 @@ else:
     from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
 
 INSTALLED_APPS = (
-                     # The good stuff
-                     'aristotle_glossary',
-                     'extension_test',
-                     'aristotle_dse',
-                     'comet',
-                 ) + INSTALLED_APPS
+    'aristotle_glossary',
+    'extension_test',
+    'aristotle_dse',
+    'comet',
+) + INSTALLED_APPS
 
 # https://docs.djangoproject.com/en/1.10/topics/testing/overview/#speeding-up-the-tests
 # We do a lot of user log in testing, this should speed stuff up.
