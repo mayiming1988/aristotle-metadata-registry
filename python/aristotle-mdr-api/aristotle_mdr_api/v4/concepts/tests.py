@@ -1,6 +1,7 @@
 from django.urls import reverse
-from django.conf import settings
 from django.utils import timezone
+from django.test import override_settings
+from django.conf import settings
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
@@ -115,7 +116,6 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         self.assertEqual(response.status_code, 403)
 
-
     def test_unauth_user_can_view_links_representation_public_concept(self):
         response = self.client.get(
             reverse('api_v4:item:api_item_links', args=[self.public_concept.id]),
@@ -159,8 +159,9 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['nodes']), 2)
         self.assertEqual(len(response.data['edges']), 1)
 
+    @override_settings(MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS=5)
     def test_general_graph_number_of_nodes(self):
-        max_nodes  = settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS
+        max_nodes = settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS
 
         for i in range(max_nodes):
             mdr_models.DataElementConcept.objects.create(
@@ -179,7 +180,7 @@ class ConceptAPITestCase(BaseAPITestCase):
         )
 
         self.assertEqual(len(response.data['nodes']), max_nodes)
-        self.assertEqual(len(response.data['edges']), max_nodes)
+        self.assertEqual(len(response.data['edges']), max_nodes - 1)
 
         # Create an extra DataElementConcept attached to the same item
         mdr_models.DataElementConcept.objects.create(
@@ -191,9 +192,8 @@ class ConceptAPITestCase(BaseAPITestCase):
         response = self.client.get(
             reverse('api_v4:item:item_general_graphical', args=[self.item.id])
         )
-        # The number of nodes and edges has to remain the same:
-        self.assertEqual(len(response.data['nodes']), self.maximum_number_of_nodes)
-        self.assertEqual(len(response.data['edges']), self.maximum_number_of_nodes - 1)
+        self.assertEqual(len(response.data['nodes']), max_nodes)
+        self.assertEqual(len(response.data['edges']), max_nodes - 1)
 
     def test_unauthenticated_user_cant_update_version_permissions(self):
         self.login_other_user()
