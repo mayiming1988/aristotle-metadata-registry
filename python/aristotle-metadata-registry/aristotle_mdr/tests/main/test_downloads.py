@@ -76,7 +76,12 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_dl_options_get_with_items(self):
-        url = reverse('aristotle:download_options', args=['fake']) + '?items=9'
+        object_class = models.ObjectClass.objects.create(
+            name='Pokemon',
+            definition='Pocket Monsters',
+            submitter=self.editor,
+        )
+        url = reverse('aristotle:download_options', args=['fake']) + f'?items={object_class.id}'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
