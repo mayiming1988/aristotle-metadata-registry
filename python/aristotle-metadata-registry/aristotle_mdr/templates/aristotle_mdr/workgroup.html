@@ -1,7 +1,13 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 
 {% load humanize i18n aristotle_tags util_tags %}
+{% load render_bundle from webpack_loader %}
 {% has_group_perm group "edit_group_details" as can_edit_workgroup %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'workgroup' 'css' %}
+{% endblock %}
+
 {% block workgroupSub %}
     <ul class="nav nav-pills nav-stacked nav-collapse">
         <li class="active">
@@ -22,18 +28,14 @@
     <div class="row">
 
         <aside id="infoBox" class="col-xs-12 col-sm-4 pull-right">
+            <div>
             {% if perms.aristotle_mdr.change_workgroup %}
-                <div>
-                    <a href="{% url 'aristotle:workgroup_edit' workgroup.id %}" class="btn btn-default"><i class="fa fa-pencil"></i> {% trans 'Edit details'%}</a>
-                </div>
-                <br>
+                <a href="{% url 'aristotle:workgroup_edit' workgroup.id %}" class="btn btn-default"><i class="fa fa-pencil"></i> {% trans 'Edit details'%}</a>
             {% endif %}
             {% if user in workgroup.member_list %}
-                <div>
-                    <a href="{% url 'aristotle:workgroup_leave' workgroup.id %}" class="btn btn-warning"><i class="fa fa-user-times"></i> {% trans 'Leave Workgroup'%}</a>
-                </div>
-                <br>
+                <a href="{% url 'aristotle:workgroup_leave' workgroup.id %}" class="btn btn-warning"><i class="fa fa-user-times"></i> {% trans 'Leave Workgroup'%}</a>
             {% endif %}
+            </div>
             {% if workgroup.archived %}
                 <div class="alert alert-warning">
                     {% trans 'This workgroup is archived.' %}
@@ -51,44 +53,10 @@
                     {% endif %}
                 </div>
             {% endif %}
-            {% if perms.aristotle_mdr.change_workgroup %}
-                <div id="archive_modal" class="modal fade">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-
-            <section id="items">
-                <header>{% trans 'Recently changed items' %}</header>
-                <ul>
-                    {% if recent %}
-                        {% for item in recent %}
-                            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=item %} ({{ item.get_verbose_name }})
-                                <br><small>{% trans 'Modified' %} {{ item.modified|naturaltime }}</small>
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted">No items changed recently.</p>
-                    {% endif %}
-                </ul>
-            </section>
-        </aside>
-
-        <div class="col-sm-8">
-            <div>
-                {{ workgroup.definition|bleach }}
-            </div>
-            <h2>Details</h2>
+            <strong>Workgroup Details</strong>
+            <hr>
             <dl>
-
-                <dt>Managers
-                    {% if user_is_admin %}
-                        <a data-toggle="modal" data-target="#addMember" href="{% url 'aristotle:addWorkgroupMembers' workgroup.id %}" class="inline_action">Add</a>
-                    {% endif %}
-                </dt>
-
+                <dt>Managers</dt>
                 <dd>
                     {% for member in workgroup.managers.all %}
                         {{ member.display_name }}{% if not forloop.last %},{% endif %}
@@ -107,16 +75,20 @@
                     </a>
                 </dd>
                 <dt>Items</dt>
-                <dd>
                     <a href="{% url 'aristotle:workgroupItems' iid=item.id %}">
                         {% with total=workgroup.items.count %}
                             {% comment %} Cache the count then reuse for performance.{% endcomment %}
                             {{ total }} current item{{ total|pluralize }}
                         {% endwith %}
                     </a>
+                </dd>
+                {% comment %}
+                <dt>Number of items registered by status:</dt>
+                <dd>
                     <p>
                         {% blocktrans %}
-                            Breakdown by status - items may be counted twice if they have been registered by multiple
+
+                            Note: items may be counted twice if they have been registered by multiple
                             registration authorities.
                         {% endblocktrans %}
                     </p>
@@ -126,18 +98,54 @@
                         {% endfor %}
                     </ul>
                 </dd>
+                {% endcomment %}
             </dl>
 
-            <h2>Recent conversations</h2>
-            <a href="{% url 'aristotle:discussionsWorkgroup' item.id %}">View all posts.</a>
-            {% include 'aristotle_mdr/discussions/discussion_list.html' with discussions=item.discussions.all|slice:":5" %}
+
+        </aside>
+
+        <div class="col-sm-8">
+            <div>
+                {{ workgroup.definition|bleach }}
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">Recent discussions</div>
+                <div class="panel-body">
+                    {% include 'aristotle_mdr/discussions/discussion_list.html' with discussions=item.discussions.all|slice:":5" %}
+                </div>
+                <div class="panel-footer">
+                    <a href="{% url 'aristotle:discussionsWorkgroup' item.id %}">View all discussions.</a>
+                </div>
+            </div>
 
         </div>
     </div>
 
-    <div id="addMember" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content"></div>
+            <div class="panel panel-default">
+                <div class="panel-heading">{% trans 'Recently changed items' %}</div>
+                <ul class="list-group">
+                    {% if recent %}
+                        {% for item in recent %}
+                            <li class="list-group-item">{% include "aristotle_mdr/helpers/itemLink.html" with item=item %} ({{ item.get_verbose_name }})
+                                <br><small>{% trans 'Modified' %} {{ item.modified|naturaltime }}</small>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item">
+                            <p class="text-muted">No items changed recently.</p>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+
+    {% if perms.aristotle_mdr.change_workgroup %}
+        <div id="archive_modal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                </div>
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}
