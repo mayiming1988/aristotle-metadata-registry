@@ -162,7 +162,7 @@ class AddLinkWizard(SessionWizardView):
         istep = int(self.steps.current)
 
         # For steps after 1 pass relation
-        if istep > 1:
+        if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
 
         if istep == 1:
