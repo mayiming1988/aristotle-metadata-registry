@@ -182,11 +182,13 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             slots_active = is_active_module('aristotle_mdr.contrib.slots')
             context['slots_active'] = slots_active
             context['show_slots_tab'] = slots_active or form.custom_fields
+            self.item = self.model
 
             if 'extra_formsets' in kwargs:
                 fslist = kwargs['extra_formsets']
             else:
                 fslist = self.get_extra_formsets(item=self.model)
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, fslist)
 
             fscontext = self.get_formset_context(fslist)
             context.update(fscontext)
@@ -275,7 +277,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         self.search_terms = self.get_cleaned_data_for_step('initial')
         name = self.search_terms['name']
         name = name.strip()
-        self.duplicate_items = self.model.objects.filter(name__iexact=name).public().all()
+        self.duplicate_items = self.model.objects.all()
         return self.duplicate_items
 
     def find_similar(self, model=None):
