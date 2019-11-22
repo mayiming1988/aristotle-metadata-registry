@@ -2,19 +2,24 @@
 {% load i18n util_tags %}
 {% load static from staticfiles %}
 
-{% block title %}Create link - select concepts{% endblock %}
+{% block title %}Add new link - Step 3: Add link concepts{% endblock %}
 
 {% block form_title %}Step 3: Add link concepts{% endblock %}
 
 {% block wizard_content %}
     <div>
-        {% blocktrans %}
-        You are about to add concepts to the roles for relation
-            <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
-        {% endblocktrans %}
-        <div class='well'>
-        {{ relation.definition|bleach }}
-        </div>
+        <p>
+          {% blocktrans %}
+          You are about to add concepts to the roles for relation 
+          {% endblocktrans %}
+          <a target="_blank" href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
+        </p>
+
+        {% if relation.definition %}
+          <div class='well'>
+            {{ relation.definition|bleach }}
+          </div>
+        {% endif %}
     </div>
     <div>
         <div>

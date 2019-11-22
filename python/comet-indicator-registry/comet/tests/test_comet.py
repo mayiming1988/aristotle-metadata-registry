@@ -54,7 +54,7 @@ class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
         self.assertNotContains(response, invis.name)
         self.assertContains(response, 'You don\'t have permission', count=1)
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",
