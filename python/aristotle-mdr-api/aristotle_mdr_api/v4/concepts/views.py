@@ -75,8 +75,9 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
 
             # Iterate across the older items
             for sup_rel in current_item.superseded_items_relation_set.filter(proposed=False).all():
-                if sup_rel.older_item.id not in seen_items_ids:
-                    if perms.user_can_view(self.request.user, current_item):
+                older = sup_rel.older_item
+                if older.id not in seen_items_ids:
+                    if perms.user_can_view(self.request.user, older):
                         nodes.append(ConceptSerializer(sup_rel.older_item).data)
                         queue.append(sup_rel.older_item)
                         seen_items_ids.add(sup_rel.older_item.id)
