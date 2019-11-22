@@ -90,7 +90,7 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         :return: String
         """
         if self.title:
-            return truncate_words(str(self.title), 5)
+            return truncate_words(self.title, 5)
         else:
             return "Untitled Review #" + str(self.id)
 
