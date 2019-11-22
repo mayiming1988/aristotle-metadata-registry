@@ -842,8 +842,9 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
         return REVERSION_FORMATS[version.format]
 
     def get_queryset(self) -> List[Dict]:
-        """Return a queryset of all the versions the user has permission to access as well as associated metadata
-         involved in template rendering"""
+        """Return a list of all the versions the user has permission to access as well as associated metadata
+         involved in template rendering
+        """
         metadata_item = self.get_object()
         versions = self.get_versions(metadata_item, self.request.user)
 

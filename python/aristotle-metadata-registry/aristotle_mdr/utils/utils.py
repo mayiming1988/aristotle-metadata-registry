@@ -207,7 +207,6 @@ def construct_change_message(form, formsets):
 
 
 def construct_change_message_extra_formsets(form, extra_formsets):
-
     messages_list = [construct_change_message_for_form(form)]
 
     for info in extra_formsets:
