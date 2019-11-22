@@ -548,7 +548,7 @@ class ExtraFormsetMixin:
                         item['formset'].errors and
                         not (len(item['formset'].errors) == 1 and item['formset'].errors[0] == {})
                     )
-                ):
+            ):
                 logger.critical(str([
                     item['title'],
                     item['formset'].errors,
