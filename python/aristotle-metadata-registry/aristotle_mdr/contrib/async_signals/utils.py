@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
+def fire(signal_name, obj=None, user_email=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
     """Starts celery task to run given signal code"""
 
     if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
@@ -20,11 +20,16 @@ def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals",
                 'app_label': obj._meta.app_label,
                 'model_name': obj._meta.model_name,
             },
+            'user_email': user_email,
         })
         kwargs = clean_signal(kwargs)  # Clean message of unwanted (and unserializable) content
 
         # Run the task after database commit:
-        run_task_by_name_on_commit('fire_async_signal', args=[namespace, signal_name], kwargs={'message': kwargs})
+        run_task_by_name_on_commit('fire_async_signal',
+                                   args=[namespace, signal_name],
+                                   kwargs={
+                                       'message': kwargs,
+                                   })
     else:
         kwargs.update({'__object__': {'object': obj}})
         import_string("%s.%s" % (namespace, signal_name))(kwargs)

@@ -1,3 +1,4 @@
+from reversion.models import Version
 from aristotle_mdr import messages
 from aristotle_mdr.contrib.async_signals.utils import safe_object
 
@@ -6,21 +7,32 @@ logger = logging.getLogger(__name__)
 
 
 def concept_saved(message, **kwargs):
+
+    user_email = message.pop('user_email')
+
     instance = safe_object(message)
 
+    if Version.objects.get_for_object(instance).count() < 2:
+        created = True
+    else:
+        created = False
+
     for user in instance.favourited_by:
-        messages.favourite_updated(recipient=user, obj=instance)
+        if user.email is not user_email:
+            messages.favourite_updated(recipient=user, obj=instance)
 
     for user in instance.editable_by:
-        if not message['created']:
-            messages.items_i_can_edit_updated(recipient=user, obj=instance)
+        if not created:
+            if user.email is not user_email:
+                messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.users_for_role('viewer'):
-            if message['created']:
-                messages.workgroup_item_new(recipient=user, obj=instance)
-            else:
-                messages.workgroup_item_updated(recipient=user, obj=instance)
+            if user.email is not user_email:
+                if created:
+                    messages.workgroup_item_new(recipient=user, obj=instance)
+                else:
+                    messages.workgroup_item_updated(recipient=user, obj=instance)
 
 
 def new_comment_created(message, **kwargs):
