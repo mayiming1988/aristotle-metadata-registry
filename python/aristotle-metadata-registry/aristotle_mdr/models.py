@@ -1981,14 +1981,14 @@ post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 
 @receiver(post_revision_commit)
 def concept_saved(sender, **kwargs):
-
+    
     revision = kwargs.pop('revision')
     versions = kwargs.pop('versions')
     version = versions[0]
 
     if not issubclass(version._model, _concept):
         return
-        
+
     instance = version.object
     user_email = reversion.get_user().email
 
