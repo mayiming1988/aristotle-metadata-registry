@@ -521,7 +521,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.login_superuser()
-        response = self.client.get("/login")
+        response = self.client.get("/login", follow=True)
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
     def test_avoid_redirection_loop_value_error(self):

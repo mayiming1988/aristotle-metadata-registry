@@ -1,12 +1,24 @@
 {% load i18n util_tags %}
 
-<div style="display:table">
-{% for f, role in form|izip:roles %}
-    <div style="display:table-row">
-        <label style="display:table-cell"for='{{f.id_for_label}}'>{{f.label}}</label>
-        <div style="display:table-cell">
-            <p>Definition: {{role.definition}}
-            </p>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Relation</th>
+      <th>Definition</th>
+      <th>Multiplicity</th>
+      <th>Concepts</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for field, role in form|izip:roles %}
+    <tr>
+        <td>
+            <label for='{{ field.id_for_label }}'>{{ field.label }}</label>
+        </td>
+        <td>
+            {{ role.definition|bleach }}
+        </td>
+        <td>
             {% if role.multiplicity %}
                 You can select up to {{ role.multiplicity }} 
                 concept{{ multiplicity|pluralize}} for this role for this relationship.
@@ -14,17 +26,18 @@
                 There is no limit on the number of concepts that fill this
                 role for this relationship.
             {% endif %}
-        </div>
-        <div style="display:table-cell">
-        {% if f.errors %}
-          <ul class="alert alert-danger">
-            {% for error in f.errors %}
-            <li>{{ error }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-        {{f}}
-        </div>
-    </div>
-{% endfor %}
-</div>
+        </td>
+        <td>
+            {% if field.errors %}
+              <ul class="alert alert-danger">
+                {% for error in field.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {{ field }}
+        </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

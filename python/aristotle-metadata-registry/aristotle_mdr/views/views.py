@@ -21,6 +21,7 @@ from aristotle_mdr.perms import (
     user_can_supersede,
     user_can_add_status,
     user_can_view_statuses_revisions,
+    user_is_registrar
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -328,7 +329,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'can_edit': user_can_edit(self.user, self.item),
             'can_publish': user_can_publish_object(self.user, self.item),
             'can_supersede': user_can_supersede(self.user, self.item),
-            'can_add_status': user_can_add_status(self.user, self.item)
+            'can_add_status': user_can_add_status(self.user, self.item),
+            'is_registrar': user_is_registrar(self.user)
         })
 
         return context

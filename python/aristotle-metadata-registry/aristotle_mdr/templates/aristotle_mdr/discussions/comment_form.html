@@ -1,6 +1,12 @@
 {{ comment_form.post.as_hidden }}
 
 <div class="new_comment">
-<div><label for='id_body'>Add comment</label></div>
+<div><label for='id_body'>
+    {% if action_name %}
+        {{ action_name }}
+    {% else %}
+        Add
+    {% endif %}
+    comment</label></div>
 <div>{{ comment_form.body }}</div>
 </div>

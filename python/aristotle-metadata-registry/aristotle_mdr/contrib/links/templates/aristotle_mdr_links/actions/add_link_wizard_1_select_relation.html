@@ -7,24 +7,26 @@
 {% block form_title %}Step 1: Select a relationship{% endblock %}
 
 {% block wizard_content %}
-    <div class="alert alert-info">
-        {% blocktrans %}
-        Add a new link 
-        {% endblocktrans %}
-        <p>
-            Select the relationship type that this link will match.
-            Click the blue link icon (<i class="fa fa-external-link-square"></i>) in the drop down to get
-            view the relation definition in a new window.
-        </p>
-        <p>
-            <a href="{% url 'aristotle_help:concept_help' app='aristotle_mdr_links' model='relation' %}">
-                Read more about relationships
-            </a>
-        </p>
-    </div>
+    <h2>
+      {% blocktrans %}
+      Add a new link 
+      {% endblocktrans %}
+    </h2>
+    <p>Select the relationship for this link</p>
+    <p>
+       Click the blue link icon (<i class="fa fa-external-link-square"></i>) in the drop down to
+       view the relation definition in a new window.
+    </p>
+    <p>
+        <a 
+          target="_blank"
+          href="{% url 'aristotle_help:concept_help' app='aristotle_mdr_links' model='relation' %}">
+            Read more about relationships
+        </a>
+    </p>
     <div>
-        <table>
-        {{ form.as_table }}
+        <table class="table">
+          {{ form.as_table }}
         </table>
     </div>
 {% endblock %}

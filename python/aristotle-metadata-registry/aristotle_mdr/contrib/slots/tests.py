@@ -107,7 +107,7 @@ class SlotsPermissionTests(BaseSlotsTestCase, TestCase):
         # Should not be able to view edit page at all
         self.assertRedirects(
             response,
-            reverse('friendly_login') + '?next=/item/' + str(self.newoc.id) + '/edit'
+            reverse('friendly_login') + '?next=' + reverse('aristotle_mdr:edit_item', args=[self.newoc.id])
         )
 
         # Authenticated user, not in wg

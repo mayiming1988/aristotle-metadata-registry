@@ -147,6 +147,13 @@ def user_can_submit_to_workgroup(user, workgroup):
 
 
 def user_is_registrar(user, ra=None):
+    """
+    This function can be used to check whether a user is associated with ANY Registration Authority or associated with a
+    specific Registration Authority.
+    :param user: User object.
+    :param ra: (Optional) Registration Authority object.
+    :return: Boolean
+    """
     if user.is_anonymous:
         return False
     if user.is_superuser:
@@ -409,6 +416,9 @@ def user_can_move_any_workgroup(user):
 def user_can_move_any_stewardship_organisation(user):
     """Checks if a user can move an item from any of their stewardship organisations"""
     from aristotle_mdr.models import StewardOrganisation
+    if user.is_anonymous:
+        return False
+
     if user.is_superuser:
         return True
     else:

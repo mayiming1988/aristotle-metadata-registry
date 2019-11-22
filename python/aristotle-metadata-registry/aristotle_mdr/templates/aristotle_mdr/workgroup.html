@@ -91,7 +91,7 @@
 
                 <dd>
                     {% for member in workgroup.managers.all %}
-                        {% firstof member.get_full_name member.email %}{% if member.profile.is_registrar %}*{% endif %}{% if not forloop.last %},{% endif %}
+                        {{ member.display_name }}{% if not forloop.last %},{% endif %}
                     {% empty %}
                         <em>No active managers</em>
                     {% endfor %}
