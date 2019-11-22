@@ -35,7 +35,7 @@
       }
 
       // Replace innerText of elements with queryString values
-      function processValues(values) {
+      function processValues(values, processor) {
         for (var i in values) {
           var val = values[i]
           // If value in query params
@@ -46,6 +46,10 @@
             for (var j in elements) {
               var element = elements[j]
               var value = queryParams[val]
+              // Pass value through processor function
+              if (processor !== undefined) {
+                value = processor(value)
+              }
               element.innerText = value
             }
           }
@@ -53,8 +57,13 @@
       }
 
       // Values to look for in params (only the ones we use for efficiency)
-      var values = ['page', 'topage']
+      var values = ['topage']
+      // Need to decrement this since our header is 2 pages and it assumes 1
+      // but topage is correct
+      var decrementValues = ['page']
+
       processValues(values)
+      processValues(decrementValues, function(i) { return i - 1 })
 
     </script>
   </body>
