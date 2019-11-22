@@ -1,5 +1,4 @@
 from rest_framework.test import APIClient
-from rest_framework.test import APIClient
 from django.test import TestCase, tag
 from django.urls import reverse
 from django.contrib.auth import get_user_model
