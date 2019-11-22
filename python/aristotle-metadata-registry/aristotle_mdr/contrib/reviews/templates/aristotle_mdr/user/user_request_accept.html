@@ -5,35 +5,35 @@
 {% block title %}Approve review request{% endblock %}
 
 {% block form_tag %}
-<form method="post" action="{% url 'aristotle_reviews:accept_review' review.id %}">
+    <form method="post" action="{% url 'aristotle_reviews:accept_review' review.id %}">
 {% endblock %}
 
 {% block form %}
-      <ol class="breadcrumb">
+    <ol class="breadcrumb">
         <li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
         <li class="active"><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
-        <li><a href="{% url 'aristotle_reviews:review_details' review.id %}">{{review.title}}</a></li>
+        <li><a href="{% url 'aristotle_reviews:review_details' review.id %}">{{review.title_short}}</a></li>
         <li class="active">Approve review request</li>
-      </ol>
+    </ol>
 
-      <p class="margin-below">
+    <p class="margin-below">
         By approving this review, the status of the items listed below will be change to {{ review.state_name }} in the {{ ra.name }} registration authority
-      </p>
-      {% include 'aristotle_mdr/helpers/accept_review_info.html' %}
-      <section>
-      <div class="status_change_description">
-          <label for='id_status_message'>{{ wizard.form.status_message.label }}:</label> {{ wizard.form.status_message.help_text }}
-          {{ wizard.form.status_message }}
-      </div>
-      <div class="status_change_description">
-          <label for='id_close_review'>{{ wizard.form.close_review.label }}:</label> {{ wizard.form.close_review.help_text }}
-          {{ wizard.form.close_review }}
-      </div>
-      </section>
+    </p>
+    {% include 'aristotle_mdr/helpers/accept_review_info.html' %}
+    <section>
+        <div class="status_change_description">
+            <label for='id_status_message'>{{ wizard.form.status_message.label }}:</label> {{ wizard.form.status_message.help_text }}
+            {{ wizard.form.status_message }}
+        </div>
+        <div class="status_change_description">
+            <label for='id_close_review'>{{ wizard.form.close_review.label }}:</label> {{ wizard.form.close_review.help_text }}
+            {{ wizard.form.close_review }}
+        </div>
+    </section>
 {% endblock %}
 
 {% block buttons %}
-<a class="btn btn-default" href="{% url 'aristotle_reviews:review_details' review.id %}" data-dismiss="modal">Cancel</a>
-<input class="btn btn-success" type="submit" name="submit_next" value="{% trans 'Review Changes' %}" />
-<input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
+    <a class="btn btn-default" href="{% url 'aristotle_reviews:review_details' review.id %}" data-dismiss="modal">Cancel</a>
+    <input class="btn btn-success" type="submit" name="submit_next" value="{% trans 'Review Changes' %}" />
+    <input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
 {% endblock %}

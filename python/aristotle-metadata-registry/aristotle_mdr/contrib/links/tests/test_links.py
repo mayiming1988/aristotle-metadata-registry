@@ -615,7 +615,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertWizardStep(response, 1)
 
         self.assertFalse(response.context['roles_exist'])
-        self.assertContains(response, 'alert alert-danger')
 
     def test_no_roles_message_doesnt_display(self):
         self.register_relation()

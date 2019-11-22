@@ -160,16 +160,17 @@ class AddLinkWizard(SessionWizardView):
         # Steps are 0 indexed, but the template is 1 indexed
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
-        if istep == 1:
+
+        # For steps after 1 pass relation
+        if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
+
+        if istep == 1:
             context['roles_exist'] = context['form'].fields['role'].queryset.exists()
         elif istep == 2:
             context['roles'] = self.get_roles()
         elif istep == 3:
-            context.update({
-                'relation': self.get_cleaned_data_for_step('0')['relation'],
-                'role_concepts': self.get_role_concepts()
-            })
+            context['role_concepts'] = self.get_role_concepts()
 
         context['root_item'] = self.root_item
         return context

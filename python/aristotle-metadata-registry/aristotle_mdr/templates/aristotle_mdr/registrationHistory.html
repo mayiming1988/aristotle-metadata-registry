@@ -35,7 +35,8 @@
                             <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
                             <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
                             <td>{{ status.changeDetails }}</td>
-                            {% if item|can_edit:request.user %}
+                            {% if request.user.is_superuser %}
+                                {# Restrict alteration of statuses to superuser #}
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
