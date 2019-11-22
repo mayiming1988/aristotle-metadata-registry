@@ -1985,11 +1985,12 @@ def concept_saved(sender, **kwargs):
     revision = kwargs.pop('revision')
     versions = kwargs.pop('versions')
     version = versions[0]
-    instance = version.object
-    user_email = reversion.get_user().email
 
     if not issubclass(version._model, _concept):
         return
+    
+    instance = version.object
+    user_email = reversion.get_user().email
 
     # If the concept saved was not triggered by a superseding action:
     # if not ('modified' in changed_fields and len(changed_fields) == 1):

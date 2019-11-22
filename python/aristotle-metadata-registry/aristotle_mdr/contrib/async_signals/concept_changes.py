@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def concept_saved(message, **kwargs):
 
-    user_email = message.pop('user_email')
+    user_email = message.get('user_email')
 
     instance = safe_object(message)
 
@@ -18,17 +18,17 @@ def concept_saved(message, **kwargs):
         created = False
 
     for user in instance.favourited_by:
-        if user.email is not user_email:
+        if user_email and user.email is not user_email:
             messages.favourite_updated(recipient=user, obj=instance)
 
     for user in instance.editable_by:
         if not created:
-            if user.email is not user_email:
+            if user_email and user.email is not user_email:
                 messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.users_for_role('viewer'):
-            if user.email is not user_email:
+            if user_email and user.email is not user_email:
                 if created:
                     messages.workgroup_item_new(recipient=user, obj=instance)
                 else:
