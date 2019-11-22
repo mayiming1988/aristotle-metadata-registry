@@ -12,7 +12,7 @@
     <ol class="breadcrumb">
         <li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
         <li class="active"><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
-        <li><a href="{% url 'aristotle_reviews:review_details' review.id %}">{{review.title}}</a></li>
+        <li><a href="{% url 'aristotle_reviews:review_details' review.id %}">{{review.title_short}}</a></li>
         <li class="active">Endorse metadata for review request</li>
     </ol>
 
