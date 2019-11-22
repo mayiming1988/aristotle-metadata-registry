@@ -1988,7 +1988,7 @@ def concept_saved(sender, **kwargs):
 
     if not issubclass(version._model, _concept):
         return
-    
+        
     instance = version.object
     user_email = reversion.get_user().email
 
