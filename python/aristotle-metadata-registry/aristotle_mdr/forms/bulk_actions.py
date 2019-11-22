@@ -381,7 +381,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=failed_items)
 
     @classmethod
-    def can_user(cls, user):
+    def can_use(cls, user):
         return user_can_move_any_stewardship_organisation(user)
 
 

@@ -6,10 +6,10 @@ from aristotle_mdr.models import _concept
 from aristotle_mdr.utils import url_slugify_concept
 
 
-def scoped_identifier_redirect(request, ns_prefix, iid, version=None):
+def scoped_identifier_redirect(request, ns_prefix, identifier, version=None):
     objs = _concept.objects.filter(
         identifiers__namespace__shorthand_prefix=ns_prefix,
-        identifiers__identifier=iid
+        identifiers__identifier=identifier
     )
 
     if version:

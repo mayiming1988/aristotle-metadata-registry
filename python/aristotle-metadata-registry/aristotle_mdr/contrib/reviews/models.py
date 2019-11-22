@@ -11,12 +11,17 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.async_signals.utils import fire
+from aristotle_mdr.utils.text import truncate_words
 
 from aristotle_mdr.managers import (
     ReviewRequestQuerySet,
 )
 
 from .const import REVIEW_STATES
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class StatusMixin:
@@ -76,6 +81,18 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         default=0,
         help_text=_("Update the registration of associated items")
     )
+
+    @property
+    def title_short(self):
+        """
+        Get a truncated version of the review title.
+        If the review does not have a title, then return the text "Untitled Review" + the review id number.
+        :return: String
+        """
+        if self.title:
+            return truncate_words(self.title, 5)
+        else:
+            return "Untitled Review #" + str(self.id)
 
     @property
     def message(self):
