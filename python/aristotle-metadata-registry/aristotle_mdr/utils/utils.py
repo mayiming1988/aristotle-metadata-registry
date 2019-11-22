@@ -182,8 +182,8 @@ def construct_change_message(form, formsets):
                 for added_object in formset.new_objects:
                     # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been created in the registry.
                     messages_list.append(_('Added %(name)s "%(object)s".')
-                                          % {'name': force_text(added_object._meta.verbose_name),
-                                             'object': force_text(added_object)})
+                                         % {'name': force_text(added_object._meta.verbose_name),
+                                            'object': force_text(added_object)})
                 for changed_object, changed_fields in formset.changed_objects:
                     messages_list.append(
                         _('Changed %(list)s for %(name)s "%(object)s".').format(
@@ -195,15 +195,14 @@ def construct_change_message(form, formsets):
                 for deleted_object in formset.deleted_objects:
                     # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been deleted from the registry.
                     messages_list.append(_('Deleted %(name)s "%(object)s".')
-                                          % {'name': force_text(deleted_object._meta.verbose_name),
-                                             'object': force_text(deleted_object)})
+                                         % {'name': force_text(deleted_object._meta.verbose_name),
+                                            'object': force_text(deleted_object)})
 
     change_message = ', '.join(messages_list)
     return change_message or _('No fields changed.')
 
 
 def construct_change_message_extra_formsets(form, extra_formsets):
-
     messages_list = [construct_change_message_for_form(form)]
 
     for info in extra_formsets:
@@ -221,8 +220,7 @@ def get_concepts_for_apps(app_labels):
     concepts = [
         m
         for m in models
-        if m.model_class() and issubclass(m.model_class(), MDR._concept) and
-        not m.model.startswith("_")
+        if m.model_class() and issubclass(m.model_class(), MDR._concept) and not m.model.startswith("_")
     ]
     return concepts
 
@@ -271,9 +269,9 @@ def validate_aristotle_settings(aristotle_settings, strict_mode):
         # ("USER_EMAIL_RESTRICTIONS", "user_email_restrictions_failed")
     ]:
         try:
-            check_settings=aristotle_settings.get(sub_setting, [])
-            assert(type(check_settings) is list)
-            assert(all(type(f) is str for f in check_settings))
+            check_settings = aristotle_settings.get(sub_setting, [])
+            assert (type(check_settings) is list)
+            assert (all(type(f) is str for f in check_settings))
         except Exception as e:
             logger.error(e)
             if strict_mode:
@@ -360,7 +358,6 @@ def fetch_aristotle_downloaders() -> List:
 # Given a models label, id and name, Return a url to that objects page
 # Used to avoid a database hit just to use get_absolute_url
 def get_aristotle_url(label, obj_id, obj_name=None):
-
     label_list = label.split('.')
 
     app = label_list[0]
