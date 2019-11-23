@@ -61,8 +61,13 @@ class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
         return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
+        total_items = self.object.items.count()
+        total_unregistered = self.object.items.filter(statuses=None).count()
         kwargs.update({
-            'counts': workgroup_item_statuses(self.object),
+            'total_items': total_items,
+            'total_unregistered': total_unregistered,
+            'total_registered': total_items - total_unregistered,
+                # workgroup_item_statuses(self.object),
             'recent': MDR._concept.objects.filter(
                 workgroup=self.object).select_subclasses().order_by('-modified')[:5]
         })
@@ -182,16 +187,14 @@ class ListWorkgroup(PermissionRequiredMixin, GenericListWorkgroup):
         return MDR.Workgroup.objects.all()
 
 
-class EditWorkgroup(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
+class EditWorkgroup(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, UserFormViewMixin, UpdateView):
     template_name = "aristotle_mdr/user/workgroups/edit.html"
     permission_required = "aristotle_mdr.change_workgroup"
-
-    fields = [
-        'name',
-        'definition',
-    ]
-
+    form_class = MDRForms.workgroups.WorkgroupEditForm
     context_object_name = "item"
+    user_form = True
+    raise_exception = True
+    redirect_unauthenticated_users = True
 
 
 class ChangeUserRoles(SingleRoleChangeView):

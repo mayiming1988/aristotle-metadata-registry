@@ -16,7 +16,7 @@
     </ul>
 {% endblock %}
 {% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with subWorkgroup=item %}
+    {% include "aristotle_mdr/user/userSideBar.html" with  activeTab='workgroups' %}
 {% endblock %}
 
 {% block page %}
@@ -76,11 +76,15 @@
                 <dt>Items</dt>
                 <dd>
                     <a href="{% url 'aristotle:workgroupItems' iid=item.id %}">
-                        {% with total=workgroup.items.count %}
-                            {% comment %} Cache the count then reuse for performance.{% endcomment %}
-                            {{ total }} current item{{ total|pluralize }}
-                        {% endwith %}
+                            {{ total_items }} current item{{ total_items|pluralize }}
                     </a>
+                    {% if total_items > 0 %}
+                    Including:
+                    <ul>
+                    <li>{{ total_registered }} registered item{{ total_registered|pluralize }}</li>
+                    <li>{{ total_unregistered }} unregistered item{{ total_unregistered|pluralize }}</li>
+                    </ul>
+                    {% endif %}
                 </dd>
                 {% comment %}
                 <dt>Number of items registered by status:</dt>
