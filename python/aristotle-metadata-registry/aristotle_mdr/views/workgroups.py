@@ -67,7 +67,6 @@ class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
             'total_items': total_items,
             'total_unregistered': total_unregistered,
             'total_registered': total_items - total_unregistered,
-                # workgroup_item_statuses(self.object),
             'recent': MDR._concept.objects.filter(
                 workgroup=self.object).select_subclasses().order_by('-modified')[:5]
         })
