@@ -1990,11 +1990,15 @@ def concept_saved(sender, **kwargs):
         return
 
     instance = version.object
-    user_email = reversion.get_user().email
 
-    # If the concept saved was not triggered by a superseding action:
-    # if not ('modified' in changed_fields and len(changed_fields) == 1):
-    fire("concept_changes.concept_saved", obj=instance, user_email=user_email, **kwargs)
+    user = reversion.get_user()
+
+    if user:
+        user_email = user.email
+
+        # If the concept saved was not triggered by a superseding action:
+        # if not ('modified' in changed_fields and len(changed_fields) == 1):
+        fire("concept_changes.concept_saved", obj=instance, user_email=user_email, **kwargs)
 
 
 @receiver(pre_save)
