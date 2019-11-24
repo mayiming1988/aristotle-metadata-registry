@@ -34,9 +34,9 @@ CASCADE_OPTIONS = [
 
 class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     state = forms.ChoiceField(
-        choices=BLANK_CHOICE_DASH+MDR.STATES,
-        widget = forms.Select(attrs={"class":"form-control"})
-    ) #, widget=forms.RadioSelect)
+        choices=BLANK_CHOICE_DASH + MDR.STATES,
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
     registrationDate = forms.DateField(
         required=False,
         label=_("Registration date"),
@@ -47,8 +47,8 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
         initial=0,
         choices=CASCADE_OPTIONS,
         label=_("Cascade registration"),
-        help_text = CASCADE_HELP_TEXT,
-        widget = forms.RadioSelect() #attrs={"class":"form-control"}),
+        help_text=CASCADE_HELP_TEXT,
+        widget=forms.RadioSelect()
     )
     changeDetails = forms.CharField(
         max_length=512,

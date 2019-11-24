@@ -50,7 +50,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
         label=_("Cascade registration"),
         help_text=format_lazy(
             "{} {}",
-             CASCADE_HELP_TEXT,
+            CASCADE_HELP_TEXT,
             _('When enabled, see the full list of metadata under the "Impact" tab.')
         ),
         widget=forms.RadioSelect(),
