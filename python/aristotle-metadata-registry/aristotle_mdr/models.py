@@ -1995,7 +1995,7 @@ def concept_saved(sender, **kwargs):
 
         # If the concept saved was not triggered by a superseding action:
         # if not ('modified' in changed_fields and len(changed_fields) == 1):
-        fire("concept_changes.concept_saved", obj=version, user_id=user_id, **kwargs)
+        fire("concept_changes.item_saved", obj=version, user_id=user_id, **kwargs)
 
 
 @receiver(pre_save)

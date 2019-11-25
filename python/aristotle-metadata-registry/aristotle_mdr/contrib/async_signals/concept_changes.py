@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def concept_saved(message, **kwargs):
+def item_saved(message, **kwargs):
 
     user_email = get_user_model().objects.get(pk=message.get('user_id')).email
 
