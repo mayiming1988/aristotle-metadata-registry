@@ -1,3 +1,5 @@
+{% load i18n link_tags %}
+
 {% if not no_edit_links %}
     {% if request.user|can_edit_link:link %}
         <div class="btn-group">
