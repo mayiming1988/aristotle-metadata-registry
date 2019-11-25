@@ -23,5 +23,4 @@ urlpatterns = [
     path('relation/link/<int:iid>/add/', views.AddLinkWizard.as_view(), name='add_link'),
     path('relation/link/edit/<int:linkid>', views.EditLinkFormView.as_view(), name='edit_link'),
     path('relation/link/json/<int:iid>', views.link_json_for_item, name='link_json_for_item'),
-    path('relation/<int:iid>/link/<int:linkid>/remove-link/', views.remove_link_for_item, name='remove_link')
 ]
