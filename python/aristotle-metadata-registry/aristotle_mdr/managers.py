@@ -450,21 +450,13 @@ class SupersedesQueryset(models.QuerySet):
     def visible(self, user):
         from aristotle_mdr.models import _concept
         visible_concepts = _concept.objects.visible(user)
-        editable_concepts = _concept.objects.visible(user)
-
-        if user.is_anonymous:
-            return self.filter(
-                newer_item__in=visible_concepts,
-                older_item__in=visible_concepts,
-                proposed=False
-            )
 
         if user.is_superuser:
             return self.all()
 
         return self.filter(
-            Q(newer_item__in=editable_concepts, proposed=True) |
-            Q(newer_item__in=visible_concepts)
+            newer_item__in=visible_concepts,
+            older_item__in=visible_concepts,
         )
 
     def approved(self):

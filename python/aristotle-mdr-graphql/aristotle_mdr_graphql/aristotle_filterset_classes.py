@@ -59,7 +59,7 @@ class CollectionFilterSet(AristotleIdFilterSet):
 
 
 class SupersedeRelationshipFilterSet(FilterSet):
-    approved = django_filters.BooleanFilter(method='filter_approved')
+    approved = django_filters.BooleanFilter(method='filter_approved') # Approved is the opposite of proposed
 
     class Meta:
         model = SupersedeRelationship
@@ -68,4 +68,4 @@ class SupersedeRelationshipFilterSet(FilterSet):
         }
 
     def filter_approved(self, qs, name, value):
-        return qs.filter(proposed = not value)
+        return qs.filter(proposed=not value)
