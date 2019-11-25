@@ -549,15 +549,6 @@ class ExtraFormsetMixin:
                         not (len(item['formset'].errors) == 1 and item['formset'].errors[0] == {})
                     )
             ):
-                logger.critical(str([
-                    item['title'],
-                    item['formset'].errors,
-                    item['formset'].non_form_errors(),
-                    len(item['formset'].errors),
-                    len(item['formset'].errors) == 1,
-                    item['formset'].errors[0],
-                    item['formset'].errors[0] == {}
-                ]))
                 if item['type'] in ('weak', 'through'):
                     invalid_tabs.add('components')
                 elif item['title'] in ['Slots', 'Custom Fields']:
