@@ -148,8 +148,6 @@ def review_request_created(recipient, obj):
 
 
 def review_request_updated(recipient, obj):
-    # TODO: HOW CAN WE IDENTIFY REQUESTS IN THE NOTIFICATIONS? THE BEST I CAN DO IS TRY TO GET THE REQUEST
-    #  TITLE, BUT SOMETIMES REVIEW REQUESTS DON'T HAVE TITLES.
     if check_within_aristotle_notification_permission(recipient) and \
             recipient.profile.notificationPermissions['registrar']['review request updated']:
         notify.send(
