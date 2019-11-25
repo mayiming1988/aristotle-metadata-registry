@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def fire(signal_name, obj=None, user_email=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
+def fire(signal_name, obj=None, user_id=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
     """Starts celery task to run given signal code"""
 
     if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
@@ -20,7 +20,7 @@ def fire(signal_name, obj=None, user_email=None, namespace="aristotle_mdr.contri
                 'app_label': obj._meta.app_label,
                 'model_name': obj._meta.model_name,
             },
-            'user_email': user_email,
+            'user_id': user_id,
         })
         kwargs = clean_signal(kwargs)  # Clean message of unwanted (and unserializable) content
 

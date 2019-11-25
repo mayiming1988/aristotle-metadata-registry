@@ -1,6 +1,7 @@
 from reversion.models import Version
 from aristotle_mdr import messages
 from aristotle_mdr.contrib.async_signals.utils import safe_object
+from django.contrib.auth import get_user_model
 
 import logging
 logger = logging.getLogger(__name__)
@@ -8,9 +9,10 @@ logger = logging.getLogger(__name__)
 
 def concept_saved(message, **kwargs):
 
-    user_email = message.get('user_email')
+    user_email = get_user_model().objects.get(pk=message.get('user_id')).email
 
-    instance = safe_object(message)
+    version = safe_object(message)
+    instance = version.object
 
     if Version.objects.get_for_object(instance).count() < 2:
         created = True

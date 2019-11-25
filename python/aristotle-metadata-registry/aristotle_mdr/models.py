@@ -1989,16 +1989,13 @@ def concept_saved(sender, **kwargs):
     if not issubclass(version._model, _concept):
         return
 
-    instance = version.object
+    user_id = revision.user_id
 
-    user = reversion.get_user()
-
-    if user:
-        user_email = user.email
+    if user_id is not None:
 
         # If the concept saved was not triggered by a superseding action:
         # if not ('modified' in changed_fields and len(changed_fields) == 1):
-        fire("concept_changes.concept_saved", obj=instance, user_email=user_email, **kwargs)
+        fire("concept_changes.concept_saved", obj=version, user_id=user_id, **kwargs)
 
 
 @receiver(pre_save)

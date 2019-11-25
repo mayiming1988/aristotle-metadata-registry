@@ -1,9 +1,9 @@
 import aristotle_mdr.models as models
 import datetime
-import ast
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.contrib.auth import get_user_model, logout
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_bg_workers.tasks import send_notification_email
@@ -221,7 +221,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(user2.notifications.count(), 1)
 
-    def test_subscriber_is_notified_when_issue_is_created_on_favourite_item(self):
+    def test_subscriber_is_not_notified_when_favourite_item_is_edited_by_the_same_user(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
 
         self.favourite_item(user1, self.item1)
@@ -230,7 +230,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.item1.save()
 
-        self.assertEqual(user1.notifications.count(), 1)
+        self.assertEqual(user1.notifications.count(), 0)
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
