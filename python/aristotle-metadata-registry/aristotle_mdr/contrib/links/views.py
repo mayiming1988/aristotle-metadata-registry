@@ -120,7 +120,7 @@ class AddLinkWizard(SessionWizardView):
         self.relation = self.get_cleaned_data_for_step('0')['relation']
         return self.relation.relationrole_set.order_by('ordinal', 'name')
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         kwargs = super().get_form_kwargs(step)
         istep = int(step)
         if istep == 0:
@@ -240,3 +240,7 @@ def link_json_for_item(request, iid):
         'nodes': nodes,
         'edges': edges,
     })
+
+
+def remove_link_for_item(request, iid, linkid):
+    pass

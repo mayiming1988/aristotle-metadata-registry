@@ -52,10 +52,25 @@
                         <td rowspan="{{ linkend_count }}">
                             {% if not no_edit_links %}
                                 {% if request.user|can_edit_link:link %}
-                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
-                                        <span>Edit link</span>
-                                        <i class="fa fa-pencil"></i>
-                                    </a>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Manage'%} <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                            <li>
+                                                <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
+                                                    <i class="fa fa-pencil"></i>
+                                                    <span>Edit link</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{% url 'aristotle_mdr_links:remove_link' item.pk link.pk %}?next={{item.get_absolute_url}}">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span>Remove link</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 {% endif %}
                             {% endif %}
                         </td>
