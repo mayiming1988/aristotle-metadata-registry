@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import FormView
+from django.views.generic import FormView, DeleteView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_edit
@@ -240,6 +240,10 @@ def link_json_for_item(request, iid):
         'nodes': nodes,
         'edges': edges,
     })
+
+
+class RemoveLinkForItem(DeleteView):
+    pass
 
 
 def remove_link_for_item(request, iid, linkid):

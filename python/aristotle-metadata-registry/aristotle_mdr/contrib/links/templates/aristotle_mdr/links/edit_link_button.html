@@ -14,7 +14,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'aristotle_mdr_links:remove_link' item.pk link.pk %}?next={{item.get_absolute_url}}">
+                    <a class="btn-danger" href="{% url 'aristotle_mdr_links:remove_link' item.pk link.pk %}?next={{item.get_absolute_url}}">
                         <i class="fa fa-trash"></i>
                         <span>Remove link</span>
                     </a>
