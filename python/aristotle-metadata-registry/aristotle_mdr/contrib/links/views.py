@@ -243,4 +243,9 @@ def link_json_for_item(request, iid):
 
 
 def remove_link_for_item(request, iid, linkid):
-    pass
+
+    link_models.Link.objects.get(pk=linkid).delete()
+
+    return HttpResponseRedirect(
+        reverse('aristotle:item', args=[iid])
+    )
