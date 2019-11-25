@@ -139,12 +139,11 @@ def review_request_created(recipient, obj):
         notify.send(
             obj,
             recipient=recipient,
-            verb=obj.requester.full_name + _(" created a review request") +
-            ((" '" + obj.title + "'.") if obj.title else ".")
+            verb=obj.requester.full_name + _(" created a review request: ") + obj.title_short
         )
 
-    message = obj.requester.full_name + _(" created a review request") +\
-        ((" '" + obj.title + "'.") if obj.title else ".")
+    message = obj.requester.full_name + _(" created a review request: ") + obj.title_short
+
     send_email(recipient, message)
 
 
@@ -156,10 +155,10 @@ def review_request_updated(recipient, obj):
         notify.send(
             obj,
             recipient=recipient,
-            verb=_("Review request updated") + ((": '" + obj.title + "'.") if obj.title else ".")
+            verb=_("Review request updated: ") + obj.title_short
         )
 
-    message = _("Review request updated") + ((": '" + obj.title + "'.") if obj.title else ".")
+    message = _("Review request updated: ") + obj.title_short
     send_email(recipient, message)
 
 

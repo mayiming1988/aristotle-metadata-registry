@@ -5,102 +5,107 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  {% render_bundle 'review_base' 'css' %}
+    {% render_bundle 'review_base' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'review_base' 'js' %}
+    {% render_bundle 'review_base' 'js' %}
 {% endblock %}
 
-{% block title %}Review details{{ review.title }}{% endblock %}
+{% block title %}Review details{{ review.title_short }}{% endblock %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-  {# <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Review list</a></li> #}
-  <li><a href="{{ review.registration_authority.get_absolute_url }}">{{ review.registration_authority.name }}</a></li>
-  <li class="active"><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
-  <li class="active">Request review details</li>
-</ol>
+    <ol class="breadcrumb">
+        <li><a href="{{ review.registration_authority.get_absolute_url }}">{{ review.registration_authority.name }}</a></li>
+        <li>
+            {% if is_registrar %}
+                <a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a>
+            {% else %}
+                Reviews
+            {% endif %}
+        </li>
+        <li class="active">Request review details</li>
+    </ol>
 {% endblock %}
 
 {% block review_content %}
-  <div id="vue-container">
+    <div id="vue-container">
         <div class="panel panel-default">
-          <div class="panel-heading clearfix">
-            <div class="pull-left" style="margin:8px 0 0 0;">
-              <open-close-approved 
-                {% if dynamic_open_close %}:review-status="status"{% endif %} 
-                initial-status="{{review.status_code}}"
-              >
-              </open-close-approved>
-              <span v-pre>
+            <div class="panel-heading clearfix">
+                <div class="pull-left" style="margin:8px 0 0 0;">
+                    <open-close-approved
+                            {% if dynamic_open_close %}:review-status="status"{% endif %}
+                            initial-status="{{review.status_code}}"
+                    >
+                    </open-close-approved>
+                    <span v-pre>
                 {% if review.title %}
-                  {{review.title}}
+                    {{review.title}}
                 {% else %}
-                  {% trans "Unititled Review" %} #{{review.pk}}
+                    {% trans "Unititled Review" %} #{{review.pk}}
                 {% endif %}
               </span>
-            </div>
-            <span v-pre class="pull-right">
+                </div>
+                <span v-pre class="pull-right">
               {% if can_edit_review %}
-                <a class="btn btn-sm btn-primary" href="{% url 'aristotle_reviews:request_update' review.id %}">
+                  <a class="btn btn-sm btn-primary" href="{% url 'aristotle_reviews:request_update' review.id %}">
                   Edit review
                 </a>
               {% endif %}
-              {% if can_accept_review %}
-                <a href="{% url 'aristotle_reviews:review_details' review.id %}#accept_review" class="btn btn-sm btn-success" >
+                    {% if can_accept_review %}
+                        <a href="{% url 'aristotle_reviews:review_details' review.id %}#accept_review" class="btn btn-sm btn-success" >
                   Jump to approval
                 </a>
-              {% endif %}
-            </span>
-          </div>
-          <div v-pre class="panel-body">
-            <div class="table-row">
-            <div class="col-sm-6">
-                <i class="fa fa-fw fa-crosshairs"></i>
-                Target registration information:
-                <ul>
-                <li>Status: <em>{{review.get_target_registration_state_display}}</em></li>
-                <li>Registered in: <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
-                <li>Registration date: <time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></li>
-                </ul>
-                    <i class="fa fa-fw fa-hashtag"></i> Number of items:
-                    {{review.concepts.count}}
-                    {% if review.cascade_registration %}
-                      <small>Other metadata may be registered when this is review is accepted</small>
                     {% endif %}
+            </span>
             </div>
-            <div class="col-sm-6">
-                <i class="fa fa-fw fa-user"></i> Requested by:
-                {{review.requester}}
-            <br>
-                <i class="fa fa-fw fa-calendar"></i> Requested on:
-                <time datetime="{{ review.created|isotime }}">{{ review.created }}</time>
-            {% if review.due_date %}
-            <br>
-                <i class="fa fa-fw fa-calendar"></i> Due date:
-                <time datetime="{{ review.due_date|isotime }}">{{ review.due_date }}</time>
-            {% endif %}
-            </div>
-            </div>
+            <div v-pre class="panel-body">
+                <div class="table-row">
+                    <div class="col-sm-6">
+                        <i class="fa fa-fw fa-crosshairs"></i>
+                        Target registration information:
+                        <ul>
+                            <li>Status: <em>{{review.get_target_registration_state_display}}</em></li>
+                            <li>Registered in: <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
+                            <li>Registration date: <time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></li>
+                        </ul>
+                        <i class="fa fa-fw fa-hashtag"></i> Number of items:
+                        {{review.concepts.count}}
+                        {% if review.cascade_registration %}
+                            <small>Other metadata may be registered when this is review is accepted</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <i class="fa fa-fw fa-user"></i> Requested by:
+                        {{review.requester}}
+                        <br>
+                        <i class="fa fa-fw fa-calendar"></i> Requested on:
+                        <time datetime="{{ review.created|isotime }}">{{ review.created }}</time>
+                        {% if review.due_date %}
+                            <br>
+                            <i class="fa fa-fw fa-calendar"></i> Due date:
+                            <time datetime="{{ review.due_date|isotime }}">{{ review.due_date }}</time>
+                        {% endif %}
+                    </div>
+                </div>
 
 
-          </div>
+            </div>
         </div>
-        
+
         <ul v-pre class="nav nav-tabs" role="tablist">
-          {# TODO: Make tabs vue #}
-          <li role="presentation" class="{% if active_tab == 'details'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_details' review.id %}" role="tab"><i class="fa fa-comments-o"></i> Conversation</a></li>
-          <li role="presentation" class="{% if active_tab == 'itemlist'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_list' review.id %}" role="tab"><i class="fa fa-th-list"></i> Items</a></li>
-          <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
-          <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
-          <li role="presentation" class="{% if active_tab == 'issues'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_issues' review.id %}" role="tab"><i class="fa fa-exclamation-circle"></i> Issues</a></li>
-          <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
+            {# TODO: Make tabs vue #}
+            <li role="presentation" class="{% if active_tab == 'details'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_details' review.id %}" role="tab"><i class="fa fa-comments-o"></i> Conversation</a></li>
+            <li role="presentation" class="{% if active_tab == 'itemlist'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_list' review.id %}" role="tab"><i class="fa fa-th-list"></i> Items</a></li>
+            <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
+            <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
+            <li role="presentation" class="{% if active_tab == 'issues'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_issues' review.id %}" role="tab"><i class="fa fa-exclamation-circle"></i> Issues</a></li>
+            <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
         </ul>
 
         <div class="tab-content">
-          {% block tabpanel %}
-          {% endblock tabpanel %}
+            {% block tabpanel %}
+            {% endblock tabpanel %}
         </div>
-  </div>
+    </div>
 {% endblock %}

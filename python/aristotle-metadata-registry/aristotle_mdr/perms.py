@@ -147,6 +147,13 @@ def user_can_submit_to_workgroup(user, workgroup):
 
 
 def user_is_registrar(user, ra=None):
+    """
+    This function can be used to check whether a user is associated with ANY Registration Authority or associated with a
+    specific Registration Authority.
+    :param user: User object.
+    :param ra: (Optional) Registration Authority object.
+    :return: Boolean
+    """
     if user.is_anonymous:
         return False
     if user.is_superuser:
@@ -170,10 +177,15 @@ def user_is_registation_authority_manager(user, ra=None):
 
 def user_can_add_status(user, item):
     """Can the user add a status to this item in some RA"""
+
     if user.is_anonymous:
         return False
-    if user.is_superuser:
+
+    if user.is_superuser:  # A superuser is able to access the admin pages.
         return True
+
+    if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
+        return False
 
     # If this item has any requested reviews for a registration authority this user is a registrar of:
     if item.rr_review_requests.visible(user):
@@ -404,6 +416,9 @@ def user_can_move_any_workgroup(user):
 def user_can_move_any_stewardship_organisation(user):
     """Checks if a user can move an item from any of their stewardship organisations"""
     from aristotle_mdr.models import StewardOrganisation
+    if user.is_anonymous:
+        return False
+
     if user.is_superuser:
         return True
     else:

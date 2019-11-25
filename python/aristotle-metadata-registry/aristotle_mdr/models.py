@@ -623,6 +623,10 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     def can_edit(self, user):
         return user.is_superuser or self.has_role('manager', user.pk)
 
+    @property
+    def managers(self):
+        return self.users_for_role(self.roles.manager)
+
 
 class WorkgroupMembership(AbstractMembership):
     group_class = Workgroup

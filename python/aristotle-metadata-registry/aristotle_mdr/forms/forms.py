@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -18,9 +19,24 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
+CASCADE_HELP_TEXT = _(
+    'Cascading registration will include related items when registering metadata. '
+)
+CASCADE_OPTIONS_PLURAL = [
+    (0, _('No - only register the selected items')),
+    (1, _('Yes - register the selected items, and all their child items'))
+]
+CASCADE_OPTIONS = [
+    (0, _('No - only register the selected item')),
+    (1, _('Yes - register the selected item, and all child items'))
+]
+
 
 class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
-    state = forms.ChoiceField(choices=MDR.STATES, widget=forms.RadioSelect)
+    state = forms.ChoiceField(
+        choices=BLANK_CHOICE_DASH + MDR.STATES,
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
     registrationDate = forms.DateField(
         required=False,
         label=_("Registration date"),
@@ -29,19 +45,21 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     )
     cascadeRegistration = forms.ChoiceField(
         initial=0,
-        choices=[(0, _('No')), (1, _('Yes'))],
-        label=_("Do you want to request a status change for associated items")
+        choices=CASCADE_OPTIONS,
+        label=_("Cascade registration"),
+        help_text=CASCADE_HELP_TEXT,
+        widget=forms.RadioSelect()
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=True,
+        required=False,
         label=_("Administrative Note"),
         widget=forms.Textarea
     )
     registrationAuthorities = forms.ChoiceField(
         label="Registration Authorities",
         choices=MDR.RegistrationAuthority.objects.none(),
-        widget=forms.RadioSelect
+        widget=forms.Select()
     )
 
     def __init__(self, *args, **kwargs):

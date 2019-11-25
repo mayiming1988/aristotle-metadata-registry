@@ -1,11 +1,13 @@
 from django import forms
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import format_lazy
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import BLANK_CHOICE_DASH
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareForm
-from aristotle_mdr.forms.forms import ChangeStatusGenericForm
+from aristotle_mdr.forms.forms import ChangeStatusGenericForm, CASCADE_HELP_TEXT, CASCADE_OPTIONS_PLURAL
 
 from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
@@ -42,16 +44,28 @@ class RequestReviewForm(ChangeStatusGenericForm):
 
 
 class RequestReviewCreateForm(UserAwareModelForm):
+    cascade_registration = forms.ChoiceField(
+        initial=0,
+        choices=CASCADE_OPTIONS_PLURAL,
+        label=_("Cascade registration"),
+        help_text=format_lazy(
+            "{} {}",
+            CASCADE_HELP_TEXT,
+            _('When enabled, see the full list of metadata under the "Impact" tab.')
+        ),
+        widget=forms.RadioSelect(),
+    )
+
     class Meta:
         model = models.ReviewRequest
         fields = [
-            'registration_authority', 'title', 'due_date', 'target_registration_state',
+            'title', 'registration_authority', 'due_date', 'target_registration_state',
             'registration_date', 'concepts',
             'cascade_registration'
         ]
         widgets = {
-            'title': forms.Textarea(),
-            'target_registration_state': forms.RadioSelect(),
+            'title': forms.Textarea(attrs={"rows": "1"}),
+            'target_registration_state': forms.Select,
             'due_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
             'registration_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
             'concepts': ConceptAutocompleteSelectMultiple(),
@@ -63,12 +77,11 @@ class RequestReviewCreateForm(UserAwareModelForm):
             'registration_date': "Date the metadata will be endorsed at",
             'title': "A short title for this review",
             'concepts': "List of metadata for review",
-            'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['target_registration_state'].choices = MDR.STATES
+        self.fields['target_registration_state'].choices = BLANK_CHOICE_DASH + MDR.STATES
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
         self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(active=0)  # Exclude "inactive" Registration Authorities.

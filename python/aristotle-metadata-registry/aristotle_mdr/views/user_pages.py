@@ -57,7 +57,7 @@ class FriendlyLoginView(LoginView):
 
         return context
 
-    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+    def get_redirect_url(self):  # We have to override this function to avoid ValueError "Redirection loop for auth..."
         if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
             return settings.LOGIN_REDIRECT_URL
         return super().get_redirect_url()

@@ -8,7 +8,7 @@ from django.db import transaction
 from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from aristotle_mdr.forms import ChangeStatusForm
+from aristotle_mdr.forms import ChangeStatusForm, CASCADE_HELP_TEXT, CASCADE_OPTIONS_PLURAL
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
@@ -218,6 +218,13 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     items_label = "These are the items that will be registered. " \
                   "Add or remove additional items with the autocomplete box."
 
+    cascadeRegistration = forms.ChoiceField(
+        initial=0,
+        choices=CASCADE_OPTIONS_PLURAL,
+        help_text=CASCADE_HELP_TEXT,
+        widget=forms.RadioSelect(),
+    )
+
     @classmethod
     def can_use(cls, user):
         return user_is_registrar(user)
@@ -375,7 +382,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=failed_items)
 
     @classmethod
-    def can_user(cls, user):
+    def can_use(cls, user):
         return user_can_move_any_stewardship_organisation(user)
 
 
