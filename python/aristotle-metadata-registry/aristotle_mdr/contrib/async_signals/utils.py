@@ -31,7 +31,12 @@ def fire(signal_name, obj=None, user_id=None, namespace="aristotle_mdr.contrib.a
                                        'message': kwargs,
                                    })
     else:
-        kwargs.update({'__object__': {'object': obj}})
+        kwargs.update({
+            '__object__': {
+                'object': obj
+            },
+            'user_id': user_id,
+        })
         import_string("%s.%s" % (namespace, signal_name))(kwargs)
 
 
