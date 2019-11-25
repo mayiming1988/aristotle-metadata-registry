@@ -21,7 +21,7 @@
         <td>
             {% if role.multiplicity %}
                 You can select up to {{ role.multiplicity }} 
-                concept{{ multiplicity|pluralize}} for this role for this relationship.
+                concept{{ role.multiplicity|pluralize}} for this role for this relationship.
             {% else %}
                 There is no limit on the number of concepts that fill this
                 role for this relationship.
