@@ -8,7 +8,7 @@ from django.db import transaction
 from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from aristotle_mdr.forms import ChangeStatusForm
+from aristotle_mdr.forms import ChangeStatusForm, CASCADE_HELP_TEXT, CASCADE_OPTIONS_PLURAL
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
@@ -220,8 +220,9 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
 
     cascadeRegistration = forms.ChoiceField(
         initial=0,
-        choices=[(0, _('No - only register the selected items')), (1, _('Yes - register the selected items, and all their child items'))],
-        label=_("Do you want to request a status change for associated items")
+        choices=CASCADE_OPTIONS_PLURAL,
+        help_text=CASCADE_HELP_TEXT,
+        widget=forms.RadioSelect(),
     )
 
     @classmethod

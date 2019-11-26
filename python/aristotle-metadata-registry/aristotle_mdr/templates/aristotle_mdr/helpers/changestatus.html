@@ -1,7 +1,18 @@
 {% load util_tags %}
 
-<section>
-    <div class="changeStatusDiv container">
+<style>
+    .status .row {
+        border-top:1px solid lightgray;
+        margin-top:1em;
+        padding-top:0.5em;
+    }
+    #administrative_note textarea {
+        width:100%
+    }
+</style>
+
+<section class="status container">
+    <div class="row">
         <div class="col-sm-4 col-md-3">
             <label for="id_registrationDate">{{ form.registrationDate.label }}</label>:
             <span class="text-danger">{{ form.registrationDate.errors }}</span>
@@ -13,20 +24,19 @@
             </div>
         </div>
     </div>
-    <div class="changeStatusDiv container">
+    <div class="row">
         <div class="col-sm-4 col-md-3">
             <label for="id_cascadeRegistration">
                 Cascade endorsement            
             </label>
         </div>
-        <div class="col-sm-7 col-md-5">
+        <div class="col-sm-8 col-md-6">
             <span class="text-danger">{{ form.cascadeRegistration.errors }}</span>
-            <span class="pull-right">
+            <span>
             {{ form.cascadeRegistration }}
             </span>
-            <br>
             <div>
-                Cascading registration allows an item, and many related items to be registered in a single action.
+                {{ form.cascadeRegistration.help_text }}
                 <a tabindex="0"
                    class="aristotle-popover"
                    role="button"
@@ -39,25 +49,32 @@
                    data-html="true">
                 <i class="fa fa-question-circle"></i>
                 </a>
-
             </div>
 
         </div>
     </div>
-    <div id="changeStatus">
-        <!--<div class="col-xs-12">-->
-        <div>
-        <span>
-            {{ form.state.label }} <span class="text-danger">*</span>
-            <span class="text-danger">{{ form.state.errors }}</span>
-        </span>
+    <div id="" class="row">
+        <div class="col-sm-4 col-md-3">
+            <label for="id_status">
+                {{ form.state.label }} <span class="text-danger">*</span>
+            </label>
+        </div>
+        <div class="col-sm-8 col-md-6">
             <span>
+                <span class="text-danger">{{ form.state.errors }}</span>
+                {{ form.state }}
+
+            </span>
+        </div>
+    </div>
+    <div id="" class="row">
+        <div class="col-sm-4 col-md-3">
+            <label for="id_registrationAuthorities">
             {{ form.registrationAuthorities.label }} <span class="text-danger">*</span>
             <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
-        </span>
+            </label>
         </div>
-        <div>
-            {{ form.state }}
+        <div class="col-sm-8 col-md-6">
             <ul>
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
@@ -73,10 +90,14 @@
             </ul>
         </div>
     </div>
-    <div class="status_change_description">
-        <label for="id_changeDetails">{{ form.changeDetails.label }}
-        </label><span class="text-danger">*</span>
-        <p>The administrative note is a publishable statement describing the reasons for registration.</p>
-        {{ form.changeDetails }}
+    <div id="administrative_note" class="row">
+        <div class="col-sm-4 col-md-3">
+            <label for="id_changeDetails">{{ form.changeDetails.label }}
+            </label><span class="text-danger">*</span>
+        </div>
+        <div class="col-sm-8 col-md-6">
+            <p>The administrative note is a publishable statement describing the reasons for registration.</p>
+            {{ form.changeDetails }}
+        </div>
     </div>
 </section>
