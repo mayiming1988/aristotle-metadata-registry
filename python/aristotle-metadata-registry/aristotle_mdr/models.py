@@ -1,6 +1,6 @@
 import uuid
 import reversion  # import revisions
-from reversion.signals import post_revision_commit, pre_revision_commit
+from reversion.signals import post_revision_commit
 from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
@@ -1969,93 +1969,3 @@ class SandboxShare(models.Model):
                     'created': self.created,
                     'emails: ': self.emails
                     })
-
-
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        PossumProfile.objects.get_or_create(user=instance)
-
-
-post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
-
-
-@receiver(post_revision_commit)
-def concept_saved(sender, **kwargs):
-
-    revision = kwargs.pop('revision')
-    versions = kwargs.pop('versions')
-    version = versions[0]
-
-    if not issubclass(version._model, _concept):
-        return
-
-    user_id = revision.user_id
-
-    if user_id is not None:
-
-        # If the concept saved was not triggered by a superseding action:
-        # if not ('modified' in changed_fields and len(changed_fields) == 1):
-        fire("concept_changes.item_saved", obj=version, user_id=user_id, **kwargs)
-
-
-@receiver(pre_save)
-def check_concept_app_label(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-    if instance._meta.app_label not in fetch_metadata_apps():
-        raise ImproperlyConfigured(
-            (
-                "Trying to save item <{instance_name}> when app_label <{app_label}> "
-                "is not enabled. Metadata apps at this point were <{metadata_apps}>."
-            ).format(
-                app_label=instance._meta.app_label,
-                instance_name=instance.name,
-                metadata_apps=str(fetch_metadata_apps())
-            )
-        )
-
-
-@receiver(pre_save)
-def update_org_to_match_workgroup(sender, instance, **kwargs):
-    """Enforces integrity between Stewardship Organisation and Workgroup"""
-    if not issubclass(sender, _concept):
-        return
-    if instance.workgroup is not None:
-        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
-
-
-@receiver(post_save, sender=DiscussionComment)
-def new_comment_created(sender, instance, **kwargs):
-    comment = instance
-    post = comment.post
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    if comment.author == post.author:
-        return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
-
-
-@receiver(post_save, sender=DiscussionPost)
-def new_post_created(sender, instance, **kwargs):
-    # Don't pass the instance to the JSONEncoder
-    post = instance
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    fire("concept_changes.new_post_created", obj=post, **kwargs)
-
-
-@receiver(post_save, sender=Status)
-def states_changed(sender, instance, *args, **kwargs):
-    fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=SupersedeRelationship)
-def new_superseded_relation(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("concept_changes.item_superseded", obj=instance, **kwargs)

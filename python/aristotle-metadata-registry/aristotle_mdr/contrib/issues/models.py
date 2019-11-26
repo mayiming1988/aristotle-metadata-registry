@@ -147,11 +147,11 @@ class IssueLabel(models.Model):
 def new_issue_created(sender, instance, *args, **kwargs):
     # issue = kwargs['instance']
     if kwargs.get('created'):
-        fire("concept_changes.issue_created", obj=instance, **kwargs)
+        fire("notification_events.issue_created", obj=instance, **kwargs)
 
 
 @receiver(post_save, sender=IssueComment)
 def new_issue_comment_created(sender, instance, *args, **kwargs):
     # issue_comment = kwargs['instance']
     if kwargs.get('created'):
-        fire("concept_changes.issue_commented", obj=instance, **kwargs)
+        fire("notification_events.issue_commented", obj=instance, **kwargs)

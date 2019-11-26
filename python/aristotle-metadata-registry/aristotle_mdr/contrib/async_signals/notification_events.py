@@ -7,9 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def item_saved(message, **kwargs):
+def create_notifications_for_saved_concept(message, **kwargs):
 
-    user_email = get_user_model().objects.get(pk=message.get('user_id')).email
+    um = get_user_model()
+
+    try:
+        user_email = um.objects.get(pk=message.get('user_id')).email
+    except um.DoesNotExist:
+        user_email = ""  # Send emails to everyone by default in case the user does not exist.
 
     version = safe_object(message)
     instance = version.object
@@ -20,17 +25,17 @@ def item_saved(message, **kwargs):
         created = False
 
     for user in instance.favourited_by:
-        if user_email and user.email is not user_email:
+        if user.email != user_email:
             messages.favourite_updated(recipient=user, obj=instance)
 
     for user in instance.editable_by:
         if not created:
-            if user_email and user.email is not user_email:
+            if user.email != user_email:
                 messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.users_for_role('viewer'):
-            if user_email and user.email is not user_email:
+            if user.email != user_email:
                 if created:
                     messages.workgroup_item_new(recipient=user, obj=instance)
                 else:
