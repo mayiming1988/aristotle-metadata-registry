@@ -30,13 +30,11 @@
                     </a>
                 </li>
                 <li class="divider"></li>
-                {% if is_registrar %}
-                    <li>
-                        <a class="" href="{% url 'aristotle_reviews:review_create' %}?items={{item.id}}">
-                            <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
-                        </a>
-                    </li>
-                {% endif %}
+                <li>
+                    <a class="" href="{% url 'aristotle_reviews:review_create' %}?items={{item.id}}">
+                        <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
+                    </a>
+                </li>
 
                 {% if item.stewardship_organisation and can_publish %}
                     <li>
