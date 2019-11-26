@@ -13,6 +13,7 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.signals import pre_save_clean
 from aristotle_mdr.fields import ConceptForeignKey
+from django.utils.text import get_text_list
 
 
 class Relation(MDR.concept):  # 9.1.2.4
@@ -86,6 +87,14 @@ class Link(TimeStampedModel):
 
     def add_link_end(self, role, concept):
         return LinkEnd.objects.create(link=self, role=role, concept=concept)
+
+    def get_concepts_readable(self):
+        """
+        Get a "readable" version of the concepts connected by this Link object.
+        e.g. "MyLinkObject 1, MyLinkObject 2 and MyLinkObject 3"
+        :return: String
+        """
+        return get_text_list(list(MDR._concept.objects.filter(linkend__link=self).all().distinct().values_list('name', flat=True)), 'and')
 
 
 class LinkEnd(TimeStampedModel):  # 9.1.2.7

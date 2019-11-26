@@ -11,6 +11,7 @@ from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 from formtools.wizard.views import SessionWizardView
 
@@ -242,14 +243,34 @@ def link_json_for_item(request, iid):
     })
 
 
-class RemoveLinkForItem(DeleteView):
-    pass
+class RemoveLinkForItem(ConfirmDeleteView):
+    model = link_models.Link
+
+    def dispatch(self, request, *args, **kwargs):
+        self.link_object = self.get_object()
+        return super().dispatch(request, args, kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+
+        context.update({
+            'item': item,
+            'warning_text': "Are you sure you want to remove the Link between {}?".format(
+                self.link_object.get_concepts_readable()
+            )
+        })
+        return context
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
+
+    def perform_deletion(self):
+        if perms.user_can_change_link(self.request.user, self.link_object):
+            link_to_be_deleted = self.link_object
+            link_to_be_deleted.delete()
+            return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
+        else:
+            raise PermissionDenied
 
 
-def remove_link_for_item(request, iid, linkid):
-
-    link_models.Link.objects.get(pk=linkid).delete()
-
-    return HttpResponseRedirect(
-        reverse('aristotle:item', args=[iid])
-    )
