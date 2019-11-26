@@ -1,15 +1,13 @@
 import uuid
-import reversion  # import revisions
-from reversion.signals import post_revision_commit
+import reversion
 from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -18,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
-from aristotle_mdr.contrib.async_signals.utils import fire
 from aristotle_mdr.utils.model_utils import (
     baseAristotleObject,
     ManagedItem,
@@ -33,7 +30,6 @@ from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 from aristotle_mdr import perms
 from aristotle_mdr.utils import (
     fetch_aristotle_settings,
-    fetch_metadata_apps,
     url_slugify_concept,
     url_slugify_workgroup,
     url_slugify_registration_authoritity,

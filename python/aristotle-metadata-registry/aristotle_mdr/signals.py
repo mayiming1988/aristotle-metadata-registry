@@ -10,7 +10,14 @@ from aristotle_mdr.contrib.async_signals.utils import clean_signal, fire
 from aristotle_bg_workers.tasks import update_search_index, delete_search_index
 from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.utils import fetch_metadata_apps
-from aristotle_mdr.models import _concept, DiscussionComment, DiscussionPost, Status, PossumProfile, SupersedeRelationship
+from aristotle_mdr.models import (
+    _concept,
+    DiscussionComment,
+    DiscussionPost,
+    Status,
+    PossumProfile,
+    SupersedeRelationship
+)
 
 # Don't import aristotle_mdr.models directly, only pull in whats required,
 #  otherwise Haystack gets into a circular dependency.
