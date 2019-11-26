@@ -245,6 +245,7 @@ def link_json_for_item(request, iid):
 
 class RemoveLinkForItem(ConfirmDeleteView):
     model = link_models.Link
+    form_title = "Delete link"
 
     def dispatch(self, request, *args, **kwargs):
         self.link_object = self.get_object()
