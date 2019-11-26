@@ -272,5 +272,3 @@ class RemoveLinkForItem(ConfirmDeleteView):
             return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
         else:
             raise PermissionDenied
-
-
