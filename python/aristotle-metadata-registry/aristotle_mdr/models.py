@@ -1290,7 +1290,7 @@ class UnitOfMeasure(concept):
 
 class DataType(concept):
     """
-    set of distinct values, characterized by properties of those values and
+    Set of distinct values, characterized by properties of those values and
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"
