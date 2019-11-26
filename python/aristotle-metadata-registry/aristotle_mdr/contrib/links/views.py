@@ -256,7 +256,7 @@ class RemoveLinkForItem(ConfirmDeleteView):
 
         context.update({
             'item': item,
-            'warning_text': "Are you sure you want to remove the Link between {}?".format(
+            'warning_text': "Are you sure you want to delete the Link between {}?".format(
                 self.link_object.get_concepts_readable()
             )
         })
