@@ -536,6 +536,36 @@ class ExtraFormsetMixin:
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
 
+    def get_invalid_tab_context(self, form, extra_formsets):
+
+        invalid_tabs = set()
+        # We get formset passed on errors
+        logger.error(extra_formsets)
+        for item in extra_formsets:
+            logger.error(item)
+            if (
+                    item['formset'].non_form_errors() or (
+                        item['formset'].errors and
+                        not (len(item['formset'].errors) == 1 and item['formset'].errors[0] == {})
+                    )
+            ):
+                if item['type'] in ('weak', 'through'):
+                    invalid_tabs.add('components')
+                elif item['title'] in ['Slots', 'Custom Fields']:
+                    invalid_tabs.add("slots")
+                elif item['title'] in ['Record Relation', 'RecordRelation']:
+                    invalid_tabs.add("references")
+                else:
+                    invalid_tabs.add(item['title'].lower())
+
+        if form and form.errors:
+            for error in form.errors:
+                if error in ["name", "definition", "version"]:
+                    invalid_tabs.add('definition')
+                else:
+                    invalid_tabs.add('references')
+        return invalid_tabs
+
     def save_formsets(self, extra_formsets):
         for formsetinfo in extra_formsets:
             if formsetinfo['saveargs']:
