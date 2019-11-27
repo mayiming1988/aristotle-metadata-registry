@@ -12,7 +12,6 @@ from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
-from django.utils.translation import ugettext_lazy as _
 
 from formtools.wizard.views import SessionWizardView
 
@@ -252,9 +251,9 @@ class RemoveLinkView(ConfirmDeleteView):
 
     def get_warning_text(self):
         return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
-               f"you want to continue?"
+               f" you want to continue?"
 
-    def get_object(self, queryset=None):
+    def get_object(self):
         return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
 
     def perform_deletion(self):

@@ -956,3 +956,32 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
         self.login_superuser()
         response = self.client.get(root_object_class.get_absolute_url())
         self.assertEqual(response.context['links_from'], [link])
+
+    def test_superuser_can_delete_link(self):
+        see_also = models.Relation.objects.create(name="See Also", definition="See Also")
+        # Create a related role
+        see_also_role = models.RelationRole.objects.create(
+            name="Related",
+            definition="Related",
+            multiplicity=1,
+            ordinal=1,
+            relation=see_also
+        )
+        oc = ObjectClass.objects.create(
+            name="Owning Item",
+            definition="Definition",
+            workgroup=self.wg1,
+        )
+        link = models.Link.objects.create(
+            relation=see_also,
+            root_item=oc
+        )
+        link_pk = link.pk
+        self.login_superuser()
+        response = self.client.post(reverse("aristotle_mdr_links:remove_link", args=[link.pk, oc.pk]))
+        self.assertEqual(response.status_code, 302)
+
+        # Confirm that link has been deleted
+        self.assertEqual(models.Link.objects.filter(pk=link_pk).count(), 0)
+
+
