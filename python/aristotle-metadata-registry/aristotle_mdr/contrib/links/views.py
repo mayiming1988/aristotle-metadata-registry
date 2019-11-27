@@ -12,7 +12,7 @@ from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
-
+from django.utils.translation import ugettext_lazy as _
 
 from formtools.wizard.views import SessionWizardView
 
@@ -245,37 +245,21 @@ def link_json_for_item(request, iid):
 
 
 class RemoveLinkView(ConfirmDeleteView):
-    model = link_models.Link
+    model_base = link_models.Link
     form_title = "Delete link"
+    permission_checks = [perms.user_can_change_link]
+    item_kwarg = 'linkid'
 
-    def dispatch(self, request, *args, **kwargs):
-        user = self.request.user
-        self.link_object = self.get_object()
-
-        if not perms.user_can_change_link(user, self.link_object):
-            if user.is_anonymous:
-                return HttpResponseRedirect(reverse('friendly_login'))
-            raise PermissionDenied
-
-        return super().dispatch(request, args, kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data()
-        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
-
-        context.update({
-            'item': item,
-            'warning_text': "Are you sure you want to delete the Link between {}?".format(
-                self.link_object.get_readable_concepts()
-            )
-        })
-        return context
+    def get_warning_text(self):
+        return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
+               f"you want to continue?"
 
     def get_object(self, queryset=None):
         return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
 
     def perform_deletion(self):
-        link_to_be_deleted = self.link_object
-        link_to_be_deleted.delete()
-
+        self.item.delete()
         return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
+
+    def post(self, *args, **kwargs):
+        return self.perform_deletion()
