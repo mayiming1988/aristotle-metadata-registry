@@ -240,23 +240,16 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-
-        invalid_tabs = set()
-        # We get formset passed on errors
         if 'formsets' in kwargs:
-            extra_formsets = kwargs['formsets']
-            for item in extra_formsets:
-                if item['formset'].errors:
-                    if item['type'] in ('weak', 'through'):
-                        invalid_tabs.add('Components')
-                    else:
-                        invalid_tabs.add(item['title'])
+            self.extra_formsets = kwargs['formsets']
         else:
-            extra_formsets = self.get_extra_formsets(self.item)
+            self.extra_formsets = self.get_extra_formsets(self.item, clone_item=False)
 
-        context['invalid_tabs'] = invalid_tabs
+        if self.request.POST:
+            form = self.get_form()
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
 
-        fscontext = self.get_formset_context(extra_formsets)
+        fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
 
         context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
@@ -364,14 +357,22 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         context = super().get_context_data(*args, **kwargs)
 
         if 'formsets' in kwargs:
-            extra_formsets = kwargs['formsets']
+            self.extra_formsets = kwargs['formsets']
         else:
-            extra_formsets = self.get_extra_formsets(self.item, clone_item=True)
+            self.extra_formsets = self.get_extra_formsets(self.item, clone_item=True)
 
-        fscontext = self.get_formset_context(extra_formsets)
+        if self.request.POST:
+            form = self.get_form()
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
+
+        fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = context['form'].custom_fields
+        context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
+        context['slots_active'] = self.slots_active
         context['show_id_tab'] = self.identifiers_active
+
+        context['additional_records_active'] = self.additional_records_active
+        context['reference_links_active'] = self.reference_links_active
 
         return context

@@ -88,11 +88,9 @@
                     {% block asideContent %}{% endblock %}
 
                     {% if not hide_item_supersedes %}
-                        <dt class="large">{% trans 'Supersedes'%}
-                        </dt>
+                        <dt class="large">{% trans 'Supersedes'%}</dt>
                         <dd class="large">
                             <ul>
-                                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
                                 {% for suprel in item|visible_supersedes_items:request.user %}
                                     <li>
                                         <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
@@ -120,8 +118,7 @@
                                 {% endfor %}
                             </ul>
                         </dd>
-                        <dt class="large">{% trans 'Superseded by'%}
-                        </dt>
+                        <dt class="large">{% trans 'Superseded by' %}</dt>
                         <dd class="large">
                             <ul>
                                 {% for suprel in item|visible_superseded_by_items:request.user %}
@@ -151,7 +148,7 @@
                             </ul>
                         </dd>
                     {% endif %}
-                    <dt class="large">{% trans 'Collections' %} </dt>
+                    <dt class="large">{% trans 'Collections' %}</dt>
                     <ul>
                         {% for collection in item.collection_set.all|can_view_iter:request.user %}
                             <li>

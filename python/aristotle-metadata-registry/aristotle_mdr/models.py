@@ -1,14 +1,13 @@
 import uuid
-import reversion  # import revisions
+import reversion
 from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -17,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
-from aristotle_mdr.contrib.async_signals.utils import fire
 from aristotle_mdr.utils.model_utils import (
     baseAristotleObject,
     ManagedItem,
@@ -32,7 +30,6 @@ from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 from aristotle_mdr import perms
 from aristotle_mdr.utils import (
     fetch_aristotle_settings,
-    fetch_metadata_apps,
     url_slugify_concept,
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
@@ -55,8 +52,9 @@ from .managers import (
     StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet,
-    SupersedesManager,
-    ProposedSupersedesManager
+    SupersedesQueryset,
+    ApprovedSupersedesQueryset,
+    ProposedSupersedesQueryset
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -1099,9 +1097,9 @@ class SupersedeRelationship(TimeStampedModel):
         on_delete=models.SET_NULL
     )
 
-    objects = models.Manager()
-    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
-    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
+    objects = SupersedesQueryset().as_manager()
+    approved = ApprovedSupersedesQueryset().as_manager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesQueryset().as_manager()  # Only proposed objects can be retrieved here
 
 
 class RecordRelation(TimeStampedModel):
@@ -1289,7 +1287,7 @@ class UnitOfMeasure(concept):
 
 class DataType(concept):
     """
-    set of distinct values, characterized by properties of those values and
+    Set of distinct values, characterized by properties of those values and
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"
@@ -1968,92 +1966,3 @@ class SandboxShare(models.Model):
                     'created': self.created,
                     'emails: ': self.emails
                     })
-
-
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        PossumProfile.objects.get_or_create(user=instance)
-
-
-post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
-
-
-@receiver(post_save)
-def concept_saved(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-
-    if not instance.non_cached_fields_changed:
-        # If the only thing that has changed is a cached public/locked status
-        # then don't notify.
-        return
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    kwargs['changed_fields'] = instance.changed_fields
-    # If the concept saved was not triggered by a superseding action:
-    if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
-        fire("concept_changes.concept_saved", obj=instance, **kwargs)
-
-
-@receiver(pre_save)
-def check_concept_app_label(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-    if instance._meta.app_label not in fetch_metadata_apps():
-        raise ImproperlyConfigured(
-            (
-                "Trying to save item <{instance_name}> when app_label <{app_label}> "
-                "is not enabled. Metadata apps at this point were <{metadata_apps}>."
-            ).format(
-                app_label=instance._meta.app_label,
-                instance_name=instance.name,
-                metadata_apps=str(fetch_metadata_apps())
-            )
-        )
-
-
-@receiver(pre_save)
-def update_org_to_match_workgroup(sender, instance, **kwargs):
-    """Enforces integrity between Stewardship Organisation and Workgroup"""
-    if not issubclass(sender, _concept):
-        return
-    if instance.workgroup is not None:
-        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
-
-
-@receiver(post_save, sender=DiscussionComment)
-def new_comment_created(sender, instance, **kwargs):
-    comment = instance
-    post = comment.post
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    if comment.author == post.author:
-        return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
-
-
-@receiver(post_save, sender=DiscussionPost)
-def new_post_created(sender, instance, **kwargs):
-    # Don't pass the instance to the JSONEncoder
-    post = instance
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    fire("concept_changes.new_post_created", obj=post, **kwargs)
-
-
-@receiver(post_save, sender=Status)
-def states_changed(sender, instance, *args, **kwargs):
-    fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=SupersedeRelationship)
-def new_superseded_relation(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("concept_changes.item_superseded", obj=instance, **kwargs)

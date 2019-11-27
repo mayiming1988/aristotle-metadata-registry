@@ -20,7 +20,7 @@
         <ol class="breadcrumb">
           <li class="active">{% trans 'Cloning' %}: <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
         </ol>
-        <div class="alert alert-danger">
+        <div class="alert alert-info">
             {% blocktrans %}
             Reusing existing metadata helps users find and compare similar items. Cloning an item should only be done where a similar but clearly different item exists and can be used as a template for quickly creating a new item in the registry.
             {% endblocktrans %}

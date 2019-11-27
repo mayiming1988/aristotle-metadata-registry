@@ -7,9 +7,23 @@
         <form-field name="description">
             <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
         </form-field>
-        <form-field name="labels">
-            <select-tagger v-model="formdata.labels" :options="labelOptions" />
-        </form-field>
+        <template v-if="haslabelOptions">
+            <form-field name="labels">
+                <select-tagger v-model="formdata.labels" :options="labelOptions" />
+            </form-field>
+        </template>
+        <template v-if="!haslabelOptions">
+            <label>Labels</label>
+            <p><em>
+            <template v-if="hasStewardOrganisationName">
+                The Stewardship Organisation this item belongs to has not set up any
+                    issues labels.
+            </template>
+            <template v-else>
+                This item doesn't belong to a Stewardship Organisation, so no labels can be applied.
+            </template>
+            </em></p>
+        </template>
         <template v-if="isFields">
             <h3 class="divider">Proposed changes</h3>
             <template v-if="!edit">
@@ -101,6 +115,11 @@ export default {
         allLabelsJson: {
             type: String,
             required: true
+        },
+        // Name of the Stewardship Organisation this item belongs to - if any
+        stewardOrganisationName: {
+            type: String,
+            default: ''
         }
     },
     data: () => ({
@@ -186,6 +205,12 @@ export default {
     computed: {
         isFields: function() {
             return Array.isArray(this.fields)
+        },
+        haslabelOptions: function() {
+            return (Array.isArray(this.labelOptions) && this.labelOptions.length > 0)
+        },
+        hasStewardOrganisationName: function() {
+            return this.stewardOrganisationName != ""
         },
         actionText: function() {
             let action = 'Create'

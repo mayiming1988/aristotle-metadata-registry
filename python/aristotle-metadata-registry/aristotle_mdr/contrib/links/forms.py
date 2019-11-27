@@ -6,6 +6,9 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.links.models import Relation
 from aristotle_mdr.contrib.autocomplete import widgets
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LinkEndEditorBase(UserAwareForm, forms.Form):
@@ -41,9 +44,16 @@ class LinkEndEditor(LinkEndEditorBase):
         super().__init__(roles, *args, **kwargs)
         for role in self.roles:
             if role.multiplicity == 1:
-                self.fields['role_' + str(role.pk)].initial = MDR._concept.objects.get(
-                    linkend__link=link, linkend__role=role
-                )
+                try:
+                    concept = MDR._concept.objects.get(
+                        linkend__link=link, linkend__role=role
+                    )
+                except (MDR._concept.DoesNotExist, MDR._concept.MultipleObjectsReturned):
+                    concept = None
+
+                if concept:
+                    self.fields['role_' + str(role.pk)].initial = concept
+
             else:
                 self.fields['role_' + str(role.pk)].initial = MDR._concept.objects.filter(
                     linkend__link=link, linkend__role=role

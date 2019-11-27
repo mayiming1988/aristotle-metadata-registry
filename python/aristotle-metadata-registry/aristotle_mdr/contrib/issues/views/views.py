@@ -53,7 +53,7 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             'field_data': json.dumps(field_data),
             'initial': json.dumps(data),
             'config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
-            'allLabels': json.dumps(label_map)
+            'all_labels': json.dumps(label_map)
         }
 
 
@@ -71,9 +71,13 @@ class IssueList(IssueBase, TemplateView):
         # Fetch issues for the item
         open_issues, closed_issues = self.get_issues()
         # Update context
+        stewardship_organisation_name = ""
+        if self.item.stewardship_organisation:
+            stewardship_organisation_name = self.item.stewardship_organisation.name
         context.update({
             'open_issues': open_issues,
             'closed_issues': closed_issues,
+            'stewardship_organisation_name': stewardship_organisation_name,
         })
         # Update context with modal data
         context.update(self.get_modal_data())

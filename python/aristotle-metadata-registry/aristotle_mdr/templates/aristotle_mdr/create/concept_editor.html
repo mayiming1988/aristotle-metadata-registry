@@ -3,6 +3,15 @@
 {% load aristotle_tags util_tags %}
 
 
+{% if form.errors or invalid_tabs %}
+    <div class="alert alert-danger">
+            There were errors saving your {{ model_name }}, please review the errors shown below.
+            Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
+            more information.
+    </div>
+{% endif %}
+
+{% comment %}
 {% if form.errors or slots_FormSet.errors or slots_FormSet.non_form_errors %}
     <div class="alert alert-danger">
         {{ form.errors.as_ul }}
@@ -10,35 +19,58 @@
         {{slots_FormSet.non_form_errors.as_ul}}
         {{identifier_FormSet.errors.as_ul}}
         {{identifier_FormSet.non_form_errors.as_ul}}
+        {{recordrelation_FormSet.errors.as_ul}}
+        {{recordrelation_FormSet.non_form_errors.as_ul}}
     </div>
 {% endif %}
 
 {% for tabname in invalid_tabs %}
     <div class="alert alert-danger">An error occurred on the {{ tabname }} tab</div>
 {% endfor %}
+{% endcomment %}
 
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
-            <a href="#tab_definition" aria-controls="home" role="tab" data-toggle="tab">{% trans 'Definition' context 'creating items' %}</a>
+            <a href="#tab_definition" aria-controls="home" role="tab" data-toggle="tab">{% trans 'Definition' context 'creating items' %}
+            {% if 'definition' in invalid_tabs %}
+            <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+            {% endif %}
+            </a>
         </li>
 
         <li role="presentation">
-            <a href="#tab_names" aria-controls="profile" role="tab" data-toggle="tab">Names & References</a>
+            <a href="#tab_names" aria-controls="profile" role="tab" data-toggle="tab">Names & References
+            {% if 'references' in invalid_tabs %}
+            <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+            {% endif %}
+            </a>
         </li>
         {% if form.object_specific_fields or weak_formsets or through_formsets %}
             <li role="presentation">
-                <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}</a>
+                <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}
+                {% if 'components' in invalid_tabs %}
+                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                {% endif %}
+                </a>
             </li>
         {% endif %}
         {% if show_slots_tab %}
             <li role="presentation">
-                <a href="#tab_slots" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Slots' context 'When saving changes to an item' %}</a>
+                <a href="#tab_slots" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Slots' context 'When saving changes to an item' %}
+                {% if 'slots' in invalid_tabs %}
+                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                {% endif %}
+                </a>
             </li>
         {% endif %}
         {% if show_id_tab %}
             <li role="presentation">
-                <a href="#tab_identifiers" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Identifiers' context 'When saving changes to an item' %}</a>
+                <a href="#tab_identifiers" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Identifiers' context 'When saving changes to an item' %}
+                {% if 'identifiers' in invalid_tabs %}
+                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                {% endif %}
+                </a>
             </li>
         {% endif %}
         {% if form.change_comments %}
@@ -159,8 +191,14 @@
                                     </td>
                                     {% for field in recordform.visible_fields %}
                                         <td>
-                                            {{ field.errors.as_ul }}
+                                            {% if field.errors %}
+                                                <div class="alert alert-danger">
+                                                {{ field.errors }}
+                                            {% endif %}
                                             {{ field }}
+                                            {% if field.errors %}
+                                                </div>
+                                            {% endif %}
                                         </td>
                                     {% endfor %}
                                 </tr>
