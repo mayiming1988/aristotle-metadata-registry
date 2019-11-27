@@ -23,6 +23,8 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
+        self.kenobi = get_user_model().objects.create_user('kenobi@jedi.order', 'password')
+
         self.item1 = models.ObjectClass.objects.create(
             name="Test Item 1 (visible to tested viewers)",
             definition="my definition",
@@ -70,7 +72,6 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_of_comment(self):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
-        self.kenobi = get_user_model().objects.create_user('kenobi@jedi.order', 'password')
         grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil', '')
         self.wg1.giveRoleToUser('viewer', self.kenobi)
         self.wg1.giveRoleToUser('viewer', grievous)
