@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.urls import path, re_path, include
 from django.contrib import admin
+import notifications.urls
 
 admin.autodiscover()
 
@@ -19,7 +20,8 @@ urlpatterns = [
     path('', include(('aristotle_mdr.contrib.reviews.urls', 'aristotle_mdr_review_requests'), namespace="aristotle_reviews")),
     path('', include(('aristotle_mdr.contrib.custom_fields.urls', 'aristotle_mdr.contrib.custom_fields'), namespace='aristotle_custom_fields')),
     path('', include(('aristotle_mdr.contrib.validators.urls', 'aristotle_mdr.contrib.validators'), namespace='aristotle_validations')),
-    path('api/', include('aristotle_mdr_api.urls'))
+    path('api/', include('aristotle_mdr_api.urls')),
+    re_path('account/notifications/', include((notifications.urls, 'notifications'), namespace="notifications")),
 ]
 
 if settings.DEBUG:
