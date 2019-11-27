@@ -1,15 +1,18 @@
 import aristotle_mdr.models as models
-import datetime
-import ast
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_bg_workers.tasks import send_notification_email
+
 from django.core import mail
 from django.conf import settings
+
 import logging
+import datetime
+import reversion
+
 logger = logging.getLogger(__name__)
 
 
@@ -221,16 +224,28 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(user2.notifications.count(), 1)
 
-    def test_subscriber_is_notified_when_issue_is_created_on_favourite_item(self):
-        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+    def test_subscriber_is_notified_when_favourited_item_edited(self):
+        user = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
 
-        self.favourite_item(user1, self.item1)
+        self.favourite_item(user, self.item1)
 
-        self.item1.name = "This is a new name"
+        with reversion.create_revision():
+            reversion.set_user(self.editor)
+            self.item1.name = "This is a new name"
+            self.item1.save()
 
-        self.item1.save()
+        self.assertEqual(user.notifications.count(), 1)
 
-        self.assertEqual(user1.notifications.count(), 1)
+    def test_subscriber_is_not_notified_when_favourited_item_edited_by_themselves(self):
+        """Users should not receive notifications for actions they perform themselves"""
+        self.favourite_item(self.editor, self.item1)
+
+        with reversion.create_revision():
+            reversion.set_user(self.editor)
+            self.item1.mame = "This is a new name"
+            self.item1.save()
+
+        self.assertEqual(self.editor.notifications.count(), 0)
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')

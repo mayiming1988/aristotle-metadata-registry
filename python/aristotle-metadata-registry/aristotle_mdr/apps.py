@@ -19,3 +19,4 @@ class AristotleMDRConfig(AristotleExtensionBaseConfig):
 
     def ready(self):
         from aristotle_mdr import checks
+        from aristotle_mdr import signals
