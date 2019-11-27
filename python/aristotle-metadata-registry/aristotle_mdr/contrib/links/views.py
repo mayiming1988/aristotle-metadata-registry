@@ -3,7 +3,8 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import FormView, DeleteView
+from django.contrib.auth.decorators import login_required
+from django.views.generic import FormView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_edit
@@ -12,6 +13,7 @@ from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
+
 
 from formtools.wizard.views import SessionWizardView
 
@@ -243,13 +245,17 @@ def link_json_for_item(request, iid):
     })
 
 
-class RemoveLinkForItem(ConfirmDeleteView):
+class RemoveLinkView(ConfirmDeleteView):
     model = link_models.Link
     form_title = "Delete link"
 
     def dispatch(self, request, *args, **kwargs):
+        user = self.request.user
         self.link_object = self.get_object()
-        if not perms.user_can_change_link(self.request.user, self.link_object):
+
+        if not perms.user_can_change_link(user, self.link_object):
+            if user.is_anonymous:
+                return HttpResponseRedirect(reverse('friendly_login'))
             raise PermissionDenied
 
         return super().dispatch(request, args, kwargs)
