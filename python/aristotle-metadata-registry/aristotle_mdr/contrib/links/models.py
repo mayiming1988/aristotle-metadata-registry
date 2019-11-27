@@ -88,13 +88,13 @@ class Link(TimeStampedModel):
     def add_link_end(self, role, concept):
         return LinkEnd.objects.create(link=self, role=role, concept=concept)
 
-    def get_concepts_readable(self):
+    def get_readable_concepts(self) -> str:
         """
         Get a "readable" version of the concepts connected by this Link object.
         e.g. "MyLinkObject 1, MyLinkObject 2 and MyLinkObject 3"
-        :return: String
         """
-        return get_text_list(list(MDR._concept.objects.filter(linkend__link=self).all().distinct().values_list('name', flat=True)), 'and')
+        return get_text_list(list(MDR._concept.objects.filter(linkend__link=self).all().
+                                  distinct().values_list('name', flat=True)), 'and')
 
 
 class LinkEnd(TimeStampedModel):  # 9.1.2.7

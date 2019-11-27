@@ -249,6 +249,9 @@ class RemoveLinkForItem(ConfirmDeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         self.link_object = self.get_object()
+        if not perms.user_can_change_link(self.request.user, self.link_object):
+            raise PermissionDenied
+
         return super().dispatch(request, args, kwargs)
 
     def get_context_data(self, **kwargs):
@@ -258,7 +261,7 @@ class RemoveLinkForItem(ConfirmDeleteView):
         context.update({
             'item': item,
             'warning_text': "Are you sure you want to delete the Link between {}?".format(
-                self.link_object.get_concepts_readable()
+                self.link_object.get_readable_concepts()
             )
         })
         return context
@@ -267,9 +270,7 @@ class RemoveLinkForItem(ConfirmDeleteView):
         return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
 
     def perform_deletion(self):
-        if perms.user_can_change_link(self.request.user, self.link_object):
-            link_to_be_deleted = self.link_object
-            link_to_be_deleted.delete()
-            return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
-        else:
-            raise PermissionDenied
+        link_to_be_deleted = self.link_object
+        link_to_be_deleted.delete()
+
+        return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
