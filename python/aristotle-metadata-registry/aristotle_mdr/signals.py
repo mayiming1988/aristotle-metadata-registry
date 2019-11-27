@@ -226,18 +226,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_revision_commit)
 def concept_saved(sender, **kwargs):
-
     revision = kwargs.pop('revision')
     versions = kwargs.pop('versions')
     version = versions[0]
 
     if not issubclass(version._model, _concept):
         return
-
     user_id = revision.user_id
 
     if user_id is not None:
-
-        # If the concept saved was not triggered by a superseding action:
-        # if not ('modified' in changed_fields and len(changed_fields) == 1):
         fire("notification_events.create_notifications_for_saved_concept", obj=version, user_id=user_id, **kwargs)

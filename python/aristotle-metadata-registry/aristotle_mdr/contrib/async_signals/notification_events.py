@@ -8,38 +8,35 @@ logger = logging.getLogger(__name__)
 
 
 def create_notifications_for_saved_concept(message, **kwargs):
-
-    um = get_user_model()
-
+    user_model = get_user_model()
     try:
-        user_email = um.objects.get(pk=message.get('user_id')).email
-    except um.DoesNotExist:
-        user_email = ""  # Send emails to everyone by default in case the user does not exist.
+        user_email = user_model.objects.get(pk=message.get('user_id')).email
+    except user_model.DoesNotExist:
+        user_email = ""
 
     version = safe_object(message)
-    instance = version.object
+    object = version.object
 
-    if Version.objects.get_for_object(instance).count() < 2:
+    created = False
+    if Version.objects.get_for_object(object).count() < 2:
         created = True
-    else:
-        created = False
 
-    for user in instance.favourited_by:
+    for user in object.favourited_by:
         if user.email != user_email:
-            messages.favourite_updated(recipient=user, obj=instance)
+            messages.favourite_updated(recipient=user, obj=object)
 
-    for user in instance.editable_by:
+    for user in object.editable_by:
         if not created:
             if user.email != user_email:
-                messages.items_i_can_edit_updated(recipient=user, obj=instance)
+                messages.items_i_can_edit_updated(recipient=user, obj=object)
 
-    if instance.workgroup:
-        for user in instance.workgroup.users_for_role('viewer'):
+    if object.workgroup:
+        for user in object.workgroup.users_for_role('viewer'):
             if user.email != user_email:
                 if created:
-                    messages.workgroup_item_new(recipient=user, obj=instance)
+                    messages.workgroup_item_new(recipient=user, obj=object)
                 else:
-                    messages.workgroup_item_updated(recipient=user, obj=instance)
+                    messages.workgroup_item_updated(recipient=user, obj=object)
 
 
 def new_comment_created(message, **kwargs):
