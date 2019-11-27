@@ -1,26 +1,42 @@
+from reversion.models import Version
 from aristotle_mdr import messages
 from aristotle_mdr.contrib.async_signals.utils import safe_object
+from django.contrib.auth import get_user_model
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def concept_saved(message, **kwargs):
-    instance = safe_object(message)
+def create_notifications_for_saved_concept(message, **kwargs):
+    user_model = get_user_model()
+    try:
+        user_email = user_model.objects.get(pk=message.get('user_id')).email
+    except user_model.DoesNotExist:
+        user_email = ""
 
-    for user in instance.favourited_by:
-        messages.favourite_updated(recipient=user, obj=instance)
+    version = safe_object(message)
+    object = version.object
 
-    for user in instance.editable_by:
-        if not message['created']:
-            messages.items_i_can_edit_updated(recipient=user, obj=instance)
+    created = False
+    if Version.objects.get_for_object(object).count() < 2:
+        created = True
 
-    if instance.workgroup:
-        for user in instance.workgroup.users_for_role('viewer'):
-            if message['created']:
-                messages.workgroup_item_new(recipient=user, obj=instance)
-            else:
-                messages.workgroup_item_updated(recipient=user, obj=instance)
+    for user in object.favourited_by:
+        if user.email != user_email:
+            messages.favourite_updated(recipient=user, obj=object)
+
+    for user in object.editable_by:
+        if not created:
+            if user.email != user_email:
+                messages.items_i_can_edit_updated(recipient=user, obj=object)
+
+    if object.workgroup:
+        for user in object.workgroup.users_for_role('viewer'):
+            if user.email != user_email:
+                if created:
+                    messages.workgroup_item_new(recipient=user, obj=object)
+                else:
+                    messages.workgroup_item_updated(recipient=user, obj=object)
 
 
 def new_comment_created(message, **kwargs):
