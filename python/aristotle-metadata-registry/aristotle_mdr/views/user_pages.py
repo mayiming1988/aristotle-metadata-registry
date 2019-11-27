@@ -225,7 +225,6 @@ def recent(request):
 class InboxView(LoginRequiredMixin, ListView):
     template_name = 'aristotle_mdr/user/userInbox.html'
     context_object_name = 'page'
-    paginate_by = 5
 
     def get_queryset(self, *args, **kwargs):
         return self.request.user.notifications.unread().all()
