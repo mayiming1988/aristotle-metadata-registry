@@ -52,8 +52,9 @@ from .managers import (
     StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet,
-    SupersedesManager,
-    ProposedSupersedesManager
+    SupersedesQueryset,
+    ApprovedSupersedesQueryset,
+    ProposedSupersedesQueryset
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -1096,9 +1097,9 @@ class SupersedeRelationship(TimeStampedModel):
         on_delete=models.SET_NULL
     )
 
-    objects = models.Manager()
-    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
-    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
+    objects = SupersedesQueryset().as_manager()
+    approved = ApprovedSupersedesQueryset().as_manager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesQueryset().as_manager()  # Only proposed objects can be retrieved here
 
 
 class RecordRelation(TimeStampedModel):
@@ -1286,7 +1287,7 @@ class UnitOfMeasure(concept):
 
 class DataType(concept):
     """
-    set of distinct values, characterized by properties of those values and
+    Set of distinct values, characterized by properties of those values and
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"

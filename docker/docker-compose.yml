@@ -54,6 +54,7 @@ services:
         dockerfile: docker/Dockerfile.dev
       image: aristotle_metadata_registry:dev
       environment:
+        - GRAPHQL_ENABLED=True
         - DATABASE_URL=postgresql://postgres:@db:5432/postgres
         - DJANGO_SETTINGS_MODULE=settings
         - PYTHONPATH=.
@@ -65,7 +66,7 @@ services:
         - elasticsearch
     command: sh ./sh/entrypoint/web.sh
     ports:
-      - "8080:8000"
+      - "8000:8000"
     volumes:
         - ../:/usr/src/app
         - ../../../data:/data
