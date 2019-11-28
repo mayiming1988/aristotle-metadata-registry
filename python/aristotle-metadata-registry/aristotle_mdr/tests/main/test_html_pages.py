@@ -27,7 +27,6 @@ import datetime
 from unittest import mock, skip
 import reversion
 import json
-import time
 
 
 class AnonymousUserViewingThePages(TestCase):
@@ -231,6 +230,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
                 reverse_args=[self.itemid, 'objectclass', 'test-item'],
                 status_code=200
             )
+
             self.assertEqual(response.content, b'wow')
 
     @tag('cache')
@@ -1301,23 +1301,26 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @tag('clone_item')
     def test_submitter_can_save_via_clone_page(self):
         self.login_editor()
-        time.sleep(2)
-        # Delays so there is a definite time difference between the first item and the clone on very fast test machines
+
+        import time
+        time.sleep(2)  # Delay so there is a time difference between original item and new item
+
         response = self.client.get(reverse('aristotle:clone_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
+
         updated_item = self.get_updated_data_for_clone(response)
         updated_name = updated_item['name'] + " cloned!"
         updated_item['name'] = updated_name
-        response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
-        # most_recent = self.itemType.objects.order_by('-created').first()
-        most_recent = response.context[-1]['object']  # Get the item back to check
-        self.assertTrue(perms.user_can_view(self.editor, most_recent))
 
+        response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
+        most_recent = response.context[-1]['object']  # Get the item back to check
+
+        self.assertTrue(perms.user_can_view(self.editor, most_recent))
         self.assertRedirects(response, url_slugify_concept(most_recent))
         self.assertEqual(most_recent.name, updated_name)
 
-        # Make sure the right item was save and our original hasn't been altered.
-        self.item1 = self.itemType.objects.get(id=self.item1.id)  # Stupid cache
+        # Make sure the right item was save and our original hasn't been altered
+        self.item1 = self.itemType.objects.get(id=self.item1.id)  # Refresh from cache
         self.assertTrue('cloned' not in self.item1.name)
 
     @tag('clone_item')
@@ -1413,6 +1416,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 data.update({
                     "%s-TOTAL_FORMS" % pre: num_vals, "%s-INITIAL_FORMS" % 0: num_vals, "%s-MAX_NUM_FORMS" % pre: 1000,
                 })
+                # We only need the management forms
+                data.update(self.get_formset_postdata(datalist=[]))
             return data
 
     def test_help_page_exists(self):
@@ -2915,6 +2920,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(through_model.objects.get(order=2).data_element, self.de1)
 
     def test_derivation_item_page(self):
+
         ded = self.create_linked_ded()
 
         self.login_editor()
