@@ -27,6 +27,7 @@ import datetime
 from unittest import mock, skip
 import reversion
 import json
+import time
 
 
 class AnonymousUserViewingThePages(TestCase):
@@ -230,7 +231,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
                 reverse_args=[self.itemid, 'objectclass', 'test-item'],
                 status_code=200
             )
-
             self.assertEqual(response.content, b'wow')
 
     @tag('cache')
@@ -1301,9 +1301,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @tag('clone_item')
     def test_submitter_can_save_via_clone_page(self):
         self.login_editor()
-        import time
-        time.sleep(
-            2)  # delays so there is a definite time difference between the first item and the clone on very fast test machines
+        time.sleep(2)
+        # Delays so there is a definite time difference between the first item and the clone on very fast test machines
         response = self.client.get(reverse('aristotle:clone_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
         updated_item = self.get_updated_data_for_clone(response)
@@ -2916,7 +2915,6 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(through_model.objects.get(order=2).data_element, self.de1)
 
     def test_derivation_item_page(self):
-
         ded = self.create_linked_ded()
 
         self.login_editor()

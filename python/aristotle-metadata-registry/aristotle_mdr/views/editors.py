@@ -285,8 +285,8 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         })
         return kwargs
 
-    def get_extra_formsets(self, item=None, postdata=None, clone_item=True):
-        extra_formsets = super().get_extra_formsets(item, postdata, clone_item=True)
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
+        extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:
             slot_formset = self.get_slots_formset()(
