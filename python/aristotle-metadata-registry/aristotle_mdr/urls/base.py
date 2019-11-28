@@ -1,4 +1,3 @@
-import notifications.urls
 
 from django.urls import path, re_path, include
 from django.contrib.auth import views as auth_views
@@ -18,7 +17,6 @@ urlpatterns = [
     path('django/admin/', admin.site.urls),
     path('ckeditor/', include('aristotle_mdr.urls.ckeditor_uploader')),
     re_path('account/sessions/?$', RedirectView.as_view(url=reverse_lazy("aristotle:userProfile"), permanent=False)),
-    path('account/notifications/', include((notifications.urls, 'notifications'), namespace="notifications")),
     path('account/password/reset/', AristotlePasswordResetView.as_view()),
     path('account/password/reset_done/', AristotlePasswordResetView.as_view()),
     path('user/password/reset/', AristotlePasswordResetView.as_view(),
