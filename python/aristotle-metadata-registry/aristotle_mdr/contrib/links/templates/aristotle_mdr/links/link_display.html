@@ -17,14 +17,7 @@
                             <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
                         </td>
                         <td>
-                            {% if not no_edit_links %}
-                                {% if request.user|can_edit_link:link %}
-                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
-                                        <span>Edit link</span>
-                                        <i class="fa fa-pencil"></i>
-                                    </a>
-                                {% endif %}
-                            {% endif %}
+                            {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     </tr>
                 {% endif %}
@@ -50,14 +43,7 @@
                     </td>
                     {% if forloop.first %}
                         <td rowspan="{{ linkend_count }}">
-                            {% if not no_edit_links %}
-                                {% if request.user|can_edit_link:link %}
-                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
-                                        <span>Edit link</span>
-                                        <i class="fa fa-pencil"></i>
-                                    </a>
-                                {% endif %}
-                            {% endif %}
+                            {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     {% endif %}
                 </tr>

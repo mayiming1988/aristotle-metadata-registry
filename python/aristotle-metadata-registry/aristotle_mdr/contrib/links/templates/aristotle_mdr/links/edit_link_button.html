@@ -1,0 +1,26 @@
+{% load i18n link_tags %}
+
+{% if not no_edit_links %}
+    {% if request.user|can_edit_link:link %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Manage'%} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                <li>
+                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
+                        <i class="fa fa-pencil"></i>
+                        <span>Edit link</span>
+                    </a>
+                </li>
+                    <li class="divider"></li>
+                <li>
+                    <a href="{% url 'aristotle_mdr_links:remove_link' link.pk item.pk %}">
+                        <i class="fa fa-trash text-danger"></i>
+                        <span class="text-danger">Delete link</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    {% endif %}
+{% endif %}
