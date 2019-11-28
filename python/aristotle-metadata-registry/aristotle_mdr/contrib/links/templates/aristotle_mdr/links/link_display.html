@@ -16,7 +16,7 @@
                         <td>
                             <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
                         </td>
-                        <td>
+                        <td class="pull-right">
                             {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     </tr>
@@ -42,7 +42,7 @@
                         {% endif %}
                     </td>
                     {% if forloop.first %}
-                        <td rowspan="{{ linkend_count }}">
+                        <td class="pull-right" rowspan="{{ linkend_count }}">
                             {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     {% endif %}
