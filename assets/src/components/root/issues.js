@@ -23,10 +23,14 @@ export default {
         let data = {
             new_comments: [],
             issueModalOpen: false,
+            isOpen: true,
         }
         // Get isopen from json element
-        let issue_data = JSON.parse(document.getElementById("issue-data").textContent)
-        data.isOpen = issue_data.isopen
+        let element = document.getElementById("issue-data")
+        if (element !== null) {
+            let issue_data = JSON.parse(element.textContent)
+            data.isOpen = issue_data.isopen
+        }
 
         return data
     },
