@@ -99,8 +99,11 @@ class RequestReviewCreateForm(RequestReviewFormBase):
             active=MDR.RA_ACTIVE_CHOICES.active)
 
     class Meta(RequestReviewFormBase.Meta):
-        # Add Registration Authority field at index 1 (second position of the form):
-        RequestReviewFormBase.Meta.fields[1:1] = ['registration_authority']
+        fields = [
+            'title', 'registration_authority', 'due_date', 'target_registration_state',
+            'registration_date', 'concepts',
+            'cascade_registration'
+        ]
 
 
 class RequestReviewUpdateForm(RequestReviewFormBase):
