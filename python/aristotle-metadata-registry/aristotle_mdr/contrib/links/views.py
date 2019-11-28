@@ -11,6 +11,7 @@ from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 from formtools.wizard.views import SessionWizardView
 
@@ -120,7 +121,7 @@ class AddLinkWizard(SessionWizardView):
         self.relation = self.get_cleaned_data_for_step('0')['relation']
         return self.relation.relationrole_set.order_by('ordinal', 'name')
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         kwargs = super().get_form_kwargs(step)
         istep = int(step)
         if istep == 0:
@@ -240,3 +241,24 @@ def link_json_for_item(request, iid):
         'nodes': nodes,
         'edges': edges,
     })
+
+
+class RemoveLinkView(ConfirmDeleteView):
+    model_base = link_models.Link
+    form_title = "Delete link"
+    permission_checks = [perms.user_can_change_link]
+    item_kwarg = 'linkid'
+
+    def get_warning_text(self):
+        return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
+               f" you want to continue?"
+
+    def get_object(self):
+        return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
+
+    def perform_deletion(self):
+        self.item.delete()
+        return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
+
+    def post(self, *args, **kwargs):
+        return self.perform_deletion()

@@ -1,7 +1,5 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
-{% load i18n %}
-{% load aristotle_tags %}
-{% load bootstrap3 %}
+{% load i18n aristotle_tags bootstrap3 %}
 
 {% block breadcrumbs %}
     <ol class="breadcrumb">
@@ -16,24 +14,7 @@
 
     <form action="" method="POST">
         {% csrf_token %}
-        <table class="table">
-            {% for field in form %}
-                <tr>
-                    <td>
-                        {{ field.errors }}
-                        {{ field | append_asterisk_if_required }}
-                    </td>
-                    <td>
-                        {% if field.name == "title" %}
-                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-12" %}
-                        {% else %}
-                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-
-        </table>
+        {% include "aristotle_mdr/reviews/review/create_update_review_form.html" %}
         <a class="btn btn-danger" href="{% url 'aristotle:userHome' %}">Cancel</a>
         <button class="btn btn-primary" type="submit">Create New Review</button>
     </form>

@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
-{% load i18n %}
+{% load i18n aristotle_tags bootstrap3 %}
 
 {% block breadcrumbs %}
     <ol class="breadcrumb">
@@ -17,9 +17,7 @@
 
     <form action="" method="POST">
         {% csrf_token %}
-        <table class="table">
-            {{ form.as_table }}
-        </table>
+        {% include "aristotle_mdr/reviews/review/create_update_review_form.html" %}
         <a class="btn btn-danger" href="{% url 'aristotle_reviews:review_details' item.id %}">Cancel</a>
         <button class="btn btn-primary" type="submit">Update Review Details</button>
     </form>
