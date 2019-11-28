@@ -620,6 +620,11 @@ def get_status_from_dict(dictionary, current_status, key, with_icon=True):
 def append_asterisk_if_required(field):
     """
     Add an asterisk symbol to the required fields of a form.
+
+    Usage:
+
+        {{ field | append_asterisk_if_required }}
+
     Thanks to Moses Koledoye: https://stackoverflow.com/questions/37389855/django-label-tag-required-asterisk
     """
     if field.field.required:
