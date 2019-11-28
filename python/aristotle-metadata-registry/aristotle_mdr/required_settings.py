@@ -231,13 +231,13 @@ ARISTOTLE_SETTINGS = {
             'app_label': 'aristotle_mdr',
             'model': 'DataElement',
             'class': 'aristotle_mdr.views.wizards.DataElementWizard',
-            'link': 'create/wizard/aristotle_mdr/dataelement',
+            'link': 'wizard/aristotle_mdr/dataelement',
         },
         {
             'app_label': 'aristotle_mdr',
             'model': 'DataElementConcept',
             'class': 'aristotle_mdr.views.wizards.DataElementConceptWizard',
-            'link': 'create/wizard/aristotle_mdr/dataelementconcept',
+            'link': 'wizard/aristotle_mdr/dataelementconcept',
         }
     ],
     "DOWNLOAD_OPTIONS": {
