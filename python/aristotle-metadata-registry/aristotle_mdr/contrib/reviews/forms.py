@@ -43,7 +43,15 @@ class RequestReviewForm(ChangeStatusGenericForm):
         return MDR.RegistrationAuthority.objects.get(id=int(value))
 
 
-class RequestReviewCreateForm(UserAwareModelForm):
+class RequestReviewFormBase(UserAwareModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['target_registration_state'].choices = BLANK_CHOICE_DASH + MDR.STATES
+        self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
+        self.fields['concepts'].widget.choices = self.fields['concepts'].choices
+        self.fields['concepts'].label = "Metadata"
+
     cascade_registration = forms.ChoiceField(
         initial=0,
         choices=CASCADE_OPTIONS_PLURAL,
@@ -59,7 +67,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
     class Meta:
         model = models.ReviewRequest
         fields = [
-            'title', 'registration_authority', 'due_date', 'target_registration_state',
+            'title', 'due_date', 'target_registration_state',
             'registration_date', 'concepts',
             'cascade_registration'
         ]
@@ -71,38 +79,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
             'concepts': ConceptAutocompleteSelectMultiple(),
             'cascade_registration': forms.RadioSelect(),
         }
-        help_texts = {
-            'target_registration_state': "The state for endorsement for metadata in this review",
-            'due_date': "Date this review needs to be actioned by",
-            'registration_date': "Date the metadata will be endorsed at",
-            'title': "A short title for this review",
-            'concepts': "List of metadata for review",
-        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['target_registration_state'].choices = BLANK_CHOICE_DASH + MDR.STATES
-        self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
-        self.fields['concepts'].widget.choices = self.fields['concepts'].choices
-        self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(active=0)  # Exclude "inactive" Registration Authorities.
-        self.fields['concepts'].label = "Metadata"
-
-
-class RequestReviewUpdateForm(UserAwareModelForm):
-    class Meta:
-        model = models.ReviewRequest
-        fields = [
-            'title', 'due_date', 'target_registration_state', 'registration_date', 'concepts',
-            'cascade_registration'
-        ]
-        widgets = {
-            'title': forms.Textarea(),
-            'target_registration_state': forms.RadioSelect(),
-            'due_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
-            'registration_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
-            'concepts': ConceptAutocompleteSelectMultiple(),
-            'cascade_registration': forms.RadioSelect(),
-        }
         help_texts = {
             'target_registration_state': "The state for endorsement for metadata in this review",
             'due_date': "Date this review needs to be actioned by",
@@ -112,13 +89,24 @@ class RequestReviewUpdateForm(UserAwareModelForm):
             'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
         }
 
+
+class RequestReviewCreateForm(RequestReviewFormBase):
+
+    # Exclude "inactive" Registration Authorities:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(
+            name="Disability")
 
-        self.fields['target_registration_state'].choices = MDR.STATES
-        self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
-        self.fields['concepts'].widget.choices = self.fields['concepts'].choices
-        self.fields['concepts'].label = "Metadata"
+    class Meta(RequestReviewFormBase.Meta):
+        # Add Registration Authority field at index 1 (second position of the form):
+        RequestReviewFormBase.Meta.fields[1:1] = ['registration_authority']
+
+
+class RequestReviewUpdateForm(RequestReviewFormBase):
+
+    class Meta(RequestReviewFormBase.Meta):
+        """Inherit from base class Meta"""
 
 
 class RequestReviewAcceptForm(UserAwareForm):
