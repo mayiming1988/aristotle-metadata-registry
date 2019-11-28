@@ -96,7 +96,7 @@ class RequestReviewCreateForm(RequestReviewFormBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(
-            name="Disability")
+            active=MDR.RA_ACTIVE_CHOICES.active)
 
     class Meta(RequestReviewFormBase.Meta):
         # Add Registration Authority field at index 1 (second position of the form):
