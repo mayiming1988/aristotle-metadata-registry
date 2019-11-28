@@ -116,9 +116,8 @@ export default {
                     if (response.data['comment'] != undefined) {
                         this.emitComment(response.data['comment'])
                     }
-                    this.isOpen = response.data['issue']['isopen']
                     this.body = ''
-                    this.$emit('set_open', this.isOpen)
+                    this.$emit('set_open', response.data.issue.isopen)
                 }
             })
         }
