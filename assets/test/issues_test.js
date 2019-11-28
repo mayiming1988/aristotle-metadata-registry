@@ -257,7 +257,6 @@ describe('issueComment', function() {
 
             assert.isTrue(fake.calledOnce)
             return this.wrapper.vm.$nextTick().then(() => {
-                assert.isTrue(this.wrapper.vm.isOpen)
                 assert.isOk(this.wrapper.emitted('set_open'))
                 assert.equal(this.wrapper.emitted('set_open').length, 2)
                 assert.isTrue(this.wrapper.emitted('set_open')[1][0])
@@ -422,11 +421,7 @@ describe('issueModal', function() {
 describe('issueRootComponent', function() {
 
     beforeEach(function() {
-        // convert root component data to function
-        let initData = rootComponent.data
-        this.wrapper = VueTestUtils.shallowMount(rootComponent, {
-            data: () => (initData)
-        })
+        this.wrapper = VueTestUtils.shallowMount(rootComponent)
     })
 
     afterEach(function() {

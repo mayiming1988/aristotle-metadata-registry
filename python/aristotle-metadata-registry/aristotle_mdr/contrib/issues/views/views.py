@@ -135,7 +135,9 @@ class IssueDisplay(IssueBase, TemplateView):
             'own_issue': own_issue,
             'can_approve': can_edit_item,
             'has_proposed_changes': has_proposed_changes,
-            'item_changed': item_changed
+            'item_changed': item_changed,
+            # Loaded by root component
+            'issue_data': {'isopen': self.issue.isopen},
         })
         # Add diff table
         diff_table = ''

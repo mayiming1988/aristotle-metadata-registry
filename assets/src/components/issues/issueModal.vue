@@ -47,8 +47,8 @@
         </template>
         <div slot="footer">
             <button type="button" class="btn btn-default" @click="emitClose">Close</button>
-            <saving v-if="loading" />
-            <button v-if="!loading" type="button" class="btn btn-primary" @click="saveIssue">
+            <saving v-if="saving" />
+            <button v-if="!saving" type="button" class="btn btn-primary" @click="saveIssue">
                 {{ actionText }}
             </button>
         </div>
@@ -123,7 +123,7 @@ export default {
         }
     },
     data: () => ({
-        html: 'Spicy',
+        html: '',
         // Proposed changes for different fields
         proposals: {},
         // Fields we can propose changes for
@@ -131,6 +131,8 @@ export default {
         // All labels that could be added to this issue
         // Array of options objects to be passed to selectTagger
         labelOptions: [],
+        // True when saving and redirecting to issue
+        saving: false,
         // Data to be posted
         formdata: {
             name: '',
@@ -175,7 +177,8 @@ export default {
             this.$emit('input', false)
         },
         saveIssue: function() {
-            if (!this.loading) {
+            if (!this.saving) {
+                this.saving = true
                 // Get data
                 let postdata = this.formdata
                 postdata['item'] = this.iid
