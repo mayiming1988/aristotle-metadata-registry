@@ -60,7 +60,6 @@ class DeleteSandboxForm(UserAwareForm):
         )
 
     def clean_item(self):
-
         item = self.cleaned_data['item']
 
         if not can_delete_metadata(self.user, item):
@@ -81,7 +80,7 @@ class SupersedeForm(forms.ModelForm):
 
         qs = self.item._meta.model.objects.visible(self.user)
 
-        self.fields['older_item']=forms.ModelChoiceField(
+        self.fields['older_item'] = forms.ModelChoiceField(
             queryset=qs,
             empty_label="None",
             label=_("Supersedes"),
@@ -111,7 +110,7 @@ class SupersedeAdminForm(SupersedeForm):
         super().__init__(*args, **kwargs)
 
         # Restrict ra's to only ones user is a registrar in
-        self.fields['registration_authority']=forms.ModelChoiceField(
+        self.fields['registration_authority'] = forms.ModelChoiceField(
             queryset=self.user.profile.registrarAuthorities,
             empty_label="None",
             label=_("Registration authority"),
