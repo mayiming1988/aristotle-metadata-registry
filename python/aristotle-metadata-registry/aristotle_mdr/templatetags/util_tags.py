@@ -62,29 +62,6 @@ def distinct(iterable, attr_name):
     return filtered
 
 
-@register.filter
-def json_script(value, element_id):
-    """
-    Taken from Django 2.1
-
-    Escape all the HTML/XML special characters with their unicode escapes, so
-    value is safe to be output anywhere except for inside a tag attribute. Wrap
-    the escaped JSON in a script tag.
-    """
-
-    _json_script_escapes = {
-        ord('>'): '\\u003E',
-        ord('<'): '\\u003C',
-        ord('&'): '\\u0026',
-    }
-
-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
-    return format_html(
-        '<script id="{}" type="application/json">{}</script>',
-        element_id, mark_safe(json_str)
-    )
-
-
 @register.filter(name='bleach')
 def bleach_filter(html: str) -> SafeString:
     """Clean a html string before it is rendered"""

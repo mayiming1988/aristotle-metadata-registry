@@ -1,43 +1,43 @@
 {% load i18n util_tags %}
 
 <table class="table">
-  <thead>
+    <thead>
     <tr>
-      <th>Relation</th>
-      <th>Definition</th>
-      <th>Multiplicity</th>
-      <th>Concepts</th>
+        <th>Relation</th>
+        <th>Definition</th>
+        <th>Multiplicity</th>
+        <th>Concepts</th>
     </tr>
-  </thead>
-  <tbody>
+    </thead>
+    <tbody>
     {% for field, role in form|izip:roles %}
-    <tr>
-        <td>
-            <label for='{{ field.id_for_label }}'>{{ field.label }}</label>
-        </td>
-        <td>
-            {{ role.definition|bleach }}
-        </td>
-        <td>
-            {% if role.multiplicity %}
-                You can select up to {{ role.multiplicity }} 
-                concept{{ multiplicity|pluralize}} for this role for this relationship.
-            {% else %}
-                There is no limit on the number of concepts that fill this
-                role for this relationship.
-            {% endif %}
-        </td>
-        <td>
-            {% if field.errors %}
-              <ul class="alert alert-danger">
-                {% for error in field.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          {{ field }}
-        </td>
-    </tr>
+        <tr>
+            <td>
+                <label for='{{ field.id_for_label }}'>{{ field.label }}</label>
+            </td>
+            <td>
+                {{ role.definition|bleach }}
+            </td>
+            <td>
+                {% if role.multiplicity %}
+                    You can select up to {{ role.multiplicity }}
+                    concept{{ role.multiplicity|pluralize}} for this role for this relationship.
+                {% else %}
+                    There is no limit on the number of concepts that fill this
+                    role for this relationship.
+                {% endif %}
+            </td>
+            <td>
+                {% if field.errors %}
+                    <ul class="alert alert-danger">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ field }}
+            </td>
+        </tr>
     {% endfor %}
-  </tbody>
+    </tbody>
 </table>
