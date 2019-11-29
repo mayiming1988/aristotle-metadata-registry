@@ -1335,6 +1335,9 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         updated_name = "CLONE" + updated_item['name'] + " cloned with no WG!"
         updated_item['name'] = updated_name
         updated_item['workgroup'] = ''  # no workgroup this time
+        updated_item.update(utils.get_management_forms(self.item1, identifiers=True, slots=True))
+
+
         response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
 
         self.assertTrue(response.status_code == 302)  # make sure its saved ok
