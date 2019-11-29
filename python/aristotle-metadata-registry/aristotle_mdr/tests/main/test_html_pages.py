@@ -1417,7 +1417,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                     "%s-TOTAL_FORMS" % pre: num_vals, "%s-INITIAL_FORMS" % 0: num_vals, "%s-MAX_NUM_FORMS" % pre: 1000,
                 })
                 # Add the management forms for each formset
-            raise ValueError(data)
             return data
 
     def test_help_page_exists(self):
