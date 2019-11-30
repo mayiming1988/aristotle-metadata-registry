@@ -64,7 +64,7 @@ export default {
     components: {
         'api-errors': apiErrors,
         'user-panel': userPanel,
-        'textarea-resize': TextareaAutosize
+        'textarea-resize': VueTextareaAutosize
     },
     data: () => ({
         body: '',
