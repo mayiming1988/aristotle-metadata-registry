@@ -23,7 +23,7 @@
 import userPanel from '@/userPanel.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
-import { TextareaAutosize } from 'vue-textarea-autosize'
+import { VueTextareaAutosize } from 'vue-textarea-autosize'
 
 export default {
     mixins: [apiRequest],
