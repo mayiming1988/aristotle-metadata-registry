@@ -1,3 +1,4 @@
+from aristotle_mdr.utils.text import truncate_words
 from typing import Optional, List, Dict, Tuple, Any, Union, Callable
 from django.conf import settings
 from collections import defaultdict
@@ -122,3 +123,17 @@ class Tree:
 
     def __str__(self):
         return self.get_string(self.root)
+
+
+class Breadcrumb:
+    """Object representing a single breadcrumb"""
+
+    def __init__(self, name: str, url='', active=False):
+        self._name = name
+        self.url = url
+        self.active = active
+
+    @property
+    def name(self):
+        """Display name for breadcrumb"""
+        return truncate_words(self._name, 10)
