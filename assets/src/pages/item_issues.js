@@ -11,7 +11,7 @@ new Vue(rootComponent);
 for (let button of document.getElementsByClassName('swap-panels')) {
     button.addEventListener('click', () => {
         // Extract the data-target of which button was clicked
-        let container = document.querySelector('#swap-container');
+        let container = document.querySelector('.swap-container');
         let associatedElement = container.querySelector(event.target.dataset.target);
 
         // Add an active class to the clicked buttons
