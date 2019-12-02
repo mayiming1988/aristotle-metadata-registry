@@ -677,7 +677,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
                 name='{}\'s Sandbox'.format(user_display_name),
                 url=reverse('aristotle:sharedSandbox', args=[self.share.uuid])
             ),
-            Breadcrumb(self.item.name, '', True)
+            Breadcrumb(self.item.name, active=True)
         ]
         # Set these in order to display links to other sandbox content  correctly
         context['shared_ids'] = self.sandbox_ids
