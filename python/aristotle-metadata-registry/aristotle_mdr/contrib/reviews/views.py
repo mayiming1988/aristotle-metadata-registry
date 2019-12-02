@@ -544,7 +544,6 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
     active_tab_name = "checks"
 
     def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
 
         review = self.get_review()
@@ -563,6 +562,7 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         runner = runner_class(registration_authority=self.ra, state=self.get_review().state)
         total_results = runner.validate_metadata(metadata=review_items)
 
+        context['no_results'] = not bool([result['results'] for result in total_results if result['results']])
         context['total_results'] = total_results
         context['setup_valid'] = True
 
