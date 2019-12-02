@@ -81,7 +81,6 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
 
         perm_func = getattr(perms, self.perm_function)
         if not perm_func(self.request.user, self.review):
-            # TODO: make this use CBVs
             if self.request.user.is_anonymous:
                 return redirect(reverse('friendly_login') + '?next=%s' % self.request.path)
             else:
@@ -120,6 +119,12 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
 
+        if self.review.concepts.count() == 1:
+            # It's for a single item review, display in breadcrumbs
+            kwargs.update({
+                'single_item_review': True,
+                'item_under_review': self.review.concepts.first()
+            })
         return kwargs
 
     def get_object(self):
