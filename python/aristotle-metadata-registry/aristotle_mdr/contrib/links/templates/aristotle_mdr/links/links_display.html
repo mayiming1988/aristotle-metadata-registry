@@ -1,51 +1,51 @@
 {% load i18n util_tags link_tags %}
 
 {% if links_from or links_to %}
-<div>
-    <h2>Relationships</h2>
-    <p>
-        Click on the name of any relationship to learn more about the different roles available for links
-        that implement these relations.
-    </p>
-    {% if links_from %}
-    <table class="table">
-        <thead>
-        <tr>
-            <th>
-                {% trans 'Relationship' %}
-            </th>
-            <th>
-                {% trans 'Role' %}
-            </th>
-            <th>
-                {% trans 'Metadata item' %}
-            </th>
-            <th><span class='sr-only'>Actions</span></th>
-        </tr>
-        </thead>
-        {% include "aristotle_mdr/links/link_display.html" with links=links_from %}
-    </table>
-    {% endif %}
+    <div>
+        <h2>Relationships</h2>
+        <p>
+            Click on the name of any relationship to learn more about the different roles available for links
+            that implement these relations.
+        </p>
+        {% if links_from %}
+            <table class="table" style="table-layout: fixed">
+                <thead>
+                <tr>
+                    <th>
+                        {% trans 'Relationship' %}
+                    </th>
+                    <th>
+                        {% trans 'Role' %}
+                    </th>
+                    <th>
+                        {% trans 'Metadata item' %}
+                    </th>
+                    <th><span class='sr-only'>Actions</span></th>
+                </tr>
+                </thead>
+                {% include "aristotle_mdr/links/link_display.html" with links=links_from %}
+            </table>
+        {% endif %}
 
-    {% if links_to %}
-    <h3>Links to this item</h3>
-    <table class="table">
-        <thead>
-        <tr>
-            <th>
-                {% trans 'Relationship' %}
-            </th>
-            <th>
-                {% trans 'Role' %}
-            </th>
-            <th>
-                {% trans 'Metadata item' %}
-            </th>
-            <th><span class='sr-only'>Actions</span></th>
-        </tr>
-        </thead>
-        {% include "aristotle_mdr/links/link_display.html" with links=links_to no_edit_links=True %}
-    </table>
-    {% endif %}
-</div>
+        {% if links_to %}
+            <h3>Links to this item</h3>
+            <table class="table" style="table-layout: fixed">
+                <thead>
+                <tr>
+                    <th>
+                        {% trans 'Relationship' %}
+                    </th>
+                    <th>
+                        {% trans 'Role' %}
+                    </th>
+                    <th>
+                        {% trans 'Metadata item' %}
+                    </th>
+                    <th><span class='sr-only'>Actions</span></th>
+                </tr>
+                </thead>
+                {% include "aristotle_mdr/links/link_display.html" with links=links_to no_edit_links=True %}
+            </table>
+        {% endif %}
+    </div>
 {% endif %}
