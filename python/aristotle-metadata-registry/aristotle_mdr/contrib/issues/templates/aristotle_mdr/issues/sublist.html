@@ -1,7 +1,7 @@
 {% if issues %}
     <div class="list-group">
         {% for issue in issues %}
-            <a href="{% url 'aristotle_issues:issue' issue.item_id issue.id %}" class="list-group-item">
+            <a href="{% url 'aristotle_issues:issue' issue.item_id issue.id %}" class="list-group-item" target="_blank">
                 <div class="h4 list-group-item-heading">
                     <i class="text-{{ context_class }} fa fa-exclamation-circle"></i>
                     {{ issue.name }}
