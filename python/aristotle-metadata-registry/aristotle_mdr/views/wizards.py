@@ -85,6 +85,12 @@ class PermissionWizard(SessionWizardView):
         kwargs.update({'user': self.request.user})
         return kwargs
 
+    def get_breadcrumbs(self, model_name):
+        return [
+            Breadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
+            Breadcrumb(f'Create {model_name}', active=True),
+        ]
+
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         context.update({
@@ -216,10 +222,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 ).first()
             })
 
-        context['breadcrumbs'] = [
-            Breadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
-            Breadcrumb(f'Create {model_name}', active=True),
-        ]
+        context['breadcrumbs'] = self.get_breadcrumbs(model_name)
 
         return context
 
@@ -655,6 +658,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         context.update({
             'template_name': self.template_name,
             })
+        context['breadcrumbs'] = self.get_breadcrumbs('Data Element Concept')
         return context
 
     @reversion.create_revision()
@@ -946,6 +950,7 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'de_matches': self.get_data_elements(),
                 'made_de': self.get_cleaned_data_for_step('find_de_results'),
                 })
+        context['breadcrumbs'] = self.get_breadcrumbs('Data Element')
         return context
 
     def get_form_initial(self, step):
