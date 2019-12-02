@@ -23,6 +23,7 @@ from aristotle_mdr.utils import (
     is_active_module
 )
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
+from aristotle_mdr.structs import Breadcrumb
 
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
@@ -193,7 +194,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             fscontext = self.get_formset_context(fslist)
             context.update(fscontext)
 
-        context.update({'model_name': self.model._meta.verbose_name,
+        model_name = self.model._meta.verbose_name
+        context.update({'model_name': model_name,
                         'model_name_plural': self.model._meta.verbose_name_plural.title,
                         'help': ConceptHelp.objects.filter(
                             app_label=self.model._meta.app_label,
@@ -213,6 +215,11 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                     content_type__model=self.model._meta.model_name,
                 ).first()
             })
+
+        context['breadcrumbs'] = [
+            Breadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
+            Breadcrumb(f'Create {model_name}', active=True),
+        ]
 
         return context
 
