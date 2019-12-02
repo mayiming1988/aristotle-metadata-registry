@@ -1,6 +1,7 @@
 from aristotle_mdr.utils.text import truncate_words
 from typing import Optional, List, Dict, Tuple, Any, Union, Callable
 from django.conf import settings
+from django.urls import reverse
 from collections import defaultdict
 
 
@@ -128,10 +129,14 @@ class Tree:
 class Breadcrumb:
     """Object representing a single breadcrumb"""
 
-    def __init__(self, name: str, url='', active=False):
+    def __init__(self, name: str, url_name='', url_args=[], active=False):
         self._name = name
-        self.url = url
         self.active = active
+
+        if url_name:
+            self.url = reverse(url_name, args=url_args)
+        else:
+            self.url = ''
 
     @property
     def name(self):

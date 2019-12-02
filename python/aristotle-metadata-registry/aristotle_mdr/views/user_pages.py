@@ -674,8 +674,9 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
         user_display_name = share_user.full_name or share_user.short_name or share_user.email
         context['breadcrumbs'] = [
             Breadcrumb(
-                name='{}\'s Sandbox'.format(user_display_name),
-                url=reverse('aristotle:sharedSandbox', args=[self.share.uuid])
+                '{}\'s Sandbox'.format(user_display_name),
+                'aristotle:sharedSandbox',
+                url_args=[self.share.uuid]
             ),
             Breadcrumb(self.item.name, active=True)
         ]
