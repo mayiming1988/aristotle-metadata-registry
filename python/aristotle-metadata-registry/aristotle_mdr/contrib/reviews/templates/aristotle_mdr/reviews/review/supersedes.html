@@ -3,74 +3,73 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_bundle %}
-{% render_bundle 'rr_supersedes' 'js' %}
+    {% render_bundle 'rr_supersedes' 'js' %}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-{% render_bundle 'rr_supersedes' 'css' %}
+    {% render_bundle 'rr_supersedes' 'css' %}
 {% endblock %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}
 {% block tabpanel %}
-<div v-pre role="tabpanel" class="tab-pane active" id="review_impact">
-    <div class="panel">
-        <div class="panel-body">
-            <header><em>These supersedes relations are being proposed as part of this request</em></header>
-            <hr>
-            <form method="post">
-                {% csrf_token %}
-                {{ formset.management_form }}
-                {{ formset.non_form_errors }}
-                <table id="{{ formset.prefix }}" class="form formset table table-striped">
-                    <thead>
-                    <tr>
+    <div v-pre role="tabpanel" class="tab-pane active" id="review_impact">
+        <div class="panel">
+            <div class="panel-body">
+                <header><em>These supersedes relations are being proposed as part of this request</em></header>
+                <hr>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+                    {{ formset.non_form_errors }}
+                    <table id="{{ formset.prefix }}" class="form formset table table-striped">
+                        <thead>
+                        <tr>
+                            {% for form in formset %}
+                                {% if forloop.first %}
+                                    {% for field in form.visible_fields %}
+                                        <th>
+                                            {{ field.label_tag }}
+                                        </th>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody id="supersedes">
                         {% for form in formset %}
-                            {% if forloop.first %}
-                                {% for field in form.visible_fields %}
-                                <th>
-                                    {{ field.label_tag }}
-                                </th>
+                            <tr>
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
                                 {% endfor %}
-                            {% endif %}
+                                {% for field in form.visible_fields %}
+                                    <td>
+                                        {{ field.errors }}
+                                        {{ field }}
+                                    </td>
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
-                    </tr>
-                    </thead>
-                    <tbody id="supersedes">
-                    {% for form in formset %}
-                    <tr>
-                        {% for hidden in form.hidden_fields %}
-                            {{ hidden }}
-                        {% endfor %}
-                        {% for field in form.visible_fields %}
-                        <td>
-                            {{ field.errors }}
-                            {{ field }}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
+                        </tbody>
+                    </table>
+                    <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
 
-            <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
-                <tr>
-                    {% with formset.empty_form as form %}
-                    {% for hidden in form.hidden_fields %}
-                    {{ hidden }}
-                    {% endfor %}
-                    {% for field in form.visible_fields %}
-                    <td>
-                        {{ field }}
-                    </td>
-                    {% endfor %}
-                </tr>
-            </table>
+                <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
+                    <tr>
+                        {% with formset.empty_form as form %}
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            {% for field in form.visible_fields %}
+                                <td>
+                                    {{ field }}
+                                </td>
+                            {% endfor %}
+                            </tr>
+                            </table>
+                            </div>
+                        {% endwith %}
         </div>
-        {% endwith %}
     </div>
-</div>
-</div>
 {% endblock tabpanel %}
