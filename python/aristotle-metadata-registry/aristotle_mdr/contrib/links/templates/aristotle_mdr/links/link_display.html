@@ -7,16 +7,16 @@
             {% for e in link.linkend_set.all %}
                 {% if e.concept.concept != item.concept %}
                     <tr>
-                        <td>
+                        <td class="col-md-3">
                             <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                         </td>
-                        <td title="{{e.role.definition}}">
+                        <td class="col-md-3" title="{{e.role.definition}}">
                             <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
                         </td>
-                        <td>
+                        <td class="col-md-3">
                             <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
                         </td>
-                        <td>
+                        <td class="col-md-3">
                             {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     </tr>
@@ -26,15 +26,15 @@
             {% for e in link.linkend_set.all %}
                 <tr>
                     {% if forloop.first %}
-                        <td rowspan="{{ linkend_count }}">
+                        <td class="col-md-3" rowspan="{{ linkend_count }}">
                             {{ forloop.parentloop.counter }}.
                             <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                         </td>
                     {% endif %}
-                    <td title="{{ e.role.definition }}">
+                    <td class="col-md-3" title="{{ e.role.definition }}">
                         <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{ e.role.pk }}">{{ e.role.name }}</a>
                     </td>
-                    <td>
+                    <td class="col-md-3">
                         {% if e.concept.concept == item.concept %}
                             <strong class="active_link" title="">{{ e.concept.name }}</strong>
                         {% else %}
@@ -42,7 +42,7 @@
                         {% endif %}
                     </td>
                     {% if forloop.first %}
-                        <td rowspan="{{ linkend_count }}">
+                        <td class="col-md-3" rowspan="{{ linkend_count }}">
                             {% include "aristotle_mdr/links/edit_link_button.html" %}
                         </td>
                     {% endif %}
