@@ -348,18 +348,18 @@
             </div>
         {% endif %}
         <div role="tabpanel" class="tab-pane" id="tab_tips">
-            <h2>How to use this editor</h2>
+            <h1>How to use this editor</h1>
             <p>
                 This editor is designed to help you create well-defined,
                 reusable metadata. Each tab in this editor covers metadata for different purposes:
             </p>
-            <h3>Definition</h3>
+            <h2>Definition</h2>
             <p>The fields in this tab cover the basic definition
                 of an object fields. A <em>Name</em> is always required,
                 while and <em>Definition</em> and <em>Version</em> may be
                 optional depending on business rules defined by the registry.
             </p>
-            <h3>Names & References</h3>
+            <h2>Names & References</h2>
             <p>
                 The fields in this tab are common to all concepts in this registry
                 and are all optional when saving. Where possible completing fields adds
@@ -370,7 +370,7 @@
                 these fields to be completed before metadata can be endorsed or published.
             </p>
             {% if form.object_specific_fields or weak_formsets or through_formsets %}
-            <h3>{{ model_name|title }} Components</h3>
+            <h2>{{ model_name|title }} Components</h2>
             <p>
                 The fields in the tab are specific to <em>{{model_name_plural}}</em>
                 and allow for item specific metadata and relations to be
@@ -382,7 +382,7 @@
             </p>
                 {% endif %}
                 {% if show_slots_tab %}
-                    <h3>Slots</h3>
+                    <h2>Slots</h2>
                     <p>
                         This tab allows for the storage of additional attributes not captured.
                         If enabled, this can be used to record additional registry-specified
