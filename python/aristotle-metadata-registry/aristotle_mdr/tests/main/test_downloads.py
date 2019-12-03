@@ -25,7 +25,12 @@ class PreviewDownloadsTestCase(AristotleTestUtils, TestCase):
     def test_print_preview(self):
         pass
 
-
+@override_settings(
+    ARISTOTLE_SETTINGS={
+        'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']},
+        'BULK_ACTIONS': ['aristotle_mdr.forms.bulk_actions.BulkDownloadForm']
+    }
+)
 class DownloadsTestCase(AristotleTestUtils, TestCase):
     """
     Testing downloads views and task
