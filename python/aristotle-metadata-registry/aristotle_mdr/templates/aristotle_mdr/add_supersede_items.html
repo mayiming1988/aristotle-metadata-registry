@@ -1,0 +1,40 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n bootstrap3 %}
+{% block title %}Add a Superseding relationship for {{ item.name }}{% endblock %}
+
+{% block content %}
+    {% block breadcrumbs %}
+        <ol class="breadcrumb">
+            <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+            <li>Add a Superseding relationship</li>
+        </ol>
+    {% endblock %}
+    {% block review_content %}
+        <h1>
+            Add a Superseding relationship for
+            {{ item.name }}
+            ({{ item.item_type_name }})
+        </h1>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+            <table class="table">
+                {% for field in form %}
+                    <tr>
+                        <td>
+                            {{ field.errors }}
+                            {{ field | append_asterisk_if_required }}
+                        </td>
+                        <td>
+                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-12" %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <a class="btn btn-danger" href="{% url 'aristotle:supersede' item.id %}">Cancel</a>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+
+    {% endblock %}
+
+{% endblock %}

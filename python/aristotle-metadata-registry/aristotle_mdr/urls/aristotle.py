@@ -106,8 +106,15 @@ urlpatterns = [
             name='download_status',
             ),
 
-    path('action/supersede/<int:iid>', views.actions.SupersedeItemView.as_view(), name='supersede'),
-    path('action/proposed/supersede/<int:iid>', views.actions.ProposedSupersedeItemView.as_view(), name='proposed_supersede'),
+    path('action/supersede/<int:iid>', views.actions.SupersedeItemHistory.as_view(), name='supersede'),
+    path('action/supersede/add/<int:iid>', views.actions.AddSupersedeRelationship.as_view(), name='add_supersede_item'),
+    path('action/supersede/edit/<int:sup_rel_id>', views.actions.EditSupersedeRelationship.as_view(), name='edit_supersede_item'),
+    path('action/supersede/delete/<int:sup_rel_id>/item/<int:iid>', views.actions.DeleteSupersedeRelationship.as_view(), name='delete_supersede_item'),
+
+    path('action/proposed-supersede/<int:iid>', views.actions.ProposedSupersedeItemHistory.as_view(), name='proposed_supersede'),
+    path('action/proposed-supersede/add/<int:iid>', views.actions.AddProposedSupersedeRelationship.as_view(), name='add_proposed_supersede_item'),
+    path('action/proposed-supersede/edit/<int:sup_rel_id>', views.actions.EditProposedSupersedeRelationship.as_view(), name='edit_proposed_supersede_item'),
+    path('action/proposed-supersede/delete/<int:sup_rel_id>/item/<int:iid>', views.actions.DeleteProposedSupersedeRelationship.as_view(), name='delete_proposed_supersede_item'),
 
     path('action/bulkaction/', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     path('action/bulkaction/state/', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
