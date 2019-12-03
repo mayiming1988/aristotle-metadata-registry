@@ -2,18 +2,11 @@
 {% load aristotle_tags %}
 
 {% spaceless %}
-    <ul class="breadcrumb">
-        {% if breadcrumbs %}
-            {% for crumb in breadcrumbs %}
-                <li {% if crumb.active %}class="active"{% endif %}>
-                    {% if crumb.url %}
-                        <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-                    {% else %}
-                        {{ crumb.name }}
-                    {% endif %}
-                </li>
-            {% endfor %}
-        {% elif item.stewardship_organisation %}
+
+    {% if breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% elif item.stewardship_organisation %}
+        <ul class="breadcrumb">
             <li>
                 <a href="{{item.stewardship_organisation.get_absolute_url}}">
                     {{item.stewardship_organisation}}
@@ -26,17 +19,19 @@
                 <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' item.stewardship_organisation.slug item.meta.model_name %}"
                 >{{ item.get_verbose_name_plural }}</a>
             </li>
-        {% else %}
+        </ul>
+    {% else %}
+        <ul class="breadcrumb">
             <li>
                 <a href="">
                     My Sandbox
                 </a>
             </li>
-        {% endif %}
-        <li>
-            {{ item.name }}
-        </li>
-    </ul>
+        </ul>
+    {% endif %}
+    <li>
+        {{ item.name }}
+    </li>
 {% endspaceless %}
 <div class="col-xs-12">
 
