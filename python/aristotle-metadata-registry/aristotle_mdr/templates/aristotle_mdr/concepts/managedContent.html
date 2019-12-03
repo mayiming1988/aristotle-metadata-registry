@@ -74,12 +74,13 @@
         <div class="clearfix"></div>
         {% if item.relational_attributes %}
         <h2>Related content</h2>
-
-            <table class="table">
+            <table class="table table-hover">
+                <thead class="thead-dark">
                 <tr>
                     <th>Relation</th>
                     <th>Count</th>
                 </tr>
+                </thead>
             {% for name, data in item.relational_attributes.items %}
                 <tr>
                     <td>
