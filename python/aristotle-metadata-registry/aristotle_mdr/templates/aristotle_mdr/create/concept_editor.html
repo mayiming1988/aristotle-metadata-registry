@@ -11,24 +11,6 @@
     </div>
 {% endif %}
 
-{% comment %}
-{% if form.errors or slots_FormSet.errors or slots_FormSet.non_form_errors %}
-    <div class="alert alert-danger">
-        {{ form.errors.as_ul }}
-        {{slots_FormSet.errors.as_ul}}
-        {{slots_FormSet.non_form_errors.as_ul}}
-        {{identifier_FormSet.errors.as_ul}}
-        {{identifier_FormSet.non_form_errors.as_ul}}
-        {{recordrelation_FormSet.errors.as_ul}}
-        {{recordrelation_FormSet.non_form_errors.as_ul}}
-    </div>
-{% endif %}
-
-{% for tabname in invalid_tabs %}
-    <div class="alert alert-danger">An error occurred on the {{ tabname }} tab</div>
-{% endfor %}
-{% endcomment %}
-
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
@@ -170,81 +152,89 @@
             {% endfor %}
             {% if additional_records_active %}
                 {% if recordrelation_FormSet %}
-                    {% with formset=recordrelation_FormSet %}
-                        {{ formset.management_form }}
-                        <table class="form table table-hover">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <th>{% trans 'Organisation Record Type' %}</th>
-                                <th>{% trans 'Organization Record' %}</th>
-                                <th>{% trans 'Delete' %}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="org_records" class="draggableTable">
-                            {% for recordform in formset.forms %}
-                                <tr class="movablerow">
-                                    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                                        {% for hidden in recordform.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-                                    </td>
-                                    {% for field in recordform.visible_fields %}
-                                        <td>
-                                            {% if field.errors %}
-                                                <div class="alert alert-danger">
-                                                {{ field.errors }}
-                                            {% endif %}
-                                            {{ field }}
-                                            {% if field.errors %}
-                                                </div>
-                                            {% endif %}
-                                        </td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                        <a class="btn btn-primary add_code_button" formid="org_records">
-                            <i class="fa fa-plus-circle"></i> Add a record</a>
+                    <div class="formset_field">
+                      <label for="org_records">Organisation Records:</label>
+                      {% with formset=recordrelation_FormSet %}
+                          {{ formset.management_form }}
+                          <table class="form table table-hover">
+                              <thead>
+                              <tr>
+                                  <th></th>
+                                  <th>{% trans 'Organisation Record Type' %}</th>
+                                  <th>{% trans 'Organization Record' %}</th>
+                                  <th>{% trans 'Delete' %}</th>
+                              </tr>
+                              </thead>
+                              <tbody id="org_records" class="draggableTable">
+                              {% for recordform in formset.forms %}
+                                  <tr class="movablerow">
+                                      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                          {% for hidden in recordform.hidden_fields %}
+                                              {{ hidden }}
+                                          {% endfor %}
+                                      </td>
+                                      {% for field in recordform.visible_fields %}
+                                          <td>
+                                              {% if field.errors %}
+                                                  <div class="alert alert-danger">
+                                                  {{ field.errors }}
+                                              {% endif %}
+                                              {{ field }}
+                                              {% if field.errors %}
+                                                  </div>
+                                              {% endif %}
+                                          </td>
+                                      {% endfor %}
+                                  </tr>
+                              {% endfor %}
+                              </tbody>
+                          </table>
+                          <a class="btn btn-primary add_code_button" formid="org_records">
+                              <i class="fa fa-plus-circle"></i> Add a record
+                          </a>
+                        </div>
                     {% endwith %}
                 {% endif %}
             {% endif %}
             {% if reference_links_active %}
                 {% if referencelinks_FormSet %}
-                    {% with formset=referencelinks_FormSet %}
-                        {{ formset.management_form }}
+                    <div class="formset_field">
+                      <label for="metadatareferencelink_set">Reference Documents:</label>
+                      {% with formset=referencelinks_FormSet %}
+                          {{ formset.management_form }}
 
-                        <table class="form table table-hover">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <th>{% trans 'Reference Document' %}</th>
-                                <th>{% trans 'Note' %}</th>
-                                <th>{% trans 'Delete' %}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="metadatareferencelink_set" class="draggableTable">
-                            {% for recordform in formset.forms %}
-                                <tr class="movablerow">
-                                    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                                        {% for hidden in recordform.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-                                    </td>
-                                    {% for field in recordform.visible_fields %}
-                                        <td>
-                                            {{ field.errors.as_ul }}
-                                            {{ field }}
-                                        </td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                        <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
-                            <i class="fa fa-plus-circle"></i> Add a record</a>
-                    {% endwith %}
+                          <table class="form table table-hover">
+                              <thead>
+                              <tr>
+                                  <th></th>
+                                  <th>{% trans 'Reference Document' %}</th>
+                                  <th>{% trans 'Note' %}</th>
+                                  <th>{% trans 'Delete' %}</th>
+                              </tr>
+                              </thead>
+                              <tbody id="metadatareferencelink_set" class="draggableTable">
+                              {% for recordform in formset.forms %}
+                                  <tr class="movablerow">
+                                      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                          {% for hidden in recordform.hidden_fields %}
+                                              {{ hidden }}
+                                          {% endfor %}
+                                      </td>
+                                      {% for field in recordform.visible_fields %}
+                                          <td>
+                                              {{ field.errors.as_ul }}
+                                              {{ field }}
+                                          </td>
+                                      {% endfor %}
+                                  </tr>
+                              {% endfor %}
+                              </tbody>
+                          </table>
+                          <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
+                              <i class="fa fa-plus-circle"></i> Add a record
+                          </a>
+                      {% endwith %}
+                    </div>
                 {% endif %}
             {% endif %}
         </div>
@@ -288,10 +278,12 @@
         {% if show_slots_tab %}
             <div role="tabpanel" class="tab-pane" id="tab_slots">
                 <div class="alert alert-info">
-                    <p>Slots can be used to annotate metadata with additional key-value pairs.
-                        Below are the slots that have been configured to be used with
-                        your registry for this particular metadata type.
-                    </p>
+                  <p>
+                    <strong>Slots are optional</strong>
+                    but can be used to annotate metadata with additional key-value pairs.
+                    Below are the slots that have been configured to be used with
+                    your registry for this particular metadata type.
+                  </p>
                 </div>
                 {# Slots also displays custom fields #}
                 {% for custom_field in form.custom_fields %}
