@@ -50,9 +50,11 @@
                 <li role="presentation" {% if activetab == "graphs" %}class="active"{% endif %}>
                     <a href="{% url 'aristotle:item_graphs' item.id %}" aria-controls="graphs" role="tab">Graphs</a>
                 </li>
-                <li role="presentation" {% if activetab == "related" %}class="active"{% endif %}>
-                    <a href="{% url 'aristotle:item_related' item.id %}" aria-controls="related" role="tab">Related</a>
-                </li>
+                {% if relational_attributes %}
+                    <li role="presentation" {% if activetab == "related" %}class="active"{% endif %}>
+                        <a href="{% url 'aristotle:item_related' item.id %}" aria-controls="related" role="tab">Related</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
 
