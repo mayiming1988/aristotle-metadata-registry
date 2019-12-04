@@ -3,18 +3,17 @@
 {% block title %}Editing Superseding relationship for {{ item.name }}{% endblock %}
 
 {% block content %}
+    <h1>
+        {% if proposed %}
+            Edit a Proposed superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% else %}
+            Edit a Superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% endif %}
+    </h1>
     {% block breadcrumbs %}
-        <ol class="breadcrumb">
-            <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-            <li>Edit a Superseding relationship</li>
-        </ol>
+        {% breadcrumb_list breadcrumbs %}
     {% endblock %}
     {% block review_content %}
-        <h1>
-            Edit a Superseding relationship for
-            {{ item.name }}
-            ({{ item.item_type_name }})
-        </h1>
 
         <form action="" method="POST">
             {% csrf_token %}

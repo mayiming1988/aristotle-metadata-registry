@@ -1,21 +1,26 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load aristotle_tags util_tags i18n bootstrap3 %}
-{% block title %}Add a Superseding relationship for {{ item.name }}{% endblock %}
+
+{% block title %}
+    {% if proposed %}
+        Add a Proposed superseding relationship for {{ item.name }}
+    {% else %}
+        Add a Superseding relationship for {{ item.name }}
+    {% endif %}
+{% endblock %}
 
 {% block content %}
+    <h1>
+        {% if proposed %}
+            Add a Proposed superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% else %}
+            Add a Superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% endif %}
+    </h1>
     {% block breadcrumbs %}
-        <ol class="breadcrumb">
-            <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-            <li>Add a Superseding relationship</li>
-        </ol>
+        {% breadcrumb_list breadcrumbs %}
     {% endblock %}
     {% block review_content %}
-        <h1>
-            Add a Superseding relationship for
-            {{ item.name }}
-            ({{ item.item_type_name }})
-        </h1>
-
         <form action="" method="POST">
             {% csrf_token %}
             <table class="table">

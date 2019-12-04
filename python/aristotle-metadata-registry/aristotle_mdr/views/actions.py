@@ -12,6 +12,7 @@ from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import UserFormViewMixin
 from aristotle_mdr.models import SupersedeRelationship
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
+from aristotle_mdr.structs import Breadcrumb
 
 
 import logging
@@ -229,6 +230,22 @@ class SupersedeItemHistory(SupersedeItemHistoryBase):
     """
     The purpose of this view is to list all the SupersedeRelationship objects related to a superseded item.
     """
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    active=True
+                ),
+            ]
+        })
+        return context
 
 
 class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
@@ -236,6 +253,23 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
     The purpose of this view is to list all the "proposed" SupersedeRelationship objects related to a superseded item.
     """
     only_proposed = True
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    active=True
+                ),
+            ],
+        })
+        return context
 
 
 class AddSupersedeRelationshipBase(ItemSubpageFormView, CreateView):
@@ -267,6 +301,28 @@ class AddSupersedeRelationship(AddSupersedeRelationshipBase):
     """
     form_class = actions.SupersedeRelationshipFormWithProposed
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    'aristotle:supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Add supersede relationship",
+                    active=True
+                )
+            ]
+        })
+        return context
+
     def get_success_url(self):
         return reverse("aristotle:supersede", args=[self.item.pk])
 
@@ -280,6 +336,29 @@ class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
     def form_valid(self, form):
         form.instance.proposed = True
         return super(AddProposedSupersedeRelationship, self).form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    'aristotle:proposed_supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Add proposed supersede relationship",
+                    active=True
+                )
+            ],
+            "proposed": True,
+        })
+        return context
 
     def get_success_url(self):
         return reverse("aristotle:proposed_supersede", args=[self.item.pk])
@@ -312,6 +391,28 @@ class EditSupersedeRelationship(EditSupersedeRelationshipBase):
     """
     form_class = actions.SupersedeRelationshipFormWithProposed
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    'aristotle:supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Edit supersede relationship",
+                    active=True
+                )
+            ]
+        })
+        return context
+
     def get_success_url(self):
         return reverse("aristotle:supersede", args=[self.item.pk])
 
@@ -321,6 +422,29 @@ class EditProposedSupersedeRelationship(EditSupersedeRelationshipBase):
     The purpose of this view is to edit a "proposed" SupersedeRelationship object.
     """
     form_class = actions.SupersedeRelationshipForm
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    'aristotle:proposed_supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Edit proposed supersede relationship",
+                    active=True
+                ),
+            ],
+            'proposed': True,
+        })
+        return context
 
     def get_success_url(self):
         return reverse("aristotle:proposed_supersede", args=[self.item.pk])
@@ -351,11 +475,21 @@ class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({
-            "deletion_breadcrumbs": [
-                {"name": self.item.newer_item.name,
-                 "url": reverse("aristotle:item", args=[self.item.newer_item.id])},
-                {"name": "Superseding relationships",
-                 "url": reverse("aristotle:supersede", args=[self.item.newer_item.id])},
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.newer_item.name,
+                    'aristotle:item',
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    "aristotle:supersede",
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Delete supersede relationship",
+                    active=False
+                )
             ]
         })
         return context
@@ -377,11 +511,21 @@ class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({
-            "deletion_breadcrumbs": [
-                {"name": self.item.newer_item.name,
-                 "url": reverse("aristotle:item", args=[self.item.newer_item.id])},
-                {"name": "Proposed Superseding relationships",
-                 "url": reverse("aristotle:proposed_supersede", args=[self.item.newer_item.id])},
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.newer_item.name,
+                    'aristotle:item',
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    "aristotle:supersede",
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Delete proposed supersede relationship",
+                    active=False
+                )
             ]
         })
         return context

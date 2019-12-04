@@ -8,10 +8,7 @@
 {% endblock %}
 
 {% block content %}
-    <ol class="breadcrumb">
-        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-        <li>Supersede relationships</li>
-    </ol>
+
     <h1>
         {% if proposed %}
             Proposed
@@ -20,9 +17,16 @@
         {{ item.name }}
         ({{ item.item_type_name }})
     </h1>
+    {% block breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% endblock %}
     {% if history %}
         {% for ra, superseding_relationships in history.items %}
-            <h2>Superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            {% if proposed %}
+                <h2>Proposed superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            {% else %}
+                <h2>Superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            {% endif %}
             <div class="registration_status_table">
                 <table class="table table-striped reg">
                     <thead>
