@@ -4,34 +4,42 @@
 
 {% block title %}Favourites and Tags{% endblock %}
 {% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
+{% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-  {% render_bundle 'favourites' 'css' %}
+{% render_bundle 'favourites' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'favourites' 'js' %}
+{% render_bundle 'favourites' 'js' %}
 {% endblock %}
 
 {% block page %}
-    <h1><a href="#"><i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a></h1>
-    <div>
-    <ul class="taggle_list">
-      <li class="taggle taggle_postit">
-        <a href="{% url 'aristotle_favourites:favs' %}">
-          <i class="fa fa-bookmark fa-fw"></i>
-          Untagged Favourites
-        </a>
-      </li>
-      {% for tag in tags %}
-        <li class="taggle">
-          <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
-        </li>
-      {% endfor %}
-      <li><a href="{% url 'aristotle_favourites:all_tags' %}">View all tags</a></li>
-    </ul>
+<h1><a href="#"><i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a></h1>
+<div>
+    <div class="row">
+        <div class="col-xs-6">
+            <ul class="taggle_list">
+                <li class="taggle taggle_postit">
+                    <a href="{% url 'aristotle_favourites:favs' %}">
+                        <i class="fa fa-bookmark fa-fw"></i>
+                        Untagged Favourites
+                    </a>
+                </li>
+                {% for tag in tags %}
+                <li class="taggle">
+                    <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-xs-6">
+            <a class="btn btn-primary pull-right" href="{% url 'aristotle_favourites:all_tags' %}">View all
+                tags</a></li>
+
+        </div>
+    </div>
     <p>
         Below is a list of all your favourited or tagged items. You will receive notifications
         when any of these items are edited, if their registration status changes or if they are made public.
@@ -40,61 +48,61 @@
         Use your favourites and tags to keep track of important items to know when they change.
         <strong><a href="?help=help">Get help on using your favourites.</a></strong>
     </p>
-        {% if not help %}
-            {% if page_obj %}
-            {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=True %}
-            {% else %}
-                <strong>You currently have no favourited items.</strong>
-            {% endif %}
+    {% if not help %}
+    {% if page_obj %}
+    {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=True %}
+    {% else %}
+    <strong>You currently have no favourited items.</strong>
+    {% endif %}
 
-        {% else %}
-            <hr>
-             <h2 id="using">Using your favourites list.</h2>
-            <p>
-                You can favourite many items within the registry, when you are logged
-                in items you can follow will have an open bookmark symbol next to them -
-                 <i style="color:goldenrod" class="fa fa-bookmark-o "></i>.
-            </p>
-            <p>
-                Clicking this bookmark will add the item to your favourites list,
-                and will toggle the icon.
-                Any items that you are following in your favourites list will have
-                a filled in bookmark icon by their name
-                 - <i style="color:goldenrod" class="fa fa-bookmark "></i>.
-            </p>
-            <p>
-                <strong>Try favouriting the item below to see it in action.</strong>
-            </p>
-            <div class="well">
-            <h1 id="objectTitle">
-                {% if user.is_authenticated %}
-                    <a  class="no-decoration" href="?help=help{% ternary favourite '' '&favourite=true' %}#using"
-                        title="Test out favouriting an item"
-                        id="favourite" style="margin-left:15px">
-                        {% if favourite %}
-                            <i class="fa fa-bookmark "></i>
-                        {% else %}
-                            <i class="fa fa-bookmark-o "></i>
-                        {% endif %}
-                    </a>
-                {% endif %}
-                <a >Example item</a>
-                <small>(sample item type)</small>
-            </h1>
-            </div>
-            {% if favourite %}
-                <p>
-                    <strong>Congratulations!</strong>
-                    If this was a real item you would now
-                    get notifications whenever this item changed.
-                </p>
-                <p>
-                    If you click the bookmark icon again the item would be removed
-                    from your favourites and the notifications would stop.
-                </p>
-            {% endif %}
-        {% endif %}
+    {% else %}
 
+    <h2 class="margin-above">Using your favourites list.</h2>
+    <p>
+        You can favourite many items within the registry, when you are logged
+        in items you can follow will have an open bookmark symbol next to them -
+        <i style="color:goldenrod" class="fa fa-bookmark-o "></i>.
+    </p>
+    <p>
+        Clicking this bookmark will add the item to your favourites list,
+        and will toggle the icon.
+        Any items that you are following in your favourites list will have
+        a filled in bookmark icon by their name
+        - <i style="color:goldenrod" class="fa fa-bookmark "></i>.
+    </p>
+    <p>
+        <strong>Try favouriting the item below to see it in action.</strong>
+    </p>
+    <div class="well">
+        <h1 id="objectTitle">
+            {% if user.is_authenticated %}
+                <a class="no-decoration" href="?help=help{% ternary favourite '' '&favourite=true' %}"
+                   title="Test out favouriting an item"
+                   id="favourite" style="margin-left:15px">
+                    {% if favourite %}
+                    <i class="fa fa-bookmark "></i>
+                    {% else %}
+                    <i class="fa fa-bookmark-o "></i>
+                    {% endif %}
+                </a>
+            {% endif %}
+            <a>Example item</a>
+            <small>(sample item type)</small>
+        </h1>
     </div>
+    {% if favourite %}
+        <p>
+            <strong>Congratulations!</strong>
+            If this was a real item you would now
+            get notifications whenever this item changed.
+        </p>
+        <p>
+            If you click the bookmark icon again the item would be removed
+            from your favourites and the notifications would stop.
+        </p>
+    {% endif %}
+    {% endif %}
+
+</div>
 
 {% endblock %}
