@@ -203,7 +203,7 @@ class Organization(registryGroup):
     template = "aristotle_mdr/organization/organization.html"
     uri = models.URLField(  # 6.3.6.2.5
         blank=True, null=True,
-        help_text="uri for Organization"
+        help_text="uri for Organisation"
     )
 
     def promote_to_registration_authority(self):
@@ -216,7 +216,7 @@ class Organization(registryGroup):
 
 
 class OrganizationRecord(ManagedItem):
-    """A record of an organization"""
+    """A record of an organisation"""
 
 
 RA_ACTIVE_CHOICES = Choices(
@@ -1103,10 +1103,10 @@ class SupersedeRelationship(TimeStampedModel):
 
 
 class RecordRelation(TimeStampedModel):
-    """Link between a concept and an organization record"""
+    """Link between a concept and an organisation record"""
     TYPE_CHOICES = Choices(
-        ('s', 'Submitting Organization'),
-        ('r', 'Responsible Organization'),
+        ('s', 'Submitting Organisation'),
+        ('r', 'Responsible Organisation'),
     )
 
     concept = ConceptForeignKey(_concept, related_name='org_records', on_delete=models.CASCADE)
