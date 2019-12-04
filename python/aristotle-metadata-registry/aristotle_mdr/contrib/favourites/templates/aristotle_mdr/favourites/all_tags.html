@@ -46,9 +46,12 @@
               </delete-button>
             </td>
           </tr>
+        {% empty %}
         {% endfor %}
         </tbody>
       </table>
+    {% else %}
+    <h4>You have no tags to display. If you'd like to create some </h4>
     {% endif %}
     <div v-pre>{% include "aristotle_mdr/helpers/paginator.html" with page=page %}</div>
     <yesno-modal 

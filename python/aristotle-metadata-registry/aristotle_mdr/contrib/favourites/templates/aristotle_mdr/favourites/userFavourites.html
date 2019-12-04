@@ -33,12 +33,12 @@
       <li><a href="{% url 'aristotle_favourites:all_tags' %}">View all tags</a></li>
     </ul>
     <p>
-        Below is a list of all your favourited or tagged items, you will recieve notifications
-        when any of these items are edit, if their registration status changes or if they are made public.
+        Below is a list of all your favourited or tagged items. You will receive notifications
+        when any of these items are edited, if their registration status changes or if they are made public.
     </p>
     <p>
         Use your favourites and tags to keep track of important items to know when they change.
-        <strong><a href="?help=help">Get help on using your favourites list</a></strong>
+        <strong><a href="?help=help">Get help on using your favourites.</a></strong>
     </p>
         {% if not help %}
             {% if page_obj %}
@@ -68,15 +68,15 @@
             <div class="well">
             <h1 id="objectTitle">
                 {% if user.is_authenticated %}
-                <a href="?help=help{% ternary favourite '' '&favourite=true' %}#using"
-                    title="Test out favouriting an item"
-                    id="favourite" style="margin-left:15px">
-                    {% if favourite %}
-                        <i class="fa fa-bookmark "></i>
-                    {% else %}
-                        <i class="fa fa-bookmark-o "></i>
-                    {% endif %}
-                </a>
+                    <a href="?help=help{% ternary favourite '' '&favourite=true' %}#using"
+                        title="Test out favouriting an item"
+                        id="favourite" style="margin-left:15px">
+                        {% if favourite %}
+                            <i class="fa fa-bookmark "></i>
+                        {% else %}
+                            <i class="fa fa-bookmark-o "></i>
+                        {% endif %}
+                    </a>
                 {% endif %}
                 <a >Example item</a>
                 <small>(sample item type)</small>
@@ -85,8 +85,8 @@
             {% if favourite %}
                 <p>
                     <strong>Congratulations!</strong>
-                    If this was a real item you would
-                    get notifications when ever this item changed.
+                    If this was a real item you would now
+                    get notifications whenever this item changed.
                 </p>
                 <p>
                     If you click the bookmark icon again the item would be removed
