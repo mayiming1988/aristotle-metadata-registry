@@ -4,6 +4,9 @@ from django.conf import settings
 from django.urls import reverse
 from collections import defaultdict
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Node:
     """A single node in the tree"""
@@ -66,12 +69,13 @@ class Tree:
             # Create child nodes and add to stack
             children = relation_dict.get(next_node.data.id, [])
             for child_id, relation_info in children:
-                node_stack.append(
-                    (
-                        Node(next_node, datadict.get(child_id, None), relation_info),
-                        depth + 1
+                item = datadict.get(child_id, None)
+                if item:
+                    node_stack.append(
+                        (Node(next_node, item, relation_info), depth + 1)
                     )
-                )
+                else:
+                    logger.error(f'id {child_id} not found in datadict')
 
     def get_node_children(self, identifier, sort_by=None) -> List[Node]:
         children = [self.nodes[i] for i in self.children[identifier]]
