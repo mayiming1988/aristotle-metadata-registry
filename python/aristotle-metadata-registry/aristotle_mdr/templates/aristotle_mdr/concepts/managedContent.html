@@ -3,7 +3,6 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
-
     <section class="managed row">
         {% include "aristotle_mdr/concepts/infobox.html" %}
 
@@ -100,11 +99,8 @@
 
         {% block relationships %}
         {% endblock %}
-
         </div>
-
     </section>
-
     <tags-modal
             :open="tagsModalOpen"
             item-tags="{{ item_tags }}"
