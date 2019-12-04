@@ -68,7 +68,7 @@
             <div class="well">
             <h1 id="objectTitle">
                 {% if user.is_authenticated %}
-                    <a href="?help=help{% ternary favourite '' '&favourite=true' %}#using"
+                    <a  class="no-decoration" href="?help=help{% ternary favourite '' '&favourite=true' %}#using"
                         title="Test out favouriting an item"
                         id="favourite" style="margin-left:15px">
                         {% if favourite %}
