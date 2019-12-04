@@ -206,6 +206,9 @@ class Organization(registryGroup):
         help_text="uri for Organisation"
     )
 
+    class Meta:
+        verbose_name = 'Organisation'
+
     def promote_to_registration_authority(self):
         ra = RegistrationAuthority(organization_ptr=self)
         ra.save()
@@ -217,6 +220,9 @@ class Organization(registryGroup):
 
 class OrganizationRecord(ManagedItem):
     """A record of an organisation"""
+
+    class Meta:
+        verbose_name = 'Organisation Record'
 
 
 RA_ACTIVE_CHOICES = Choices(
