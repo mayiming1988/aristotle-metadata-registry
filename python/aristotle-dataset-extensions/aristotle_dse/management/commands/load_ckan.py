@@ -145,7 +145,7 @@ class Command(BaseCommand):
             uri = self.catalog_url,
             defaults = {
                 'name':self.catalog_url,
-                'definition':'Auto-created Organization for %s' % self.catalog_url
+                'definition':'Auto-created Organisation for %s' % self.catalog_url
             }
         )
         catalog_details = {

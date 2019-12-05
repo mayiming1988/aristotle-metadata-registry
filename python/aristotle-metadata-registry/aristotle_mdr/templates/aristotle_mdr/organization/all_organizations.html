@@ -1,18 +1,18 @@
 {% extends 'aristotle_mdr/base.html' %}
 
-{% block title %}All organizations{% endblock %}
+{% block title %}All organisations{% endblock %}
 {% block content %}
 <header class="row">
     <h1 id="objectTitle"  class="pull-left">
         <i class="fa fa fa-university "></i>
-        <a href="#">Current organizations</a>
+        <a href="#">Current organisations</a>
     </h1>
 </header>
 <section class="row">
 
 {% if orgs.count > 0 %}
 <p>
-    Below is a complete listing of the <a href="{% url 'aristotle_help:help_page' 'organization' %}">organizations authorities</a>
+    Below is a complete listing of the <a href="{% url 'aristotle_help:help_page' 'organization' %}">organisations authorities</a>
     partcipating in the registry mainitained by this site.
 </p>
     <ul>
@@ -27,7 +27,7 @@
     </ul>
 {% else %}
     <strong>
-        <em>This registry has no organizations!</em>
+        <em>This registry has no organisations!</em>
     </strong>
 {% endif %}
 
