@@ -701,4 +701,3 @@ def get_lazy_viewable_ids(user):
     return SimpleLazyObject(
         lambda: list(MDR._concept.objects.visible(user).values_list('id', flat=True))
     )
-
