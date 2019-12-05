@@ -162,18 +162,17 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             })
 
         if self.reference_links_active:
-            recordrelation_formset = self.get_referencelinks_formset()(
+            referencelinks_formset = self.get_referencelinks_formset()(
                 instance=self.item.concept,
                 data=postdata
             )
             from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
-
             # Override the queryset to restrict to the records the user has permission to view
-            for record_relation_form in recordrelation_formset:
+            for record_relation_form in referencelinks_formset:
                 record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(self.request.user).order_by("title")
 
             extra_formsets.append({
-                'formset': recordrelation_formset,
+                'formset': referencelinks_formset,
                 'title': 'ReferenceLink',
                 'type': 'reference_links',
                 'saveargs': None
