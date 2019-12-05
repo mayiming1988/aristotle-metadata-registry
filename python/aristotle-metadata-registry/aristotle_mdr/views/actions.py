@@ -18,26 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ItemSubpageView:
-    def dispatch(self, request, *args, **kwargs):
-        self.item = self.get_item()
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_item(self):
-        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid']).item
-        if not self.item.can_view(self.request.user):
-            raise PermissionDenied
-        return self.item
-
-
-class ItemSubpageFormView(ItemSubpageView, FormView):
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(**kwargs)
-        kwargs['item'] = self.get_item()
-        return kwargs
-
-
-class CheckCascadedStates(ItemSubpageView, DetailView):
+class CheckCascadedStates(DetailView):
     pk_url_kwarg = 'iid'
     context_object_name = 'item'
     queryset = MDR._concept.objects.all()
@@ -49,8 +30,14 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
             raise Http404
         return super().dispatch(*args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
+    def get_item(self):
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid']).item
+        if not self.item.can_view(self.request.user):
+            raise PermissionDenied
+        return self.item
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data(**kwargs)
 
         state_matrix = [
             # (item,[(states_ordered_alphabetically_by_ra_as_per_parent_item,state_of_parent_with_same_ra)],[extra statuses] )
@@ -80,9 +67,8 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
 
 
 class DeleteSandboxView(UserFormViewMixin, FormView):
-
-    form_class = actions.DeleteSandboxForm
     template_name = "aristotle_mdr/actions/delete_sandbox.html"
+    form_class = actions.DeleteSandboxForm
 
     def get_success_url(self):
         return reverse('aristotle:userSandbox')
@@ -145,6 +131,7 @@ def get_if_user_can_supersede(obj_type, user, iid):
 class SupersedeItemHistoryBase(TemplateView):
     template_name = "aristotle_mdr/supersede_item_history.html"
     only_proposed = False
+    item = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -243,13 +230,14 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
         return context
 
 
-class AddSupersedeRelationshipBase(ItemSubpageFormView, CreateView):
+class AddSupersedeRelationshipBase(CreateView):
     model = MDR.SupersedeRelationship
     template_name = "aristotle_mdr/add_supersede_items.html"
     pk_url_kwarg = 'iid'
 
     def dispatch(self, request, *args, **kwargs):
         self.user = request.user
+        self.item = self.get_item()
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -259,6 +247,11 @@ class AddSupersedeRelationshipBase(ItemSubpageFormView, CreateView):
             "user": self.request.user,
         })
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['item'] = self.item
+        return context
 
     def form_valid(self, form):
         form.instance.newer_item = self.item
@@ -279,8 +272,8 @@ class AddSupersedeRelationship(AddSupersedeRelationshipBase):
         else:
             raise PermissionDenied
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
                 Breadcrumb(
@@ -322,8 +315,8 @@ class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
         form.instance.proposed = True
         return super(AddProposedSupersedeRelationship, self).form_valid(form)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
                 Breadcrumb(
@@ -349,18 +342,18 @@ class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
         return reverse("aristotle:proposed_supersede", args=[self.item.pk])
 
 
-class EditSupersedeRelationshipBase(ItemSubpageFormView, UpdateView):
+class EditSupersedeRelationshipBase(UpdateView):
     model = MDR.SupersedeRelationship
     template_name = "aristotle_mdr/edit_superseded_items.html"
     pk_url_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
         self.user = request.user
+        self.item = self.get_item()
         return super().dispatch(request, *args, **kwargs)
 
     def get_item(self):
-        self.item = get_object_or_404(self.model, pk=self.kwargs['iid']).newer_item
-        return self.item
+        return get_object_or_404(self.model, pk=self.kwargs['iid']).newer_item
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -369,6 +362,11 @@ class EditSupersedeRelationshipBase(ItemSubpageFormView, UpdateView):
             "user": self.user,
         })
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['item'] = self.item
+        return context
 
 
 class EditSupersedeRelationship(EditSupersedeRelationshipBase):
@@ -384,8 +382,8 @@ class EditSupersedeRelationship(EditSupersedeRelationshipBase):
         else:
             return PermissionDenied
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
                 Breadcrumb(
@@ -423,8 +421,8 @@ class EditProposedSupersedeRelationship(EditSupersedeRelationshipBase):
         else:
             return PermissionDenied
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
                 Breadcrumb(
