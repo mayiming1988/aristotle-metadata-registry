@@ -17,12 +17,12 @@ describe('ConceptLinks', function() {
 
         this.concept_link = link
         document.querySelector('body').appendChild(this.concept_link)
-    })
+    });
 
     afterEach(function() {
         document.querySelector('a.aristotle-concept-link').remove()
         this.server.restore()
-    })
+    });
 
     function mouseOverElement(element) {
         let event = new Event('mouseover')
@@ -42,11 +42,13 @@ describe('ConceptLinks', function() {
         $(document).ready(() => {
             assert.isFalse(this.concept_link.hasAttribute('aria-describedby'))
             mouseOverElement(this.concept_link)
-            assert.isTrue(this.concept_link.hasAttribute('aria-describedby'))
-            let ttid = this.concept_link.getAttribute('aria-describedby')
-            // Check tooltip exists
-            assert.isNotNull(document.getElementById(ttid))
-            done()
+            window.setTimeout( () => {
+                assert.isTrue(this.concept_link.hasAttribute('aria-describedby'))
+                let ttid = this.concept_link.getAttribute('aria-describedby')
+                // Check tooltip exists
+                assert.isNotNull(document.getElementById(ttid))
+                done()
+            }, 550)
         })
     })
 
@@ -55,14 +57,14 @@ describe('ConceptLinks', function() {
         initConceptLinks()
         $(document).ready(() => {
             mouseOverElement(this.concept_link)
-            // Wait 10ms for request
+            // Wait 550ms for request because of tooltip load delay
             window.setTimeout(() => {
                 assert.equal(this.server.requests.length, 1)
                 assert.equal(this.server.requests[0].url, '/api/v4/item/7')
                 done()
-            }, 10)
+            }, 550)
         })
-    })
+    });
 
     it('Sets data-definition after request', function(done) {
         respondWithDefn(this.server)
@@ -70,23 +72,26 @@ describe('ConceptLinks', function() {
         $(document).ready(() => {
             mouseOverElement(this.concept_link)
             assert.isNull(this.concept_link.getAttribute('data-definition'))
-            // Wait 10ms for request
+            // Wait 550ms for request
             window.setTimeout(() => {
                 assert.equal(this.server.requests.length, 1)
                 assert.equal(this.concept_link.getAttribute('data-definition'), 'Yeah')
                 done()
-            }, 10)
+            }, 550)
         })
-    })
+    });
 
-    it('Loads from data definition attr if avaliable', function(done) {
-        this.concept_link.setAttribute('data-definition', 'Wow')
-        initConceptLinks()
+    it('Loads from data definition attr if available', function(done) {
+        this.concept_link.setAttribute('data-definition', 'Wow');
+        initConceptLinks();
         $(document).ready(() => {
             mouseOverElement(this.concept_link)
-            let ttid = this.concept_link.getAttribute('aria-describedby')
-            assert.equal(document.getElementById(ttid).textContent, 'Wow')
-            done()
+            window.setTimeout(() => {
+                // Wait 550ms for request because of delay
+                let ttid = this.concept_link.getAttribute('aria-describedby')
+                assert.equal(document.getElementById(ttid).textContent, 'Wow')
+                done()
+            }, 550)
         })
     })
-})
+});

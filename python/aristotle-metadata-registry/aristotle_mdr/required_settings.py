@@ -269,7 +269,7 @@ CKEDITOR_CONFIGS = {
         'width': "",
         'disableNativeSpellChecker': False,
         # 'extraPlugins': 'aristotle_glossary',
-        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection',
+        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection,elementspath',
         'extraAllowedContent': 'a[data-aristotle-concept-id]'
     },
 }
