@@ -264,6 +264,9 @@ class StewardURLManager(GroupURLManager):
             raise_exception = True
             paginate_by = 50
 
+            def get_queryset(self):
+                return super().get_queryset().filter(stewardship_organisation=self.get_group()).visible(self.request.user).order_by('name')
+
         return ListManagedItems.as_view(manager=self, group_class=self.group_class)
 
 
