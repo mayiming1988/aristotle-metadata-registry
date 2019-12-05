@@ -34,6 +34,7 @@ Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
             {% endif %}
             {% trans 'Submitted' %}
         </th>
+        <th>Due date</th>
     </tr>
 </thead>
 <tbody>
@@ -66,7 +67,16 @@ Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
                 {{item.created|naturaltime}}
             </time>
         </td>
-    </tr>
+        <td>
+            {% if item.due_date %}
+            <time title="{{ item.due_date|date:'o-m-d' }}" datetime="{{ item.due_date }}">
+                {{item.due_date}}
+            </time>
+            {% else %}
+            -
+            {% endif %}
+        </td>
+</tr>
     {% endfor %}
 </tbody>
 </table>
