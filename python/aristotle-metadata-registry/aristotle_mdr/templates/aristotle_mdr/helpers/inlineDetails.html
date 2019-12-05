@@ -10,7 +10,7 @@
                 <small>
                     Statuses:
                     {% for s in item.current_statuses %}
-                        [{{ s.registrationAuthority }}: {{ s.state_name }}]
+                        [{{ s.registrationAuthority }}: {{ s.state_name }}s.registrationDate, ]
                     {% empty %}
                         <em>Unregistered</em>
                     {% endfor %}
