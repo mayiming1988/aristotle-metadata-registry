@@ -248,6 +248,10 @@ class AddSupersedeRelationshipBase(CreateView):
         })
         return kwargs
 
+    def get_item(self):
+        """Override this method to get the concept"""
+        raise NotImplementedError
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['item'] = self.item
@@ -255,7 +259,6 @@ class AddSupersedeRelationshipBase(CreateView):
 
     def form_valid(self, form):
         form.instance.newer_item = self.item
-
         return super(AddSupersedeRelationshipBase, self).form_valid(form)
 
 

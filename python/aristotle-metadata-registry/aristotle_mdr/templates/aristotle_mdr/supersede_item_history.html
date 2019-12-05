@@ -27,16 +27,16 @@
             {% else %}
                 <h2>Superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
             {% endif %}
-            <div class="registration_status_table">
+            <div class="add-your-class-here">
                 <table class="table table-striped reg">
                     <thead>
                     <tr>
-                        <th class="col-md-2">{% trans 'Supersiding Item' %}</th>
-                        <th class="col-md-4">{% trans 'Superseded Item' %}</th>
-                        <th class="col-md-2">{% trans 'Date registration effective' %}</th>
-                        <th class="col-md-2">{% trans 'State' %}</th>
+                        <th>{% trans 'Superseding Item' %}</th>
+                        <th>{% trans 'Superseded Item' %}</th>
+                        <th>{% trans 'Date registration effective' %}</th>
+                        <th>{% trans 'State' %}</th>
                         {% if item|can_edit:request.user %}
-                            <th class="col-md-2"></th>
+                            <th></th>
                         {% endif %}
                     </tr>
                     </thead>
