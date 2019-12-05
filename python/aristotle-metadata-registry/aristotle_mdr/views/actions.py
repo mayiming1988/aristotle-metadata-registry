@@ -480,8 +480,8 @@ class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
                 raise PermissionDenied
 
     def get_warning_text(self):
-        return f"You are about to delete the supersede relationship between '{self.item.older_item}' and " \
-               f"'{self.item.newer_item}'. Are you sure you want to continue?"
+        return f"You are about to delete the supersede relationship between superseding item `{self.item.newer_item}` and " \
+               f"superseded item `{self.item.older_item}` within the registration authority `{self.item.registration_authority}`. Are you sure you want to continue?"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -527,8 +527,8 @@ class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
                 raise PermissionDenied
 
     def get_warning_text(self):
-        return f"You are about to delete the proposed supersede relationship between '{self.item.older_item}' and " \
-               f"'{self.item.newer_item}'. Are you sure you want to continue?"
+        return f"You are about to delete the proposed supersede relationship between superseding item `{self.item.newer_item}` and " \
+               f"superseded item `{self.item.older_item}` within the registration authority `{self.item.registration_authority}`. Are you sure you want to continue?"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
