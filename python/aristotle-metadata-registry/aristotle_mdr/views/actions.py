@@ -1,11 +1,12 @@
+from braces.views import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import JsonResponse, Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, FormView, UpdateView, CreateView, TemplateView
 from django.db import transaction
 
-from aristotle_mdr import perms
+from aristotle_mdr import perms, perms_utils
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import UserFormViewMixin
@@ -41,7 +42,7 @@ class CheckCascadedStates(DetailView):
 
         state_matrix = [
             # (item,[(states_ordered_alphabetically_by_ra_as_per_parent_item,state_of_parent_with_same_ra)],[extra statuses] )
-            ]
+        ]
         item = self.get_item()
         states = []
         ras = []
@@ -104,31 +105,7 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
         return super().form_valid(form)
 
 
-def get_if_user_can_view(obj_type, user, iid):
-    item = get_object_or_404(obj_type, pk=iid)
-    if perms.user_can_view(user, item):
-        return item
-    else:
-        return False
-
-
-def get_if_user_can_edit(obj_type, user, iid):
-    item = get_object_or_404(obj_type, pk=iid)
-    if perms.user_can_edit(user, item):
-        return item
-    else:
-        return False
-
-
-def get_if_user_can_supersede(obj_type, user, iid):
-    item = get_object_or_404(obj_type, pk=iid)
-    if perms.user_can_supersede(user, item):
-        return item
-    else:
-        return False
-
-
-class SupersedeItemHistoryBase(TemplateView):
+class SupersedeItemHistoryBase(LoginRequiredMixin, TemplateView):
     template_name = "aristotle_mdr/supersede_item_history.html"
     only_proposed = False
     item = None
@@ -164,17 +141,9 @@ class SupersedeItemHistory(SupersedeItemHistoryBase):
     """
     The purpose of this view is to list all the SupersedeRelationship objects related to a superseded item.
     """
-    permission = get_if_user_can_supersede
 
     def dispatch(self, request, *args, **kwargs):
-
-        self.item = get_if_user_can_supersede(MDR._concept, request.user, self.kwargs.get('iid'))
-
-        if not self.item:
-            if request.user.is_anonymous:
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-            else:
-                raise PermissionDenied
+        self.item = perms_utils.get_if_user_can_supersede(MDR._concept, request.user, self.kwargs.get('iid'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -202,14 +171,7 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
     only_proposed = True
 
     def dispatch(self, request, *args, **kwargs):
-
-        self.item = get_if_user_can_edit(MDR._concept, request.user, self.kwargs.get('iid'))
-
-        if not self.item:
-            if request.user.is_anonymous:
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-            else:
-                raise PermissionDenied
+        self.item = perms_utils.get_if_user_can_edit(MDR._concept, request.user, self.kwargs.get('iid'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -230,7 +192,7 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
         return context
 
 
-class AddSupersedeRelationshipBase(CreateView):
+class SupersedeRelationshipCreateView(LoginRequiredMixin, CreateView):
     model = MDR.SupersedeRelationship
     template_name = "aristotle_mdr/add_supersede_items.html"
     pk_url_kwarg = 'iid'
@@ -249,7 +211,7 @@ class AddSupersedeRelationshipBase(CreateView):
         return kwargs
 
     def get_item(self):
-        """Override this method to get the concept"""
+        """Override this method to get the concept related to the SupersedeRelationship object"""
         raise NotImplementedError
 
     def get_context_data(self, **kwargs):
@@ -259,21 +221,17 @@ class AddSupersedeRelationshipBase(CreateView):
 
     def form_valid(self, form):
         form.instance.newer_item = self.item
-        return super(AddSupersedeRelationshipBase, self).form_valid(form)
+        return super(SupersedeRelationshipCreateView, self).form_valid(form)
 
 
-class AddSupersedeRelationship(AddSupersedeRelationshipBase):
+class AddSupersedeRelationship(SupersedeRelationshipCreateView):
     """
     The purpose of this view is to create a SupersedeRelationship object for a concept.
     """
     form_class = actions.SupersedeRelationshipFormWithProposed
 
     def get_item(self):
-        self.item = get_if_user_can_supersede(MDR._concept, self.user, self.kwargs['iid']).item
-        if self.item:
-            return self.item
-        else:
-            raise PermissionDenied
+        return perms_utils.get_if_user_can_supersede(MDR._concept, self.user, self.kwargs['iid']).item
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -301,18 +259,14 @@ class AddSupersedeRelationship(AddSupersedeRelationshipBase):
         return reverse("aristotle:supersede", args=[self.item.pk])
 
 
-class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
+class AddProposedSupersedeRelationship(SupersedeRelationshipCreateView):
     """
     The purpose of this view is to create a "proposed" SupersedeRelationship object for a concept.
     """
     form_class = actions.SupersedeRelationshipForm
 
     def get_item(self):
-        self.item = get_if_user_can_edit(MDR._concept, self.user, self.kwargs['iid']).item
-        if self.item:
-            return self.item
-        else:
-            raise PermissionDenied
+        return perms_utils.get_if_user_can_edit(MDR._concept, self.user, self.kwargs['iid']).item
 
     def form_valid(self, form):
         form.instance.proposed = True
@@ -345,7 +299,7 @@ class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
         return reverse("aristotle:proposed_supersede", args=[self.item.pk])
 
 
-class EditSupersedeRelationshipBase(UpdateView):
+class SupersedeRelationshipUpdateView(LoginRequiredMixin, UpdateView):
     model = MDR.SupersedeRelationship
     template_name = "aristotle_mdr/edit_superseded_items.html"
     pk_url_kwarg = "iid"
@@ -356,7 +310,8 @@ class EditSupersedeRelationshipBase(UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_item(self):
-        return get_object_or_404(self.model, pk=self.kwargs['iid']).newer_item
+        """Override this method to get the concept related to the SupersedeRelationship object"""
+        raise NotImplementedError
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -372,18 +327,14 @@ class EditSupersedeRelationshipBase(UpdateView):
         return context
 
 
-class EditSupersedeRelationship(EditSupersedeRelationshipBase):
+class EditSupersedeRelationship(SupersedeRelationshipUpdateView):
     """
     The purpose of this view is to edit a SupersedeRelationship object.
     """
     form_class = actions.SupersedeRelationshipFormWithProposed
 
     def get_item(self):
-        self.item = super().get_item()
-        if perms.user_can_supersede(self.user, self.item):
-            return self.item
-        else:
-            return PermissionDenied
+        return perms_utils.get_if_user_can_supersede(self.model, self.user, self.kwargs['iid']).newer_item
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -411,18 +362,14 @@ class EditSupersedeRelationship(EditSupersedeRelationshipBase):
         return reverse("aristotle:supersede", args=[self.item.pk])
 
 
-class EditProposedSupersedeRelationship(EditSupersedeRelationshipBase):
+class EditProposedSupersedeRelationship(SupersedeRelationshipUpdateView):
     """
     The purpose of this view is to edit a "proposed" SupersedeRelationship object.
     """
     form_class = actions.SupersedeRelationshipForm
 
     def get_item(self):
-        self.item = super().get_item()
-        if perms.user_can_edit(self.user, self.item):
-            return self.item
-        else:
-            return PermissionDenied
+        return perms_utils.get_if_user_can_edit(self.model, self.user, self.kwargs['iid']).newer_item
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -451,10 +398,9 @@ class EditProposedSupersedeRelationship(EditSupersedeRelationshipBase):
         return reverse("aristotle:proposed_supersede", args=[self.item.pk])
 
 
-class DeleteSupersedeRelationshipBase(ConfirmDeleteView):
+class SupersedeRelationshipConfirmDeleteView(LoginRequiredMixin, ConfirmDeleteView):
     model_base = MDR.SupersedeRelationship
     form_title = "Delete Supersede Relationship"
-    permission_checks = [perms.user_can_supersede]
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -467,22 +413,12 @@ class DeleteSupersedeRelationshipBase(ConfirmDeleteView):
         return self.perform_deletion()
 
 
-class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
+class DeleteSupersedeRelationship(SupersedeRelationshipConfirmDeleteView):
     """
     The purpose of this view is to delete a SupersedeRelationship object.
     """
     reverse_url = "aristotle:supersede"
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super().dispatch(request, *args, **kwargs)
-
-        if perms.user_can_supersede(request.user, self.item.newer_item):
-            return handler
-        else:
-            if request.user.is_anonymous:
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-            else:
-                raise PermissionDenied
+    permission_checks = [perms.user_can_supersede]
 
     def get_warning_text(self):
         return f"You are about to delete the supersede relationship between superseding item `{self.item.newer_item}` and " \
@@ -515,22 +451,12 @@ class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
         return HttpResponseRedirect(reverse('aristotle:supersede', args=[self.item.newer_item.pk]))
 
 
-class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
+class DeleteProposedSupersedeRelationship(SupersedeRelationshipConfirmDeleteView):
     """
     The purpose of this view is to delete a "proposed" SupersedeRelationship object.
     """
     reverse_url = "aristotle:proposed_supersede"
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super().dispatch(request, *args, **kwargs)
-
-        if perms.user_can_edit(request.user, self.item.newer_item):
-            return handler
-        else:
-            if request.user.is_anonymous:
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-            else:
-                raise PermissionDenied
+    permission_checks = [perms.user_can_edit]
 
     def get_warning_text(self):
         return f"You are about to delete the proposed supersede relationship between superseding item `{self.item.newer_item}` and " \
