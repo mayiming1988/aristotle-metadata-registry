@@ -459,6 +459,13 @@ class DeleteSupersedeRelationshipBase(ConfirmDeleteView):
     permission_checks = [perms.user_can_supersede]
     item_kwarg = 'sup_rel_id'
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "item": self.item.newer_item,
+        })
+        return context
+
     def post(self, *args, **kwargs):
         return self.perform_deletion()
 
@@ -467,6 +474,7 @@ class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
     """
     The purpose of this view is to delete a SupersedeRelationship object.
     """
+    reverse_url = "aristotle:supersede"
 
     def dispatch(self, request, *args, **kwargs):
         handler = super().dispatch(request, *args, **kwargs)
@@ -514,6 +522,7 @@ class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
     """
     The purpose of this view is to delete a "proposed" SupersedeRelationship object.
     """
+    reverse_url = "aristotle:proposed_supersede"
 
     def dispatch(self, request, *args, **kwargs):
         handler = super().dispatch(request, *args, **kwargs)
