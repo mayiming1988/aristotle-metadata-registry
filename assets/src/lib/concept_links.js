@@ -52,6 +52,7 @@ export function initConceptLinks() {
             sanitize: false,
             html: true,
             title: getToolText,
+            delay: { show: 500, hide: 250 },
             trigger: 'hover focus',
             placement: 'bottom',
         })
