@@ -18,16 +18,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ItemSubpageView(object):
+class ItemSubpageView:
+    def dispatch(self, request, *args, **kwargs):
+        self.item = self.get_item()
+        return super().dispatch(request, *args, **kwargs)
+
     def get_item(self):
         self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid']).item
         if not self.item.can_view(self.request.user):
             raise PermissionDenied
         return self.item
-
-    def dispatch(self, request, *args, **kwargs):
-        self.item = self.get_item()
-        return super().dispatch(request, *args, **kwargs)
 
 
 class ItemSubpageFormView(ItemSubpageView, FormView):
@@ -352,26 +352,23 @@ class AddProposedSupersedeRelationship(AddSupersedeRelationshipBase):
 class EditSupersedeRelationshipBase(ItemSubpageFormView, UpdateView):
     model = MDR.SupersedeRelationship
     template_name = "aristotle_mdr/edit_superseded_items.html"
-    pk_url_kwarg = "sup_rel_id"
+    pk_url_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
         self.user = request.user
         return super().dispatch(request, *args, **kwargs)
 
     def get_item(self):
-        self.item = get_object_or_404(self.model, pk=self.kwargs['sup_rel_id']).newer_item
+        self.item = get_object_or_404(self.model, pk=self.kwargs['iid']).newer_item
         return self.item
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             "item": self.item,
-            "user": self.request.user,
+            "user": self.user,
         })
         return kwargs
-
-    def get_success_url(self):
-        return reverse("aristotle:supersede", args=[self.item.pk])
 
 
 class EditSupersedeRelationship(EditSupersedeRelationshipBase):
@@ -457,7 +454,6 @@ class DeleteSupersedeRelationshipBase(ConfirmDeleteView):
     model_base = MDR.SupersedeRelationship
     form_title = "Delete Supersede Relationship"
     permission_checks = [perms.user_can_supersede]
-    item_kwarg = 'sup_rel_id'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -515,7 +511,7 @@ class DeleteSupersedeRelationship(DeleteSupersedeRelationshipBase):
 
     def perform_deletion(self):
         self.item.delete()
-        return HttpResponseRedirect(reverse('aristotle:supersede', args=[self.kwargs['iid']]))
+        return HttpResponseRedirect(reverse('aristotle:supersede', args=[self.item.newer_item.pk]))
 
 
 class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
@@ -563,4 +559,4 @@ class DeleteProposedSupersedeRelationship(DeleteSupersedeRelationshipBase):
 
     def perform_deletion(self):
         self.item.delete()
-        return HttpResponseRedirect(reverse('aristotle:supersede', args=[self.kwargs['iid']]))
+        return HttpResponseRedirect(reverse('aristotle:proposed_supersede', args=[self.item.newer_item.pk]))

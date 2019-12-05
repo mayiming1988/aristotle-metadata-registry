@@ -76,12 +76,12 @@
                                             <li class="divider"></li>
                                             <li>
                                                 {% if proposed %}
-                                                    <a class="text-danger" href="{% url 'aristotle:delete_proposed_supersede_item' sup_rel.id item.id %}">
+                                                    <a class="text-danger" href="{% url 'aristotle:delete_proposed_supersede_item' sup_rel.id %}">
                                                         <i class="fa fa-fw fa-trash text-danger"></i>
                                                         <span class="text-danger">{% trans 'Delete'%}</span>
                                                     </a>
                                                 {% else %}
-                                                    <a class="text-danger" href="{% url 'aristotle:delete_supersede_item' sup_rel.id item.id %}">
+                                                    <a class="text-danger" href="{% url 'aristotle:delete_supersede_item' sup_rel.id %}">
                                                         <i class="fa fa-fw fa-trash text-danger"></i>
                                                         <span class="text-danger">{% trans 'Delete'%}</span>
                                                     </a>
