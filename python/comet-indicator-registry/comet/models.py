@@ -188,25 +188,6 @@ class IndicatorSet(MDR.concept):
                 "qs": OutcomeArea.objects.filter(indicators__indicatorinclusion__indicator_set=self)
             },
         }
-        # if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-        #     from aristotle_dse.models import DataSetSpecification, Dataset
-        #
-        #     rels.update({
-        #         "data_sources": {
-        #             "all": _("Datasets that are used in this Indicator"),
-        #             "qs": Dataset.objects.filter(
-        #                 Q(indicatornumeratordefinition__indicator=self) |
-        #                 Q(indicatordenominatordefinition__indicator=self) |
-        #                 Q(indicatordisaggregationdefinition__indicator=self)
-        #             )
-        #         },
-        #         # "dss": {
-        #         #     "all": _("Data Set Specifications that include this Indicator"),
-        #         #     "qs": DataSetSpecification.objects.filter(
-        #         #         dssdeinclusion__data_element=self
-        #         #     ).distinct()
-        #         # },
-        #     })
         return rels
 
 
