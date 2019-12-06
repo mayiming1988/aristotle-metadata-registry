@@ -310,7 +310,10 @@ class SupersedeRelationshipUpdateView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_item(self):
-        """Override this method to get the concept related to the SupersedeRelationship object"""
+        """
+        Override this method to get the concept related to the SupersedeRelationship object, and apply the necessary
+        permissions.
+        """
         raise NotImplementedError
 
     def get_form_kwargs(self):
@@ -334,7 +337,11 @@ class EditSupersedeRelationship(SupersedeRelationshipUpdateView):
     form_class = actions.SupersedeRelationshipFormWithProposed
 
     def get_item(self):
-        return perms_utils.get_if_user_can_supersede(self.model, self.user, self.kwargs['iid']).newer_item
+        item = get_object_or_404(self.model, pk=self.kwargs['iid'])
+        if perms.user_can_supersede(self.user, item.newer_item):
+            return item.newer_item
+        else:
+            raise PermissionDenied
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -369,7 +376,11 @@ class EditProposedSupersedeRelationship(SupersedeRelationshipUpdateView):
     form_class = actions.SupersedeRelationshipForm
 
     def get_item(self):
-        return perms_utils.get_if_user_can_edit(self.model, self.user, self.kwargs['iid']).newer_item
+        item = get_object_or_404(self.model, pk=self.kwargs['iid'])
+        if perms.user_can_edit(self.user, item.newer_item):
+            return item.newer_item
+        else:
+            raise PermissionDenied
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
