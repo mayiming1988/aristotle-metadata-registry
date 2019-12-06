@@ -12,7 +12,6 @@ export function replacePrefix(element, num_forms) {
             let value = attrs[i].value
             let newval = value.replace('__prefix__', num_forms)
             if (value !== newval) {
-                console.log(`${name} -> ${newval}`)
                 attrs[i].value = newval
             }
         }
