@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, FormView, UpdateView, CreateView, TemplateView
 from django.db import transaction
 
-from aristotle_mdr import perms, perms_utils
+from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import UserFormViewMixin
@@ -143,7 +143,8 @@ class SupersedeItemHistory(SupersedeItemHistoryBase):
     """
 
     def dispatch(self, request, *args, **kwargs):
-        self.item = perms_utils.get_if_user_can_supersede(MDR._concept, request.user, self.kwargs.get('iid'))
+        self.item = perms.get_item_if_user_can(MDR._concept, request.user, self.kwargs.get('iid'),
+                                               perms.user_can_supersede)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -171,7 +172,7 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
     only_proposed = True
 
     def dispatch(self, request, *args, **kwargs):
-        self.item = perms_utils.get_if_user_can_edit(MDR._concept, request.user, self.kwargs.get('iid'))
+        self.item = perms.get_item_if_user_can(MDR._concept, request.user, self.kwargs.get('iid'), perms.user_can_edit)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -231,7 +232,7 @@ class AddSupersedeRelationship(SupersedeRelationshipCreateView):
     form_class = actions.SupersedeRelationshipFormWithProposed
 
     def get_item(self):
-        return perms_utils.get_if_user_can_supersede(MDR._concept, self.user, self.kwargs['iid']).item
+        return perms.get_item_if_user_can(MDR._concept, self.user, self.kwargs.get('iid'), perms.user_can_supersede)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -266,7 +267,7 @@ class AddProposedSupersedeRelationship(SupersedeRelationshipCreateView):
     form_class = actions.SupersedeRelationshipForm
 
     def get_item(self):
-        return perms_utils.get_if_user_can_edit(MDR._concept, self.user, self.kwargs['iid']).item
+        return perms.get_item_if_user_can(MDR._concept, self.user, self.kwargs.get('iid'), perms.user_can_edit)
 
     def form_valid(self, form):
         form.instance.proposed = True

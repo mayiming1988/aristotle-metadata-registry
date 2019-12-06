@@ -27,7 +27,7 @@
             {% else %}
                 <h2>Superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
             {% endif %}
-            <div class="add-your-class-here">
+            <div> {# TODO: Add a class here to improve mobile devices responsiveness. (Similar to registration_status_table class) #}
                 <table class="table table-striped reg">
                     <thead>
                     <tr>
