@@ -337,6 +337,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
 
     def apply_move_permission_checking(self, item, move_from_checks) -> bool:
         can_move_permission = move_from_checks.get(item.stewardship_organisation.pk, None)
+
         if can_move_permission is None:
             if item.stewardship_organisation is None:
                 # No org, the user can move their own item
@@ -344,8 +345,9 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             else:
                 can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
                                                                                     item.stewardship_organisation)
-            # Cache the can move permission
-            move_from_checks[item.stewardship_organisation.pk] = can_move_permission
+                # Cache the can move permission
+                move_from_checks[item.stewardship_organisation.pk] = can_move_permission
+
         return can_move_permission
 
     def make_changes(self):
