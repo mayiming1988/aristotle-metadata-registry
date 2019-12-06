@@ -113,10 +113,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
     def test_supersede(self):
         self.logout()
         response = self.client.get(reverse('aristotle:supersede', args=[self.item1.id]))
-        self.assertRedirects(
-            response,
-            reverse("friendly_login") + "?next=" + reverse('aristotle:supersede', args=[self.item1.id])
-        )
+        self.assertEqual(response.status_code, 403)
 
         self.ra.register(
             self.item1,
