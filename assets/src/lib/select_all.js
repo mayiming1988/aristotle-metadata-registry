@@ -5,7 +5,6 @@
 // 4. Add total_query_size context to your view
 
 export function initSelectAll() {
-
     let selectAllCheckbox = document.getElementById('select-all-checkbox')
     let selectAllQuerysetButton = document.getElementById("select-all-queryset-button")
 
