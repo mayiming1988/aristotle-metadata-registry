@@ -49,7 +49,7 @@ function toggle_checkboxes_state() {
 function toggle_all_checkboxes(source) {
     let checkboxes = get_all_checkboxes();
     for (let checkbox of checkboxes) {
-        if (checkbox != source) {
+        if (checkbox !== source) {
             checkbox.checked = source.checked;
         }
     }
@@ -75,7 +75,7 @@ function hide_select_all_div() {
 function swap_divs() {
     let select_all = document.getElementById('select-all-div')
 
-    if (select_all.style.display == 'block') {
+    if (select_all.style.display === 'block') {
         // If div is displayed, hide it
         select_all.style.display = 'none';
     }
@@ -86,7 +86,7 @@ function swap_divs() {
 
     let initial_div = document.getElementById('initial-div')
 
-    if (initial_div.style.display == 'block') {
+    if (initial_div.style.display === 'block') {
         initial_div.style.display = 'none';
     }
     else {
@@ -103,19 +103,26 @@ function select_all_queryset() {
             clear_selections(this);
         });
     // Disable checkbox
-    toggle_checkboxes_state()
+    toggle_checkboxes_state();
 
     // Enable the hidden checkbox otherwise it won't submit correctly
-    var hiddenSelectAllCheckBox = document.getElementById("all_in_queryset")
+    let hiddenSelectAllCheckBox = document.getElementById("all_in_queryset")
     hiddenSelectAllCheckBox.removeAttribute('disabled')
     hiddenSelectAllCheckBox.checked = true;
 
 }
-// Listener function
+// Clear all selections and reset view
 function clear_selections(source) {
     hide_select_all_div()
     hide_initial_div()
     toggle_checkboxes_state()
     toggle_all_checkboxes(source)
+
+    // Remove disabled status
+    let selectAllCheckbox = document.getElementById('select-all-checkbox');
+    selectAllCheckbox.removeAttribute('disabled')
+
+
+
 }
 
