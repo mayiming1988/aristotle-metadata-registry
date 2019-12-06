@@ -30,6 +30,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr.structs import Breadcrumb
 
 import datetime
 import json
@@ -695,3 +696,24 @@ class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, Proces
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super(CreateUpdateView, self).post(request, *args, **kwargs)
+
+
+def get_item_breadcrumbs(item: _concept, user) -> List[Breadcrumb]:
+    """ Return a list of breadcrumbs for an item from the item page"""
+    if item.is_sandboxed:
+        # It's in a sandbox
+        if item.submitter == user:
+            # It's in our own sandbox
+            return [Breadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
+                    Breadcrumb(f'{item.name}', active=True)]
+        else:
+            # It's in another user's sandbox
+            share = item.submitter.profile.share
+            other_users_name = item.submitter.full_name or item.submitter.short_name or item.submitter.email
+            return [
+                Breadcrumb(f"{other_users_name}'s Sandbox",
+                           'aristotle:sharedSandbox',
+                           url_args=[share.uuid]),
+                Breadcrumb(item.name, active=True)
+            ]
+    # if item.workgroup

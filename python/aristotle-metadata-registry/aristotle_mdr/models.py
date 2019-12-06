@@ -1045,6 +1045,19 @@ class _concept(baseAristotleObject):
         """
         return []
 
+    @property
+    def is_sandboxed(self) -> bool:
+        """ Returns whether the item is in a sandbox
+        A sandboxed item is
+            1. not registered, and
+            2. not under review or is for a review that has been revoked, and
+            3. has not been added to a workgroup"""
+        not_registered = not self.statuses.all()
+        no_review_or_revoked = (not self.rr_review_requests.all()
+                                or self.rr_review_requests.objects.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
+        no_workgroup = self.workgroup is None
+        return not_registered and no_review_or_revoked and no_workgroup
+
 
 class concept(_concept):
     """
