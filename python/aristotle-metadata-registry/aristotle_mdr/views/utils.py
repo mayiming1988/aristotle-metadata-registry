@@ -716,4 +716,16 @@ def get_item_breadcrumbs(item: _concept, user) -> List[Breadcrumb]:
                            url_args=[share.uuid]),
                 Breadcrumb(item.name, active=True)
             ]
-    # if item.workgroup
+    elif item.stewardship_organisation:
+        if item.workgroup:
+            return [
+                Breadcrumb(f'{item.stewardship_organisation.name}',
+                           item.stewardship_organisation.get_absolute_url()),
+                Breadcrumb(f'{item.workgroup.name}',
+                           item.workgroup.get_absolute_url()),
+                Breadcrumb(item.name, active=True)
+            ]
+        else:
+            pass
+
+
