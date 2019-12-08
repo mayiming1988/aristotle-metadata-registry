@@ -698,9 +698,14 @@ class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, Proces
         return super(CreateUpdateView, self).post(request, *args, **kwargs)
 
 
-def get_item_breadcrumbs(item: _concept, user) -> List[Breadcrumb]:
+def add_item_url(item, active=False):
+    """Helper function to add the item URL"""
+
+def get_item_breadcrumbs(item: _concept, user, no_active=False) -> List[Breadcrumb]:
     """ Return a list of breadcrumbs for an item from the item page
-        through a process of introspection to determine what kind of breadcrumbs to display"""
+        through a process of introspection to determine what kind of breadcrumbs to display
+
+        no_active: Make the item link an active link if deeper pages exist"""
     if item.is_sandboxed:
         # It's in a sandbox
         if item.submitter == user:
@@ -719,14 +724,25 @@ def get_item_breadcrumbs(item: _concept, user) -> List[Breadcrumb]:
             ]
     elif item.stewardship_organisation:
         if item.workgroup:
+            breadcrumbs = [Breadcrumb(f'{item.stewardship_organisation.name}',
+                                      item.stewardship_organisation.get_absolute_url())]
+            if item.workgroup.can_view(user):
+                breadcrumbs.append(Breadcrumb(f'{item.workgroup.name}',
+                                              item.workgroup.get_absolute_url()))
+            else:
+                breadcrumbs.append(Breadcrumb('aristotle_mdr:stewards:group:browse',
+                                              url_args=item.stewardship_organisation.slug))
+
+
+
+        else:
+            # No workgroup exists
             return [
                 Breadcrumb(f'{item.stewardship_organisation.name}',
                            item.stewardship_organisation.get_absolute_url()),
-                Breadcrumb(f'{item.workgroup.name}',
-                           item.workgroup.get_absolute_url()),
+
                 Breadcrumb(item.name, active=True)
             ]
-        else:
-            pass
+
 
 
