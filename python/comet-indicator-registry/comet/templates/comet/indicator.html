@@ -122,6 +122,10 @@
         {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.quality_statement showType=False skip_can_view=True %}
     {% endif %}
 
+    {% if item.reporting_information %}
+        <h2>Reporting Information</h2>
+        <p>{{ item.reporting_information | bleach }}</p>
+    {% endif %}
 
     {% if item.dimensions.exists %}
         <h2>Dimensions</h2>
