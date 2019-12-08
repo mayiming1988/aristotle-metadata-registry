@@ -699,7 +699,8 @@ class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, Proces
 
 
 def get_item_breadcrumbs(item: _concept, user) -> List[Breadcrumb]:
-    """ Return a list of breadcrumbs for an item from the item page"""
+    """ Return a list of breadcrumbs for an item from the item page
+        through a process of introspection to determine what kind of breadcrumbs to display"""
     if item.is_sandboxed:
         # It's in a sandbox
         if item.submitter == user:
