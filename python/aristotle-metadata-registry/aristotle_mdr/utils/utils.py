@@ -582,4 +582,4 @@ def cloud_enabled():
 
 def item_is_visible_to_user(user, item) -> bool:
     """Returns whether or not an item is visible to the user"""
-    return item._model.objects.filter(pk=item.pk).visible(user).exists()
+    return type(item).objects.filter(pk=item.pk).visible(user).exists()

@@ -213,7 +213,7 @@ def user_can_add_status(user, item):
     if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
         return False
 
-    if user.profile.is_registrar and item_is_visible_to_user(item, user):
+    if user.profile.is_registrar and item_is_visible_to_user(user, item):
         return True
     return False
 
