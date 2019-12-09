@@ -1,58 +1,53 @@
 {% load humanize i18n %}
-{% load aristotle_tags %}
+{% load util_tags aristotle_tags %}
 
 {% spaceless %}
-<ul class="breadcrumb">
-  {% if breadcrumbs %}
-    {% for crumb in breadcrumbs %}
-        <li {% if crumb.active %}class="active"{% endif %}>
-            {% if crumb.url %}
-                <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-            {% else %}
-                {{ crumb.name }}
-            {% endif %}
-        </li>
-      {% endfor %}
-  {% elif item.stewardship_organisation %}
+
+    {% if breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% elif item.stewardship_organisation %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="{{item.stewardship_organisation.get_absolute_url}}">
+                    {{item.stewardship_organisation}}
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_types' item.stewardship_organisation.slug %}">Managed Items</a>
+            </li>
+            <li>
+                <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' item.stewardship_organisation.slug item.meta.model_name %}"
+                >{{ item.get_verbose_name_plural }}</a>
+            </li>
+        </ul>
+    {% else %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="">
+                    My Sandbox
+                </a>
+            </li>
+        </ul>
+    {% endif %}
     <li>
-      <a href="{{item.stewardship_organisation.get_absolute_url}}">
-        {{item.stewardship_organisation}}
-      </a>
+        {{ item.name }}
     </li>
-    <li>
-      <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_types' item.stewardship_organisation.slug %}">Managed Items</a>
-    </li>
-    <li>
-      <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' item.stewardship_organisation.slug item.meta.model_name %}"
-      >{{ item.get_verbose_name_plural }}</a>
-    </li>
-  {% else %}
-    <li>
-      <a href="">
-        My Sandbox
-      </a>
-    </li>
-  {% endif %}
-  <li>
-    {{ item.name }}
-  </li>
-</ul>
 {% endspaceless %}
 <div class="col-xs-12">
 
-<h1 id="objectTitle" >
-    <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
-    {% if item.version %}
-    <em class="version" title="{% trans 'Version'%} {{ item.version }}">
-        {{ item.version }}
-    </em>
-    {% endif %}
+    <h1 id="objectTitle" >
+        <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+        {% if item.version %}
+            <em class="version" title="{% trans 'Version'%} {{ item.version }}">
+                {{ item.version }}
+            </em>
+        {% endif %}
 
-    {% if not hide_item_actions %}
-      {# Screen reader quick links #}
-      {% if item|can_edit:request.user %}
-          <a class="sr-only" accesskey="e" href="{% url 'aristotle_mdr:stewards:group:edit_managed_item' item.stewardship_organisation.slug item.meta.model_name item.pk %}">{% trans 'Open item editor'%}</a>
-      {% endif %}
-    {% endif %}
-</h1>
+        {% if not hide_item_actions %}
+            {# Screen reader quick links #}
+            {% if item|can_edit:request.user %}
+                <a class="sr-only" accesskey="e" href="{% url 'aristotle_mdr:stewards:group:edit_managed_item' item.stewardship_organisation.slug item.meta.model_name item.pk %}">{% trans 'Open item editor'%}</a>
+            {% endif %}
+        {% endif %}
+    </h1>
 </div>
