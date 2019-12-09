@@ -682,7 +682,6 @@ class FormsetView(TemplateView):
 
 # Thanks: https://stackoverflow.com/questions/17192737/django-class-based-view-for-both-create-and-update
 class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
-
     def get_object(self, queryset=None):
         try:
             return super(CreateUpdateView, self).get_object(queryset)
@@ -698,20 +697,24 @@ class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, Proces
         return super(CreateUpdateView, self).post(request, *args, **kwargs)
 
 
-def add_item_url(item, active=False):
-    """Helper function to add the item URL"""
+def add_item_url(item, active=False) -> Breadcrumb:
+    """Helper function to add item breadcrumbs """
+    if active:
+        return Breadcrumb(item.name, active=True)
+    return Breadcrumb(item.name, 'aristotle:item', url_args=item.id)
 
-def get_item_breadcrumbs(item: _concept, user, no_active=False) -> List[Breadcrumb]:
-    """ Return a list of breadcrumbs for an item from the item page
+
+def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
+    """ Return a list of breadcrumbs for a metadata item
         through a process of introspection to determine what kind of breadcrumbs to display
 
-        no_active: Make the item link an active link if deeper pages exist"""
+        last_active: Make the item link an active link if deeper pages exist"""
     if item.is_sandboxed:
         # It's in a sandbox
         if item.submitter == user:
             # It's in our own sandbox
             return [Breadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
-                    Breadcrumb(f'{item.name}', active=True)]
+                    add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
             share = item.submitter.profile.share
@@ -720,28 +723,31 @@ def get_item_breadcrumbs(item: _concept, user, no_active=False) -> List[Breadcru
                 Breadcrumb(f"{other_users_name}'s Sandbox",
                            'aristotle:sharedSandbox',
                            url_args=[share.uuid]),
-                Breadcrumb(item.name, active=True)
+                add_item_url(item, active=last_active)
             ]
     elif item.stewardship_organisation:
         if item.workgroup:
-            breadcrumbs = [Breadcrumb(f'{item.stewardship_organisation.name}',
+            breadcrumbs = [Breadcrumb(item.stewardship_organisation.name,
                                       item.stewardship_organisation.get_absolute_url())]
             if item.workgroup.can_view(user):
-                breadcrumbs.append(Breadcrumb(f'{item.workgroup.name}',
+                breadcrumbs.append(Breadcrumb(item.workgroup.name,
                                               item.workgroup.get_absolute_url()))
             else:
-                breadcrumbs.append(Breadcrumb('aristotle_mdr:stewards:group:browse',
+                breadcrumbs.append(Breadcrumb('Metadata',
+                                              'aristotle_mdr:stewards:group:browse',
                                               url_args=item.stewardship_organisation.slug))
+            breadcrumbs.append(add_item_url(item, active=last_active))
 
-
-
+            return breadcrumbs
         else:
-            # No workgroup exists
+            # Item only has the stewardship organisation
             return [
-                Breadcrumb(f'{item.stewardship_organisation.name}',
+                Breadcrumb(item.stewardship_organisation.name,
                            item.stewardship_organisation.get_absolute_url()),
-
-                Breadcrumb(item.name, active=True)
+                Breadcrumb('Metadata',
+                           'aristotle_mdr:stewards:group:browse',
+                           url_args=item.stewardship_organisation.slug),
+                add_item_url(item, active=last_active)
             ]
 
 
