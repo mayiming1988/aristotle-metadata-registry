@@ -737,7 +737,6 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
                                               'aristotle_mdr:stewards:group:browse',
                                               url_args=item.stewardship_organisation.slug))
             breadcrumbs.append(add_item_url(item, active=last_active))
-
             return breadcrumbs
         else:
             # Item only has the stewardship organisation
