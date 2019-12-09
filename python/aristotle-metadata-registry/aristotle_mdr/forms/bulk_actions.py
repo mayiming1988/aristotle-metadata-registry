@@ -71,13 +71,6 @@ class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
         return qs
 
 
-class RedirectBulkActionMixin:
-    redirect = True
-
-    def get_redirect_url(self):
-        return self.redirect_url
-
-
 class BulkActionForm(UserAwareForm):
     classes = ""
     redirect: bool = False
