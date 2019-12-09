@@ -1,0 +1,119 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n %}
+{% block title %}
+    {% if proposed %}
+        Proposed
+    {% endif %}
+    Supersede relationships for {{ item.name }}
+{% endblock %}
+
+{% block content %}
+
+    <h1>
+        {% if proposed %}
+            Proposed
+        {% endif %}
+        Supersede relationships for
+        {{ item.name }}
+        ({{ item.item_type_name }})
+    </h1>
+    {% block breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% endblock %}
+    {% if history %}
+        {% for ra, superseding_relationships in history.items %}
+            {% if proposed %}
+                <h2>Proposed superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            {% else %}
+                <h2>Superseding relationships within <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            {% endif %}
+            <div> {# TODO: Add a class here to improve mobile devices responsiveness. (Similar to registration_status_table class) #}
+                <table class="table table-striped reg">
+                    <thead>
+                    <tr>
+                        <th>{% trans 'Superseding Item' %}</th>
+                        <th>{% trans 'Superseded Item' %}</th>
+                        <th>{% trans 'Date registration effective' %}</th>
+                        <th>{% trans 'State' %}</th>
+                        {% if item|can_edit:request.user %}
+                            <th></th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for sup_rel in superseding_relationships %}
+                        <tr>
+                            <td>{{ sup_rel.newer_item }} <em>(This item)</em></td>
+                            <td><a href="{% url 'aristotle:item' sup_rel.older_item.id %}">{{ sup_rel.older_item }}</a></td>
+                            <td><time datetime="{{ sup_rel.date_effective|isotime }}">{{ sup_rel.date_effective }}</time></td>
+                            <td>
+                                {% if sup_rel.proposed %}
+                                    Proposed
+                                {% else %}
+                                    Endorsed
+                                {% endif %}
+                            </td>
+                            {% if request.user.is_superuser %}
+                                {# Restrict alteration of statuses to superuser #}
+                                <td>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Manage'%} <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-left" role="menu">
+                                            <li>
+                                                {% if proposed %}
+                                                    <a href="{% url 'aristotle:edit_proposed_supersede_item' sup_rel.id %}">
+                                                        <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Edit'%}
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'aristotle:edit_supersede_item' sup_rel.id %}">
+                                                        <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Edit'%}
+                                                    </a>
+                                                {% endif %}
+
+                                            </li>
+                                            <li class="divider"></li>
+                                            <li>
+                                                {% if proposed %}
+                                                    <a class="text-danger" href="{% url 'aristotle:delete_proposed_supersede_item' sup_rel.id %}">
+                                                        <i class="fa fa-fw fa-trash text-danger"></i>
+                                                        <span class="text-danger">{% trans 'Delete'%}</span>
+                                                    </a>
+                                                {% else %}
+                                                    <a class="text-danger" href="{% url 'aristotle:delete_supersede_item' sup_rel.id %}">
+                                                        <i class="fa fa-fw fa-trash text-danger"></i>
+                                                        <span class="text-danger">{% trans 'Delete'%}</span>
+                                                    </a>
+                                                {% endif %}
+
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    {% else %}
+        <strong>{% trans 'This item has not yet been superseded.' %}</strong>
+        <br>
+    {% endif %}
+
+    {% if proposed %}
+        <a class="btn btn-primary add_code_button" href="{% url 'aristotle:add_proposed_supersede_item' item.id %}">
+            <i class="fa fa-plus-circle"></i> Add a proposed relationship
+        </a>
+    {% else %}
+        <a class="btn btn-primary add_code_button" href="{% url 'aristotle:add_supersede_item' item.id %}">
+            <i class="fa fa-plus-circle"></i> Add a relationship
+        </a>
+    {% endif %}
+
+
+
+
+{% endblock %}

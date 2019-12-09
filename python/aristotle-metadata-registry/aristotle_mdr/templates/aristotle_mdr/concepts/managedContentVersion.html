@@ -10,25 +10,25 @@
 {% endblock %}
 
 {% block content %}
-<header class="row">
-    {% block concept_title %}
-    {% include "aristotle_mdr/concepts/titles/display_title.html" with item=current_item %}
-    {% endblock %}
-</header>
-<section class="managed row">
-    {% include "aristotle_mdr/concepts/versionInfobox.html" %}
-    {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
+    <header class="row">
+        {% block concept_title %}
+            {% include "aristotle_mdr/concepts/titles/display_title.html" with item=current_item %}
+        {% endblock %}
+    </header>
+    <section class="managed row">
+        {% include "aristotle_mdr/concepts/versionInfobox.html" %}
+        {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-    {# Render version data #}
-    {% for field in item.item_fields %}
-      {% include 'aristotle_mdr/helpers/version_field.html' with field=field only %}
-    {% endfor %}
+        {# Render version data #}
+        {% for field in item.item_fields %}
+            {% include 'aristotle_mdr/helpers/version_field.html' with field=field only %}
+        {% endfor %}
 
 
-</section>
+    </section>
 
-<p>
-  <span class="text-danger">*</span>
-  These links show the current name of the item, not the name at the time this version was created
-</p>
+    <p>
+        <span class="text-danger">*</span>
+        These links show the current name of the item, not the name at the time this version was created
+    </p>
 {% endblock %}

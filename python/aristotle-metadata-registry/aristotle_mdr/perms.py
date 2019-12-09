@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
@@ -9,6 +11,43 @@ logger = logging.getLogger(__name__)
 
 VIEW_CACHE_SECONDS = 60
 EDIT_CACHE_SECONDS = 60
+
+
+def user_can(user, item, method_name):
+    """When custom methods are required"""
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    method = getattr(item, method_name)
+    if callable(method):
+        return method(user)
+
+    return False
+
+
+def get_item_if_user_can(obj_type, user, iid, permission_type):
+    """
+    The purpose of this function is to get an item if the user has a particular permission type.
+    If the user does not have the permission specified in permission_type, a PermissionDenied error is raised.
+
+    usage:
+
+        get_item_if_user_can(MDR._concept, request.user, kwargs.get("iid"), perms.user_can_supersede)
+
+    :param obj_type: Class or model of the item to be checked.
+    :param user: User instance.
+    :param iid: String or Int ID of the object instance.
+    :param permission_type: Function. Permission type function.
+    :return: Item
+    """
+    item = get_object_or_404(obj_type, pk=iid)
+    if permission_type(user, item):
+        return item
+    else:
+        raise PermissionDenied
 
 
 def user_can_alter_comment(user, comment):
@@ -57,21 +96,6 @@ def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():
             return True
-    return False
-
-
-def user_can(user, item, method_name):
-    """When custom methods are required"""
-    if user.is_superuser:
-        return True
-
-    if user.is_anonymous:
-        return False
-
-    method = getattr(item, method_name)
-    if callable(method):
-        return method(user)
-
     return False
 
 
@@ -243,6 +267,7 @@ def user_can_view_statuses_revisions(user, ra):
 
 
 def user_can_supersede(user, item):
+    logger.critical("USER CAN SUPERSEDE!")
     if user.is_anonymous:
         return False
     if user.is_superuser:
