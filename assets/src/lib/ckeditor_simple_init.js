@@ -46,12 +46,21 @@ export function initCKEditorFromTextarea(textarea, config) {
 
 // ReInitialize ckeditor instances
 export function reinitCKEditors(form) {
-    $(form).find('div.cke').remove()
-    $(form).find('textarea[data-type=ckeditortype]').each(function() {
-        let textarea = $(this)
-        let config = JSON.parse(textarea.attr('data-config'));
-        CKEDITOR.replace(this.id, config)
-        textarea.attr('data-processed', 1)
-    })
+    // If function recieved jQuery object get first Element
+    if (form instanceof jQuery) {
+        form = form.get(0)
+    }
 
+    // Remove any already initialised ckeditor instances
+    for (let cke of form.querySelectorAll('div.cke, span.cke')) {
+        // Can't use .remove() due to IE compatibility
+        cke.parentNode.removeChild(cke)
+    }
+
+    // Initialise ckedior instances from text boxes
+    for (let textarea of form.querySelectorAll('textarea[data-type=ckeditortype]')) {
+        let config = JSON.parse(textarea.getAttribute('data-config'));
+        CKEDITOR.replace(textarea.id, config)
+        textarea.setAttribute('data-processed', 1)
+    }
 }
