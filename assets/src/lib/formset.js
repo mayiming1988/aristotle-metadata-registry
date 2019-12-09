@@ -8,7 +8,6 @@ export function replacePrefix(element, num_forms) {
         // Using .attributes instead of getAttributeNames for IE11 compatibility
         let attrs = element.attributes
         for (let i = 0; i < attrs.length; i++) {
-            let name = attrs[i].name
             let value = attrs[i].value
             let newval = value.replace('__prefix__', num_forms)
             if (value !== newval) {
@@ -61,6 +60,8 @@ export function addRow(formid, row_selector, urlfunc) {
     }
 
     // Remove redundant select2s (they'll be remade when reinserted into the node)
+    // These should no longer exist since we have a check when initialising
+    // This is here as a fallback
     formstage.find('span.select2.select2-container').remove();
 
     let all_rows = panelList.find(row_selector)
@@ -82,6 +83,7 @@ export function addRow(formid, row_selector, urlfunc) {
         initDALWidget(element, urlfunc)
     })
     reorderRows(panelList);
+    // Should never need to delete initialised editors, here as a fallback
     reinitCKEditors(new_form);
 }
 
