@@ -90,9 +90,13 @@ class CustomValueFormMixin:
                 for val in choice_values:
                     choices.append((val, val))
 
+                import logging
+
+                logger = logging.getLogger(__name__)
+
                 if custom_fname in self.initial:
                     value = self.initial[custom_fname]
-                    if value not in choice_values:
+                    if value and value not in choice_values:
                         # If there is an initial value that isnt in the option list
                         # Add it as the last option
                         choices.append((value, value + ' (Old Value)'))
