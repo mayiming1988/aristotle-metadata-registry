@@ -19,23 +19,24 @@
             </div>
             <section>
                 <div id="steward_org">
-            <span>
-                {{ form.steward_org.label }}:
-                {{ form.steward_org.errors }}
-            </span>
                     <span>
-                {{ form.steward_org }}
-            </span>
+                        {{ form.steward_org.label }}:
+                        {{ form.steward_org.errors }}
+                    </span>
+                    <span>
+                        {{ form.steward_org }}
+                    </span>
                 </div>
                 <div id="comments">
-            <span>
-                {{ form.changeDetails.label }}:
-                {{ form.changeDetails.errors }}
-            </span>
                     <span>
-                {{ form.changeDetails }}
-            </span>
+                        {{ form.changeDetails.label }}:
+                        {{ form.changeDetails.errors }}
+                    </span>
+                    <span>
+                        {{ form.changeDetails }}
+                    </span>
                 </div>
+            </section>
         </div>
         <div>
             <a class="btn btn-default" href="{{ next }}">Cancel</a>

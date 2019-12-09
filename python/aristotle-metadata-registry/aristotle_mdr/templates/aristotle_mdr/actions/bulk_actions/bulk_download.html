@@ -16,23 +16,24 @@
             </div>
             <section>
                 <div id="workgroup">
-            <span>
-                <label for="{{form.title.id_for_label}}">{{ form.title.label }}</label>
-                {{ form.title.errors }}
-            </span>
                     <span>
-                {{ form.title }}
-            </span>
+                        <label for="{{form.title.id_for_label}}">{{ form.title.label }}</label>
+                        {{ form.title.errors }}
+                    </span>
+                    <span>
+                        {{ form.title }}
+                    </span>
                 </div>
                 <div id="comments">
-            <span>
-                <label for="{{form.download_type.id_for_label}}">{{ form.download_type.label }}:</label>
-                {{ form.download_type.errors }}
-            </span>
                     <span>
-                {{ form.download_type }}
-            </span>
+                        <label for="{{form.download_type.id_for_label}}">{{ form.download_type.label }}:</label>
+                        {{ form.download_type.errors }}
+                    </span>
+                    <span>
+                        {{ form.download_type }}
+                    </span>
                 </div>
+            </section>
         </div>
         <div>
             <a class="btn btn-default" href="{{ next }}">Cancel</a>

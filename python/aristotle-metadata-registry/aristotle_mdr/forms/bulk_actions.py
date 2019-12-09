@@ -160,7 +160,6 @@ class LoggedInBulkActionForm(BulkActionForm):
 class AddFavouriteForm(LoggedInBulkActionForm):
     classes = "fa-bookmark"
     action_text = _('Add favourite')
-    items_label = "Items that will be added to your favourites list"
 
     def make_changes(self):
         items = self.items_to_change
@@ -191,7 +190,6 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 class RemoveFavouriteForm(LoggedInBulkActionForm):
     classes = "fa-minus-square"
     action_text = _('Remove favourite')
-    items_label = "Items that will be removed from your favourites list"
 
     def make_changes(self):
         items = self.items_to_change
@@ -310,7 +308,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
     classes = "fa-sitemap"
     action_text = _("Change stewardship organisation")
-    items_label = "These are the items that will be moved between workgroups." \
+    items_label = "These are the items that will be moved to a new stewardship organisation." \
                   " Add or remove additional items within the autocomplete box. "
     move_from_checks: Dict[int, bool] = {}  # Cache the view permission to speed up the bulk view.
 
