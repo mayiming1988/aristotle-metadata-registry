@@ -37,6 +37,7 @@ from aristotle_mdr.utils import (
     strip_tags,
 )
 from aristotle_mdr.utils.text import truncate_words
+from aristotle_mdr.constants import visibility_permission_choices
 
 from jsonfield import JSONField
 from .fields import (
@@ -982,22 +983,28 @@ class _concept(baseAristotleObject):
     def check_is_public(self, when=timezone.now()):
         """
         A concept is public if any registration authority
-        has advanced it to a public state in that RA.
+        has advanced it to a public state in that RA or if a publication record has been created for that object.
         """
+        # Check for public statuses
         statuses = self.statuses.all()
         statuses = self.current_statuses(qs=statuses, when=when)
         pub_state = True in [
             s.state >= s.registrationAuthority.public_state for s in statuses
         ]
-
+        # Check if published by a PublicationRecord
+        publication_details = self.publication_details.all()
+        published = publication_details.filter(permission=visibility_permission_choices.public,
+                                               publication_date__lte=timezone.now()).exists()
+        # Check for extra filtering
         q = Q()
         extra = False
-        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('public', None)
+        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERY-SETS', {}).get('public', None)
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)()
             extra = self.__class__.objects.filter(pk=self.pk).filter(q).exists()
-        return pub_state or extra
+
+        return pub_state or extra or published
 
     def is_public(self):
         return self._is_public
