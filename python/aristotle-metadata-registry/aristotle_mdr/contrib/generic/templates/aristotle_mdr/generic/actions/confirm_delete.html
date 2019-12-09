@@ -1,5 +1,5 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load i18n %}
+{% load i18n aristotle_tags util_tags%}
 {% load static from staticfiles %}
 
 {% block title %}{{ form_title }} for {{ item.name }}{% endblock %}
@@ -7,10 +7,14 @@
 
     <form method="post" action="{{ submit_url }}" >
         <div class="modal-body">
-            <ol class="breadcrumb">
-                <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-                <li class="active">{{ form_title }}</li>
-            </ol>
+            {% if breadcrumbs %}
+                {% breadcrumb_list breadcrumbs %}
+            {% else %}
+                <ul class="breadcrumb">
+                    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+                    <li class="active">{{ form_title }}</li>
+                </ul>
+            {% endif %}
 
             {% csrf_token %}
 

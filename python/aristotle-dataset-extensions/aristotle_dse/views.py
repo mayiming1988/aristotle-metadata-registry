@@ -92,9 +92,9 @@ def addClustersToDSS(request, dss_id):
 
 
 class RemoveDEFromDSS(ConfirmDeleteView):
-    item_kwarg="dss_id"
-    form_title="Remove data element from dataset"
-    form_delete_button_text="Remove data element"
+    item_kwarg = "dss_id"
+    form_title = "Remove data element from dataset"
+    form_delete_button_text = "Remove data element"
 
     def perform_deletion(self):
         de_id = self.kwargs['de_id']
@@ -122,14 +122,12 @@ class RemoveDEFromDSS(ConfirmDeleteView):
             'You are about to detatch the data element "%(de_name)s" from the dataset "%(dss_name)s". \n'
             'This data element will still exist in the registry, but will no longer be linked to this Data Set Specification. \n\n'
             'Click "Remove data element" below to confirm, or click "Cancel" to return'
-        ) % {
-            "de_name": de.name, "dss_name": dss.name
-        }
+        ) % {"de_name": de.name, "dss_name": dss.name}
 
 
 class RemoveClusterFromDSS(ConfirmDeleteView):
-    item_kwarg="dss_id"
-    form_title="Remove data element from this dataset"
+    item_kwarg = "dss_id"
+    form_title = "Remove data element from this dataset"
 
     def perform_deletion(self):
         cluster_id = self.kwargs['cluster_id']
@@ -222,9 +220,9 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
     item_type, field_name = {
         'cluster': (models.DataSetSpecification, 'child'),
         'data_element': (aristotle_models.DataElement, 'data_element'),
-        }.get(inc_type)
+    }.get(inc_type)
 
-    cluster=get_object_or_404(item_type, id=cluster_id)
+    cluster = get_object_or_404(item_type, id=cluster_id)
     if not (user_can_edit(request.user, dss) and user_can_view(request.user, cluster_id)):
         raise PermissionDenied
     inclusion = get_object_or_404(models.DSSClusterInclusion, child=cluster, dss=dss)
@@ -264,7 +262,7 @@ def editInclusionOrder(request, dss_id, inc_type):
     item_type, field_name = {
         'cluster': (models.DSSClusterInclusion, 'child'),
         'data_element': (models.DSSDEInclusion, 'data_element'),
-        }.get(inc_type)
+    }.get(inc_type)
 
     num_values = item_type.objects.filter(dss=item.id).count()
     if num_values > 0:
@@ -287,7 +285,8 @@ def editInclusionOrder(request, dss_id, inc_type):
                 item.save()  # do this to ensure we are saving reversion records for the DSS, not just the values
                 formset.save(commit=False)
                 for form in formset.forms:
-                    if form['id'].value() not in [deleted_record['id'].value() for deleted_record in formset.deleted_forms]:
+                    if form['id'].value() not in [deleted_record['id'].value() for deleted_record in
+                                                  formset.deleted_forms]:
                         inc = item_type.objects.get(pk=form['id'].value())
                         if inc.dss != item:
                             raise PermissionDenied
@@ -319,7 +318,6 @@ class DynamicTemplateView(TemplateView):
 
 
 class DatasetSpecificationView(ConceptRenderView):
-
     objtype = models.DataSetSpecification
     modelslug_arg = None
     slug_redirect = True
