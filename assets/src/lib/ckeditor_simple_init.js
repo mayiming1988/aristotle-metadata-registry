@@ -9,7 +9,10 @@ addPlugins(CKEDITOR)
 export function initCKEditor(config) {
     let textareas = document.querySelectorAll('textarea[data-type=ckeditortype]')
     for (let te of textareas) {
-        initCKEditorFromTextarea(te, config)
+        // If not inside a formstage
+        if (te.closest('.formstage') === null) {
+            initCKEditorFromTextarea(te, config)
+        }
     }
 }
 
@@ -21,7 +24,7 @@ export function initCKEditorFromTextarea(textarea, config) {
         if (config === undefined) {
             config = JSON.parse(textarea.getAttribute('data-config'));
         }
-    config.specialChars = [
+        config.specialChars = [
             '&euro;', '&lsquo;', '&rsquo;', '&ldquo;', '&rdquo;', '&ndash;', '&mdash;', '&iexcl;', '&cent;', '&pound;',
             '&curren;', '&yen;', '&brvbar;', '&sect;', '&uml;', '&copy;', '&ordf;', '&laquo;', '&not;', '&reg;', '&macr;',
             '&deg;', '&sup2;', '&sup3;', '&acute;', '&micro;', '&para;', '&middot;', '&cedil;', '&sup1;', '&ordm;', '&raquo;',

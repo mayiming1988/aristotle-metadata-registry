@@ -5,12 +5,12 @@ import 'select2/dist/css/select2.css'
 
 // Initialize all dal elements (urlfunc is optional)
 export function initDAL(urlfunc) {
-    $('[data-autocomplete-light-function=select2]').each(function() {
-        var element = $(this);
-        if (element.closest(".formstage").length == 0) {
-            initDALWidget(element, urlfunc)
+    for (let element of document.querySelectorAll('[data-autocomplete-light-function=select2]')) {
+        // If not inside a formstage
+        if (element.closest('.formstage') === null) {
+            initDALWidget($(element), urlfunc)
         }
-    })
+    }
 }
 
 // Initialize a single dal element (urlfunc is optional)
