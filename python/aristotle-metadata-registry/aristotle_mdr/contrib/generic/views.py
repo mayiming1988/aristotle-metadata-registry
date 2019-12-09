@@ -740,7 +740,7 @@ class ExtraFormsetMixin:
                 o = model_to_dict(obj)
                 ordering_field = weak['model'].ordering_field
                 if ordering_field and ordering_field in o.keys():
-                        o['ORDER'] = o.pop(weak['model'].ordering_field)
+                    o['ORDER'] = o.pop(weak['model'].ordering_field)
                 for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
                     o.pop(k, None)
                 initial.append(o)
