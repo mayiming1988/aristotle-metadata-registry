@@ -578,3 +578,8 @@ def is_postgres() -> bool:
 def cloud_enabled():
     from django.conf import settings
     return "aristotle_cloud" in settings.INSTALLED_APPS
+
+
+def item_is_visible_to_user(user, item) -> bool:
+    """Returns whether or not an item is visible to the user"""
+    return item._model.objects.filter(pk=item.pk).visible(user).exists()
