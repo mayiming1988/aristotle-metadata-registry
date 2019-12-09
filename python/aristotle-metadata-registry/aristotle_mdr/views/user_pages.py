@@ -704,7 +704,6 @@ class WorkgroupArchiveList(GenericListWorkgroup):
         return user.profile.workgroups_for_user().filter(archived=True)
 
 
-
 def profile_picture(request, uid):
     from django.contrib.auth import get_user_model
     user = get_object_or_404(get_user_model(), pk=uid)

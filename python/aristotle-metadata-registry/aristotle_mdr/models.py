@@ -1054,8 +1054,8 @@ class _concept(baseAristotleObject):
             3. has not been added to a workgroup
             4. or a stewardship organisation"""
         not_registered = not self.statuses.all()
-        no_review_or_revoked = (not self.rr_review_requests.all()
-                                or self.rr_review_requests.objects.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
+        no_review_or_revoked = (not self.rr_review_requests.all() or
+                                self.rr_review_requests.objects.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
         no_workgroup = self.workgroup is None
         no_stewardship_org = self.stewardship_organisation is None
         return not_registered and no_review_or_revoked and no_workgroup and no_stewardship_org
@@ -1834,10 +1834,10 @@ class PossumProfile(models.Model):
             5. That has not been put into a stewardship organisation """
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(submitter=self.user, statuses__isnull=True)
-            & Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked))
-            & Q(workgroup__isnull=True)
-            & Q(stewardship_organisation__isnull=True)
+            Q(submitter=self.user, statuses__isnull=True) &
+            Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)) &
+            Q(workgroup__isnull=True) &
+            Q(stewardship_organisation__isnull=True)
         )
 
     @property

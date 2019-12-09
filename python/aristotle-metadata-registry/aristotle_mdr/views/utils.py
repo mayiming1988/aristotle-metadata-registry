@@ -749,6 +749,3 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
                            url_args=item.stewardship_organisation.slug),
                 add_item_url(item, active=last_active)
             ]
-
-
-
