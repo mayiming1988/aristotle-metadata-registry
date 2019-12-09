@@ -93,7 +93,7 @@ class BulkActionForm(UserAwareForm):
         label="Related items",
         required=False,
     )
-    items_label = "Select some items"
+    items_label = "Items"
     queryset = MDR._concept.objects.all()
 
     def __init__(self, form, *args, **kwargs):
@@ -206,8 +206,11 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_status.html"
     classes = "fa-university"
     action_text = _('Change registration status')
-    items_label = "These are the items that will be registered. " \
-                  "Add or remove additional items with the autocomplete box."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['items'].help_text = "These are the items that will be registered. " \
+                                         "Add or remove additional items with the autocomplete box."
 
     cascadeRegistration = forms.ChoiceField(
         initial=0,
@@ -245,8 +248,6 @@ class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
     classes = "fa-users"
     action_text = _('Change workgroup')
-    items_label = "These are the items that will be moved between workgroups." \
-                  " Add or remove additional items with the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -260,6 +261,8 @@ class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
             required=False,
             widget=forms.Textarea
         )
+        self.fields['items'].help_text = "These are the items that will be moved between workgroups. " \
+                                         "Add or remove additional items with the autocomplete box."
 
     def make_changes(self):
         import reversion
@@ -308,8 +311,6 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
     classes = "fa-sitemap"
     action_text = _("Change stewardship organisation")
-    items_label = "These are the items that will be moved to a new stewardship organisation." \
-                  " Add or remove additional items within the autocomplete box. "
     move_from_checks: Dict[int, bool] = {}  # Cache the view permission to speed up the bulk view.
 
     def __init__(self, *args, **kwargs):
@@ -326,6 +327,8 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             required=False,
             widget=forms.Textarea(attrs={'class': 'form-control'})
         )
+        self.fields['items'].help_text = "These are the items that will be moved to a new stewardship organisation. " \
+                                         "Add or remove additional items within the autocomplete box. "
 
     def apply_move_permission_checking(self, item) -> bool:
         can_move_permission = self.move_from_checks.get(item.stewardship_organisation.pk, None)

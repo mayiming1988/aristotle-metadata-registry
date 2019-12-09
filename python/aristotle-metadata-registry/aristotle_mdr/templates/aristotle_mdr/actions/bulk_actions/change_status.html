@@ -9,19 +9,31 @@
 {% endblock %}
 
 {% block form %}
-    <header>This form allows you to change the status of items in your registration authorities.
+    <header>
+        This form allows you to change the status of items in your registration authorities.
     </header>
-    <div class="changeStatusDiv">
-        <label>
-            {{ wizard.form.items.label }}
-        </label>
-        {{ wizard.form.items }}
+    <div class="status container">
+        <div class="row">
+            <div class="col-sm-4 col-md-3">
+                <label>
+                    {{ wizard.form.items.label }}
+                </label>:
+                <span class="text-danger">{{ wizard.form.items.errors }}</span>
+            </div>
+            <div class="col-sm-7 col-md-5">
+                {{ wizard.form.items }}
+                <br>
+                {{ wizard.form.items.help_text }}
+            </div>
+        </div>
+
+
     </div>
     {% include 'aristotle_mdr/helpers/changestatus.html' with form=wizard.form %}
 {% endblock %}
 
 {% block buttons %}
-    <div class="pull-right">
+    <div>
         <a class="btn btn-default" href="{{ next }}" >Cancel</a>
         <input class="btn btn-success" type="submit" name="submit_next" value="{% trans 'Review Changes' %}" />
         <input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />

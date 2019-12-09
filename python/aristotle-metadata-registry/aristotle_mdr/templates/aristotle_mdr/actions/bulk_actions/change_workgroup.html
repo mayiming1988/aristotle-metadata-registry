@@ -1,40 +1,28 @@
 {% extends "aristotle_mdr/actions/bulk_actions/base.html" %}
 
+{% load bootstrap3 %}
+
 {% block title %}Move multiple items to workgroup{% endblock %}
 
 {% block content %}
     <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{ next }}">{% csrf_token %}
         <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
         <div class="modal-body">
-            <header>This form allows you to move items between workgroups.<br>
+            <header>
+                This form allows you to move items between workgroups.<br>
                 Select a workgroup below, and all items you have permission to move will
                 be moved into the selected workgroup.
             </header>
-            <div>
-                {{ form.items.label }}
-                {{ form.items }}
+            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
+            <div class="clearfix"></div>
+            <div id="workgroup">
+                {% bootstrap_field form.workgroup placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
             </div>
-            <section>
-                <div id="workgroup">
-                    <span>
-                        {{ form.workgroup.label }}:
-                        {{ form.workgroup.errors }}
-                    </span>
-                    <span>
-                        {{ form.workgroup }}
-                    </span>
-                </div>
-                <div id="comments">
-                    <span>
-                        {{ form.changeDetails.label }}:
-                        {{ form.changeDetails.errors }}
-                    </span>
-                    <span>
-                        {{ form.changeDetails }}
-                    </span>
-                </div>
-            </section>
+            <div id="comments">
+                {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
+            </div>
         </div>
+        <div class="clearfix"></div>
         <div>
             <a class="btn btn-default" href="{{ next }}">Cancel</a>
             <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to workgroup</button>

@@ -1,43 +1,31 @@
 {% extends "aristotle_mdr/actions/bulk_actions/base.html" %}
 
+{% load bootstrap3 %}
+
 {% block title %}Move multiple items to stewardship organisation{% endblock %}
 
 {% block content %}
     <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
         <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
         <div class="modal-body">
-            <header>This form allows you to move items between stewardship organisations.<br>
-                Select a stewardship organisation below, and all items you have permission to move will
-                be moved into the selected stewardship organisation.
-            </header>
-            <div>
-                {{ form.items.label }}
-                {{ form.items }}
-            </div>
             <div class="alert alert-warning" role="alert">
                 Swapping stewardship organisations will cause items to leave their workgroups!
             </div>
-            <section>
-                <div id="steward_org">
-                    <span>
-                        {{ form.steward_org.label }}:
-                        {{ form.steward_org.errors }}
-                    </span>
-                    <span>
-                        {{ form.steward_org }}
-                    </span>
-                </div>
-                <div id="comments">
-                    <span>
-                        {{ form.changeDetails.label }}:
-                        {{ form.changeDetails.errors }}
-                    </span>
-                    <span>
-                        {{ form.changeDetails }}
-                    </span>
-                </div>
-            </section>
+            <header>
+                This form allows you to move items between stewardship organisations.<br>
+                Select a stewardship organisation below, and all items you have permission to move will
+                be moved into the selected stewardship organisation.
+            </header>
+            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
+            <div id="steward_org">
+                {% bootstrap_field form.steward_org placeholder="" layout="horizontal" %}
+            </div>
+            <div class="clearfix"></div>
+            <div>
+                {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" %}
+            </div>
         </div>
+        <div class="clearfix"></div>
         <div>
             <a class="btn btn-default" href="{{ next }}">Cancel</a>
             <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to Stewardship Organisation</button>
