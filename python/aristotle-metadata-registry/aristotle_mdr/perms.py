@@ -205,7 +205,7 @@ def user_can_add_status(user, item):
     if user.is_anonymous:
         return False
 
-    if user.is_superuser:  # A superuser is able to access the admin pages.
+    if user.is_superuser:
         return True
 
     if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
@@ -267,7 +267,6 @@ def user_can_view_statuses_revisions(user, ra):
 
 
 def user_can_supersede(user, item):
-    logger.critical("USER CAN SUPERSEDE!")
     if user.is_anonymous:
         return False
     if user.is_superuser:
