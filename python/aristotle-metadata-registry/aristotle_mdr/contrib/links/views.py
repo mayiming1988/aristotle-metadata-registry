@@ -253,9 +253,6 @@ class RemoveLinkView(ConfirmDeleteView):
         return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
                f" you want to continue?"
 
-    def get_object(self):
-        return get_object_or_404(link_models.Link, pk=self.kwargs['linkid'])
-
     def perform_deletion(self):
         self.item.delete()
         return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
