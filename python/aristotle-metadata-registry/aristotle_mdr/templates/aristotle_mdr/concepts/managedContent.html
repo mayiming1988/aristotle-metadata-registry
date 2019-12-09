@@ -3,7 +3,6 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
-
     <section class="managed row">
         {% include "aristotle_mdr/concepts/infobox.html" %}
 
@@ -45,7 +44,7 @@
         {% endif %}
 
         {% if item.submitting_organizations %}
-            <h3>Submitting Organizations</h3>
+            <h3>Submitting Organisations</h3>
             {% for rec in item.submitting_organizations %}
                 {% if rec.organization_record|can_view:request.user %}
                     <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
@@ -55,7 +54,7 @@
         {% endif %}
 
         {% if item.responsible_organizations %}
-            <h3>Responsible Organizations</h3>
+            <h3>Responsible Organisations</h3>
             {% for rec in item.responsible_organizations %}
             {% if rec.organization_record|can_view:request.user %}
                 <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
@@ -74,12 +73,13 @@
         <div class="clearfix"></div>
         {% if item.relational_attributes %}
         <h2>Related content</h2>
-
-            <table class="table">
+            <table class="table table-hover">
+                <thead class="thead-dark">
                 <tr>
                     <th>Relation</th>
                     <th>Count</th>
                 </tr>
+                </thead>
             {% for name, data in item.relational_attributes.items %}
                 <tr>
                     <td>
@@ -99,11 +99,8 @@
 
         {% block relationships %}
         {% endblock %}
-
         </div>
-
     </section>
-
     <tags-modal
             :open="tagsModalOpen"
             item-tags="{{ item_tags }}"

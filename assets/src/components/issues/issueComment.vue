@@ -23,7 +23,7 @@
 import userPanel from '@/userPanel.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
-import { TextareaAutosize } from 'vue-textarea-autosize'
+import { VueTextareaAutosize } from 'vue-textarea-autosize'
 
 export default {
     mixins: [apiRequest],
@@ -64,7 +64,7 @@ export default {
     components: {
         'api-errors': apiErrors,
         'user-panel': userPanel,
-        'textarea-resize': TextareaAutosize
+        'textarea-resize': VueTextareaAutosize
     },
     data: () => ({
         body: '',
@@ -116,9 +116,8 @@ export default {
                     if (response.data['comment'] != undefined) {
                         this.emitComment(response.data['comment'])
                     }
-                    this.isOpen = response.data['issue']['isopen']
                     this.body = ''
-                    this.$emit('set_open', this.isOpen)
+                    this.$emit('set_open', response.data.issue.isopen)
                 }
             })
         }

@@ -81,7 +81,6 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
 
         perm_func = getattr(perms, self.perm_function)
         if not perm_func(self.request.user, self.review):
-            # TODO: make this use CBVs
             if self.request.user.is_anonymous:
                 return redirect(reverse('friendly_login') + '?next=%s' % self.request.path)
             else:
@@ -101,10 +100,12 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     def get_supersedes_context(self) -> List[Dict[str, Dict[str, Any]]]:
         supersedes = []
         qs = self.get_supersedes_qs()
-        for ss in qs:
+        for supersede in qs:
             supersedes.append({
-                'older': {'id': ss.older_item.id, 'name': ss.older_item.name},
-                'newer': {'id': ss.newer_item.id, 'name': ss.newer_item.name}
+                'older': {'id': supersede.older_item.id, 'name': supersede.older_item.name},
+                'newer': {'id': supersede.newer_item.id, 'name': supersede.newer_item.name},
+                'message': supersede.message,
+                'date_effective': supersede.date_effective
             })
         return supersedes
 
@@ -120,6 +121,12 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
 
+        if self.review.concepts.count() == 1:
+            # It's for a single item review, display in breadcrumbs
+            kwargs.update({
+                'single_item_review': True,
+                'item_under_review': self.review.concepts.first()
+            })
         return kwargs
 
     def get_object(self):
@@ -539,7 +546,6 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
     active_tab_name = "checks"
 
     def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
 
         review = self.get_review()
@@ -558,6 +564,7 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         runner = runner_class(registration_authority=self.ra, state=self.get_review().state)
         total_results = runner.validate_metadata(metadata=review_items)
 
+        context['no_results'] = not bool([result['results'] for result in total_results if result['results']])
         context['total_results'] = total_results
         context['setup_valid'] = True
 

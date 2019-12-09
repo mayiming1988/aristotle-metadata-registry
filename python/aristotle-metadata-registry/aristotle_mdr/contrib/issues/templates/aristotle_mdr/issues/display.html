@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block infoContent %}
+    {{ issue_data|json_script:"issue-data" }}
     <div class="row">
         <div class="col-sm-8 col-xs-offset-1">
             <a  class="btn btn-default pull-right margin-above" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
@@ -97,10 +98,10 @@
         user-id="{{ user.id }}"
         user-name="{{ user.get_short_name }}"
         issue-id="{{ object.id }}"
-        {% if object.isopen %}is-open{% endif %}
         {% if can_open_close %}can-open-close{% endif %}
         comment-url="{% url 'api_v4:issues:comment' %}"
         open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
+        :is-open="isOpen"
         @set_open="setIsOpen"
         @created="addComment">
     </issue-comment>
@@ -114,7 +115,7 @@
         propose-fields="{{ fields }}"
         initial="{{ initial }}"
         html-editor-config="{{ config }}"
-        all-labels-json="{{ allLabels }}"
+        all-labels-json="{{ all_labels }}"
     >
     </issue-modal>
 {% endblock %}

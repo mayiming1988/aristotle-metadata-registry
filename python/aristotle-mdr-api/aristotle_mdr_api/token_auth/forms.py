@@ -54,8 +54,8 @@ class TokenCreateForm(Form):
                 },
                 'organization': {
                     'type': 'object',
-                    'title': 'Organization',
-                    'description': 'Organization Access',
+                    'title': 'Organisation',
+                    'description': 'Organisation Access',
                     'properties': {
                         'read': {
                             'title': 'Read',

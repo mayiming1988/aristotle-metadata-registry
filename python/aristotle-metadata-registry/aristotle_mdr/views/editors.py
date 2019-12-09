@@ -162,18 +162,17 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             })
 
         if self.reference_links_active:
-            recordrelation_formset = self.get_referencelinks_formset()(
+            referencelinks_formset = self.get_referencelinks_formset()(
                 instance=self.item.concept,
                 data=postdata
             )
             from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
-
             # Override the queryset to restrict to the records the user has permission to view
-            for record_relation_form in recordrelation_formset:
+            for record_relation_form in referencelinks_formset:
                 record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(self.request.user).order_by("title")
 
             extra_formsets.append({
-                'formset': recordrelation_formset,
+                'formset': referencelinks_formset,
                 'title': 'ReferenceLink',
                 'type': 'reference_links',
                 'saveargs': None
@@ -285,6 +284,35 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         })
         return kwargs
 
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
+        extra_formsets = super().get_extra_formsets(item, postdata)
+
+        if self.slots_active:
+            slot_formset = self.get_slots_formset()(
+                queryset=Slot.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': slot_formset,
+                'title': 'Slots',
+                'type': 'slot',
+                'saveargs': None
+            })
+
+        if self.identifiers_active:
+            id_formset = self.get_identifier_formset()(
+                queryset=ScopedIdentifier.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': id_formset,
+                'title': 'Identifiers',
+                'type': 'identifiers',
+                'saveargs': None
+            })
+
+        return extra_formsets
+
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -315,19 +343,16 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 # Save item
                 form.save_custom_fields(item)
                 form.save_m2m()
-                # Copied from wizards.py - maybe refactor
+
                 final_formsets = []
                 for info in extra_formsets:
-                    if info['type'] != 'slot':
+                    if info['saveargs'] is not None:
                         info['saveargs']['item'] = item
                     else:
                         info['formset'].instance = item
                     final_formsets.append(info)
 
-                # This was removed from the revision below due to a bug with saving
-                # long slots, links are still saved due to reversion follows
                 self.save_formsets(final_formsets)
-
                 item.save()
 
             return HttpResponseRedirect(url_slugify_concept(item))

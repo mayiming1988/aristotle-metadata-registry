@@ -5,62 +5,76 @@
 <a class="sr-only" onclick="addIdent()" href="?extra=1" accesskey='r'>Add an identifier (adding an identifier does not save changes)</a>
 
 <div class="alert alert-info">
-  The UUID (Universally Unique Identifier) is automatically generated for all metadata
-  and is guaranteed to be unique even between registries.
+  <strong>Identifiers are optional</strong>
+  but can be used to add additional identifying information to a metadata item.
 </div>
 
 <table class="table">
   <tbody>
     <tr>
-      <th>UUID</th>
+      <th>
+        UUID
+        <a 
+          class="aristotle-popover"
+          tabindex="0"
+          role="button"
+          data-toggle="popover"
+          data-trigger="focus"
+          title="UUID"
+          data-content="The UUID (Universally Unique Identifier) is automatically generated for all metadata and is guaranteed to be unique even between registries."
+          >
+          <i class="fa fa-question-circle"></i>
+        </a>
+      </th>
       <td>{{ item.uuid }}</td>
   </tbody>
 </table>
 
 {% with formset=identifier_FormSet %}
 
-    <div class="alert alert-info">
-      Identifiers can be used to add additional identifying information to a metadata item.
-    </div>
-    {{ formset.management_form }}
-    <table id="identifierTable" class="form table  table-hover">
-      <thead>
-          <tr>
-            <th></th>
-            <th>{% trans 'Namespace' %}</th>
-            <th>{% trans 'Identifier' %}</th>
-            <th>{% trans 'Version' %}</th>
-            <th>{% trans 'Delete' %}</th>
+    <div class="formset_field">
+      <label>Identifiers:</label>
+      {{ formset.management_form }}
+      <table id="identifierTable" class="form table  table-hover">
+        <thead>
+            <tr>
+              <th></th>
+              <th>{% trans 'Namespace' %}</th>
+              <th>{% trans 'Identifier' %}</th>
+              <th>{% trans 'Version' %}</th>
+              <th>{% trans 'Delete' %}</th>
+            </tr>
+        </thead>
+        <tbody id="identifiers" class="draggableTable">
+        {% for id_form in formset.forms %}
+          <tr class="moveablerow">
+
+              <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                {% for hidden in id_form.hidden_fields %}
+                {{ hidden }}
+                {% endfor %}
+              </td>
+
+              {% for field in id_form.visible_fields %}
+                <td>
+                    {% if field.errors %}
+                        <div class="alert alert-danger">
+                        {{ field.errors }}
+                    {% endif %}
+                    {{ field }}
+                    {% if field.errors %}
+                        </div>
+                    {% endif %}
+                </td>
+              {% endfor %}
           </tr>
-      </thead>
-    <tbody id="identifiers" class="draggableTable">
-    {% for id_form in formset.forms %}
-      <tr class="moveablerow">
-
-          <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-            {% for hidden in id_form.hidden_fields %}
-            {{ hidden }}
-            {% endfor %}
-          </td>
-
-          {% for field in id_form.visible_fields %}
-            <td>
-                {% if field.errors %}
-                    <div class="alert alert-danger">
-                    {{ field.errors }}
-                {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                    </div>
-                {% endif %}
-            </td>
-          {% endfor %}
-      </tr>
-    {% endfor %}
-    </tbody>
-    </table>
-    <a class="btn btn-primary add_code_button" formid="identifiers">
-        <i class="fa fa-plus-circle"></i> Add a identifier</a>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a class="btn btn-primary add_code_button" formid="identifiers">
+          <i class="fa fa-plus-circle"></i> Add an identifier
+      </a>
+    </div>
 
 {% endwith %}
 {% endblock %}
