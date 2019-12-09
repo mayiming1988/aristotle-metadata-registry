@@ -60,7 +60,10 @@ class FrameworkDimensionAutocompleteMixin(object):
                 'aristotle-autocomplete:framework',
                 args=[self.model._meta.app_label, self.model._meta.model_name]
             ),
-            attrs={'data-html': 'true'}
+            attrs={
+                'data-html': 'true',
+                'class': 'aristotle-select2',
+        }
         )
         super().__init__(*args, **kwargs)
 
