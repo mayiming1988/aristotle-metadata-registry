@@ -122,5 +122,3 @@ class TestPublishing(utils.AristotleTestUtils, TestCase):
 
         # Assert that the banner does not appear
         self.assertNotContains(response, 'This item is under active development')
-
-
