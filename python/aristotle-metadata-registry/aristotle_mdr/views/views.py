@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, RedirectView, DeleteView, UpdateView
 from django.utils.module_loading import import_string
-from django.utils.functional import SimpleLazyObject
+from aristotle_mdr.views.utils import get_lazy_viewable_ids
 from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
 
@@ -319,10 +319,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
         # Since its lazy we can do this every time :)
-        lazy_viewable_ids = SimpleLazyObject(
-            lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
-        )
-        context['viewable_ids'] = lazy_viewable_ids
+        context['viewable_ids'] = get_lazy_viewable_ids(self.user)
 
         # Permissions (so they are looked up once)
         context.update({

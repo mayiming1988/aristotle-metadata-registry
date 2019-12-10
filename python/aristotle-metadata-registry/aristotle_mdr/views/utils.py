@@ -17,7 +17,7 @@ from django.http import (
 )
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from django.utils.functional import cached_property
+from django.utils.functional import cached_property, SimpleLazyObject
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     DetailView, FormView, ListView, TemplateView
@@ -695,6 +695,12 @@ class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, Proces
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super(CreateUpdateView, self).post(request, *args, **kwargs)
+
+
+def get_lazy_viewable_ids(user):
+    return SimpleLazyObject(
+        lambda: list(MDR._concept.objects.visible(user).values_list('id', flat=True))
+    )
 
 
 def add_item_url(item, active=False) -> Breadcrumb:
