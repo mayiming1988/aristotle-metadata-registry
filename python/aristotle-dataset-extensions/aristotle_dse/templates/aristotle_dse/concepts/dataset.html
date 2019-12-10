@@ -58,7 +58,7 @@
                                 <span class="file_type">{{distribution.format_type}}</span>
                                 {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
                                 {% if distribution.origin_URI %}
-                                    <a href='{{distribution.origin_URI}}' class='btn btn-default'>
+                                    <a href='{{distribution.download_URL}}' class='btn btn-default'>
                                         <i class='fa fa-download'></i>
                                         Download
                                     </a>
