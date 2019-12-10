@@ -147,7 +147,6 @@ def get_bulk_actions():
 
 
 class ChangeStatusBulkActionView(ReviewChangesView):
-
     change_step_name = 'change_state'
 
     form_list = [

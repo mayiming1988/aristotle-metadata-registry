@@ -42,12 +42,14 @@
         </dd>
         <dt>Distribution files</dt>
         <dd>
-            <a href="{% url 'aristotle_dse:add_distribution_to_dataset' iid=item.id %}"
-               data-toggle="modal" data-target="#dse_modal"
-               class="btn btn-default btn-sm pull-right">
-                <i class="fa fa-plus"></i>
-                Edit distributions
-            </a>
+            {% if can_edit %}
+                <a href="{% url 'aristotle_dse:add_distribution_to_dataset' iid=item.id %}"
+                   data-toggle="modal" data-target="#dse_modal"
+                   class="btn btn-default btn-sm pull-right">
+                    <i class="fa fa-plus"></i>
+                    Edit distributions
+                </a>
+            {% endif %}
             {% if item.distribution_set.exists %}
                 <ol>
                     {% if item.distribution_set.exists %}
@@ -69,39 +71,6 @@
                                     <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
                                     <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
                                 </dl>
-                                {% comment %}
-                                {% if distribution.distributiondataelementpath_set.exists %}
-                                    <strong>Data Elements in this dataset</strong>
-                                    <table class='table table-striped'>
-                                        <thead>
-                                        <tr>
-                                            <th>Path name</th>
-                                            <th>Data Element</th>
-                                            <th>Definition</th>
-                                            <th title='Number of datasets using this data element'>#</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for column in distribution.distributiondataelementpath_set.all %}
-                                            <tr>
-                                                <td>
-                                                    <tt>{{column.logical_path}}</tt>
-                                                </td>
-                                                <td>
-                                                    <a href="{{column.data_element.get_absolute_url}}">{{column.data_element.name}}</a>
-                                                </td>
-                                                <td>
-                                                    {{column.data_element.definition|striptags}}
-                                                </td>
-                                                <td>
-                                                    {{column.data_element.distributiondataelementpath_set.count}}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                {% endif %}
-                                {% endcomment %}
                             </li>
                         {% endfor %}
                     {% endif %}
@@ -111,8 +80,7 @@
             {% endif %}
         </dd>
     </dl>
-
-    {% if item|can_edit:request.user %}
+    {% if can_edit %}
         {% bootstrap_modal 'dse_modal' size='lg' %}
     {% endif %}
 

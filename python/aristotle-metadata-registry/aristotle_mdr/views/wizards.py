@@ -113,12 +113,9 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         ("initial", MDRForms.wizards.Concept_1_Search),
         ("results", MDRForms.wizards.Concept_2_Results),
     ]
-
+    reference_links_active = cloud_enabled()
     additional_records_active = True
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
+    slots_active = is_active_module('aristotle_mdr.contrib.slots')
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:  # pragma: no cover
@@ -168,6 +165,24 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             'saveargs': None
         })
 
+        if self.reference_links_active:
+            from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
+
+            referencelinks_formset = self.get_referencelinks_formset()(
+                data=postdata
+            )
+            # Override the queryset to restrict to the records the user has permission to view
+            for record_relation_form in referencelinks_formset:
+                record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(
+                    self.request.user).order_by("title")
+
+            extra_formsets.append({
+                'formset': referencelinks_formset,
+                'title': 'ReferenceLink',
+                'type': 'reference_links',
+                'saveargs': None
+            })
+
         return extra_formsets
 
     def get_context_data(self, form, **kwargs):
@@ -210,7 +225,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                         'model_class': self.model,
                         'template_name': self.template_name,
                         'current_step': self.steps.current,
-                        'additional_records_active': self.additional_records_active
+                        'additional_records_active': self.additional_records_active,
+                        'reference_links_active': self.reference_links_active
                         })
 
         if cloud_enabled():
