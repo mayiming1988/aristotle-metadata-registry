@@ -1,11 +1,12 @@
 - model: aristotle_mdr_help.helppage
   fields:
-    title: Versioning Content
+    title: Reversion Formats
     language: en
     body: >
-        <h2>Reversion formats</h2>
         <p>The Aristotle MDR provides an audit trial for modifications to metadata items. Changes are recorded and
           comparable to gain insight into how metadata has changed over time. There are two formats in which versions
-          were saved <em>v1</em> and <em>v2</em>. Version 2 now captures a much greater range of fields for comparision.
-          For example, changes to a Data Element inclusion in a Data Set Specification are now comparable.
+          were saved which are <em>v1</em> and <em>v2</em>. <em>v2</em> now captures a much greater
+          range of fields for comparision.
+
+        For example, changes to a Data Element inclusion in a Data Set Specification are now comparable.
 
