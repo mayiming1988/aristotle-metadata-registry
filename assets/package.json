@@ -26,7 +26,7 @@
     "vis": "^4.21.0",
     "vue": "^2.6.10",
     "vue-simple-suggest": "^1.9.5",
-    "vue-textarea-autosize": "^1.0.4",
+    "vue-textarea-autosize": "^1.1.1",
     "vuedraggable": "^2.23.0",
     "vuelidate": "^0.7.4"
   },

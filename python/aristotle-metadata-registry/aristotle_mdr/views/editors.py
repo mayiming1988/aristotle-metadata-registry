@@ -284,8 +284,8 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         })
         return kwargs
 
-    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
-        extra_formsets = super().get_extra_formsets(item, postdata)
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=True):
+        extra_formsets = super().get_extra_formsets(item, postdata, clone_item)
 
         if self.slots_active:
             slot_formset = self.get_slots_formset()(
@@ -316,7 +316,9 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        extra_formsets = self.get_extra_formsets(self.model, request.POST)
+        # Don't do the clone shenangians, we want to save
+        # TODO: eliminate formset hell.
+        extra_formsets = self.get_extra_formsets(self.model, request.POST, clone_item=False)
 
         if form.is_valid():
             item = form.save(commit=False)
@@ -357,6 +359,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
 
             return HttpResponseRedirect(url_slugify_concept(item))
 
+    # TODO: This is only called in a test. Is this ever used?
     def clone_components(self, clone):
         original = self.item
         fields = getattr(self.model, 'clone_fields', [])

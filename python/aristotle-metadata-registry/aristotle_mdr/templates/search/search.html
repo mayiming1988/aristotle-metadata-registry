@@ -183,17 +183,20 @@
             {% if query or form.filter_search %}
                 <div class="row">
                     <h3 class="col-sm-3">Results</h3>
-                    {% if form.auto_broaden_search and page.object_list %}
-                        <div class="alert alert-warning" role="alert">
-                            <p>
-                                There were no results for "{{ form.q.value }}" with your requested filters.
-                            </p>
-                            <p>
-                                We've automatically removed the filters and re-run your search.
-                            </p>
-                        </div>
-                    {% endif %}
                     <div class="col-sm-9">
+                        {% if form.auto_broaden_search and page.object_list %}
+                            <div class="alert alert-warning" role="alert">
+                                <p>
+                                    There were no results for "{{ form.q.value }}" with your requested filters.
+                                </p>
+                                <p>
+                                    We ran your search without any filters and got the results below.
+                                </p>
+                                <p>
+                                    Your filters and original search are still available above if you want to update them and try again.
+                                </p>
+                            </div>
+                        {% endif %}
                         {% if form.applied_filters %}
                             <div>
                                 Showing only items where
