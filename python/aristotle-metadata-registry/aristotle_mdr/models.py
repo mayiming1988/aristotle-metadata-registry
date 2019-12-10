@@ -998,7 +998,7 @@ class _concept(baseAristotleObject):
         # Check for extra filtering
         q = Q()
         extra = False
-        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERY-SETS', {}).get('public', None)
+        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('public', None)
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)()

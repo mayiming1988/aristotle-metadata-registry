@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -710,7 +710,7 @@ def add_item_url(item, active=False) -> Breadcrumb:
     return Breadcrumb(item.name, 'aristotle:item', url_args=item.id)
 
 
-def get_item_breadcrumbs(item: _concept, user, last_active=True) -> Optional[List[Breadcrumb]]:
+def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
     """ Return a list of breadcrumbs for a metadata item
         through a process of introspection to determine what kind of breadcrumbs to display
 
@@ -754,4 +754,4 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> Optional[Lis
                            url_args=item.stewardship_organisation.slug),
                 add_item_url(item, active=last_active)
             ]
-    return None
+    return []
