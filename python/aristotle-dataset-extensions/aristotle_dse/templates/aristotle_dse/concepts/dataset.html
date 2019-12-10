@@ -14,22 +14,13 @@
 
 {% endblock %}
 
-{% block asideContent %}
-    <dl>
-        {% if item.custodian %}
-            <dt>Data Custodian</dt>
-            <dd>{{ item.custodian }}</dd>
-        {% endif %}
-    </dl>
-{% endblock %}
-
 {% block objSpecific %}
     {% if item.linkToData %}
-        <strong>Data is available at </strong><a href="{{ item.linkToData }}">{{ item.linkToData }}</a>.
+        <strong>Data is available at </strong><a href="{{ item.landing_page }}">{{ item.landing_page }}</a>.
     {% else %}
         No link to the data is available.
     {% endif %}
-    For more details on how to access this data contact the data custodian listed below.
+    For more details on how to access this data contact the publishing organisation.
 
     <h2>Data source details</h2>
     <dl class="">
