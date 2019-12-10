@@ -1,26 +1,20 @@
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
-from django.core.management import call_command
-from django.test import TestCase, override_settings
-from django.urls import reverse
-from django.utils import timezone
-
-from django.utils.timezone import now
-import datetime
-from datetime import timedelta
-
-from reversion import revisions as reversion
-
+from aristotle_mdr import perms
+from aristotle_mdr.constants import visibility_permission_choices
 from aristotle_mdr.contrib.publishing import models as pub
 from aristotle_mdr.forms.search import get_permission_sqs
 from aristotle_mdr.models import ObjectClass, _concept
 from aristotle_mdr.tests import utils
-from aristotle_mdr import perms
 
-from aristotle_mdr.constants import visibility_permission_choices
-
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
+from django.core.management import call_command
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from reversion import revisions as reversion
+from datetime import timedelta
 
 
 class TestPublishing(utils.AristotleTestUtils, TestCase):
@@ -108,3 +102,23 @@ class TestPublishing(utils.AristotleTestUtils, TestCase):
             response,
             reverse('aristotle_publishing:publish_item', args=[self.item._meta.model_name, self.item.id])
         )
+
+    def test_published_item_does_not_display_under_active_development_alert(self):
+        """Test that a published item does not display 'The item is under active development banner"""
+
+        # Publish an item (but don't register it)
+        pub.PublicationRecord.objects.create(
+            content_type=ContentType.objects.get_for_model(_concept),
+            object_id=self.item.pk,
+            publisher=self.submitting_user,
+            publication_date=timezone.now() - timedelta(days=2),
+            permission=visibility_permission_choices.public
+        )
+        self.item.concept.recache_states()
+        # Check that it is publicly accessible
+        self.logout()
+        response = self.client.get(self.item.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+
+        # Assert that the banner does not appear
+        self.assertNotContains(response, 'This item is under active development')

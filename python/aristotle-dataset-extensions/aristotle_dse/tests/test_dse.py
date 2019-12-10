@@ -11,7 +11,7 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from django.urls import reverse
 from django.test import TestCase, tag
-
+from django.utils import timezone
 
 def setUpModule():
     from django.core.management import call_command
@@ -191,6 +191,36 @@ class DataCatalogViewPage(LoggedInViewConceptPages, TestCase):
 class DatasetViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'dataset'
     itemType = models.Dataset
+
+    def create_public_dataset(self) -> models.Dataset:
+        """Helper method that creates a public dataset"""
+        dataset = models.Dataset.objects.create(name="Dataset",
+                                                definition="A dataset",
+                                                submitter=self.editor)
+        MDR.Status.objects.create(
+            concept=dataset,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=MDR.STATES.standard
+        )
+        return dataset
+
+    def test_user_without_edit_permission_cannot_see_edit_distributions_button(self):
+        """Test that the edit distribution button is not visible on the Dataset item page"""
+        dataset = self.create_public_dataset()
+        response = self.client.get(dataset.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Edit distributions")
+
+    def test_user_with_edit_permission_can_see_edit_distributions_button(self):
+        """Test that the edit distribution button is visible on the Dataset item page"""
+        dataset = self.create_public_dataset()
+
+        self.login_superuser()
+        response = self.client.get(dataset.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Edit distributions')
 
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):

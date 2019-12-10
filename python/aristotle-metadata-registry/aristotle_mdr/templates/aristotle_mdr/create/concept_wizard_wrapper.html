@@ -32,7 +32,6 @@
                 {% endblock %}
                 <div class="pull-right">
                 {% if wizard.steps.prev %}
-                    <!-- button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "First step" %}</button -->
                     <button name="wizard_goto_step" class="btn btn-default" type="submit"
                             value="{{ wizard.steps.prev }}">
                         <i class="fa fa-angle-double-left"></i>

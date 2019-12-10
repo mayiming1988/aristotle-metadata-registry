@@ -1,46 +1,25 @@
+from braces.views import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.http import Http404
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import DetailView, FormView
+from django.views.generic import DetailView, FormView, UpdateView, CreateView, TemplateView
 from django.db import transaction
-
-from braces.views import PermissionRequiredMixin
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import UserFormViewMixin
-from aristotle_mdr.utils import url_slugify_concept
+from aristotle_mdr.models import SupersedeRelationship
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
+from aristotle_mdr.structs import Breadcrumb
 
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class ItemSubpageView(object):
-    def get_item(self):
-        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid']).item
-        if not self.item.can_view(self.request.user):
-            raise PermissionDenied
-        return self.item
-
-    def dispatch(self, request, *args, **kwargs):
-        self.item = self.get_item()
-        return super().dispatch(request, *args, **kwargs)
-
-
-class ItemSubpageFormView(ItemSubpageView, FormView):
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['item'] = self.get_item()
-        return kwargs
-
-
-class CheckCascadedStates(ItemSubpageView, DetailView):
+class CheckCascadedStates(DetailView):
     pk_url_kwarg = 'iid'
     context_object_name = 'item'
     queryset = MDR._concept.objects.all()
@@ -52,12 +31,18 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
             raise Http404
         return super().dispatch(*args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
+    def get_item(self):
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid']).item
+        if not self.item.can_view(self.request.user):
+            raise PermissionDenied
+        return self.item
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data(**kwargs)
 
         state_matrix = [
             # (item,[(states_ordered_alphabetically_by_ra_as_per_parent_item,state_of_parent_with_same_ra)],[extra statuses] )
-            ]
+        ]
         item = self.get_item()
         states = []
         ras = []
@@ -83,9 +68,8 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
 
 
 class DeleteSandboxView(UserFormViewMixin, FormView):
-
-    form_class = actions.DeleteSandboxForm
     template_name = "aristotle_mdr/actions/delete_sandbox.html"
+    form_class = actions.DeleteSandboxForm
 
     def get_success_url(self):
         return reverse('aristotle:userSandbox')
@@ -121,59 +105,397 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
         return super().form_valid(form)
 
 
-class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, PermissionRequiredMixin):
-    permission_checks = [perms.user_can_supersede]
-    model_base = MDR._concept
-    model_to_add = MDR.SupersedeRelationship
-    model_base_field = 'superseded_items_relation_set'
-    model_to_add_field = 'newer_item'
-    form_add_another_text = _('Add a relationship')
-    form_title = _('Edit Supersedes')
+class SupersedeItemHistoryBase(LoginRequiredMixin, TemplateView):
+    template_name = "aristotle_mdr/supersede_item_history.html"
+    only_proposed = False
+    item = None
 
-    def has_permission(self):
-        return perms.user_can_supersede(self.request.user, self.item)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    def get_success_url(self):
-        return url_slugify_concept(self.item)
+        if self.only_proposed:
+            supersedes = SupersedeRelationship.objects.filter(newer_item=self.item, proposed=True).order_by("registration_authority")
+            context.update({
+                'proposed': True
+            })
+        else:
+            supersedes = SupersedeRelationship.objects.filter(newer_item=self.item).order_by("registration_authority")
 
-    def get_editable_queryset(self):
-        """Get the SupersedeRelationship objects this user can edit"""
-        qs = self.item.superseded_items_relation_set.all()
+        out = {}
 
-        if self.request.user.is_superuser:
-            return qs
+        for sup in supersedes:
+            if sup.registration_authority in out.keys():
+                out[sup.registration_authority].append(sup)
+            else:
+                out[sup.registration_authority] = [sup]
 
-        return qs.filter(
-            registration_authority__registrars__profile__user=self.request.user
-        )
+        context.update({
+            'item': self.item,
+            'history': out,
+        })
 
-    def get_form(self, **kwargs):
-        return actions.SupersedeAdminForm
+        return context
+
+
+class SupersedeItemHistory(SupersedeItemHistoryBase):
+    """
+    The purpose of this view is to list all the SupersedeRelationship objects related to a superseded item.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = perms.get_item_if_user_can(MDR._concept, request.user, self.kwargs.get('iid'),
+                                               perms.user_can_supersede)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    active=True
+                ),
+            ]
+        })
+        return context
+
+
+class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
+    """
+    The purpose of this view is to list all the "proposed" SupersedeRelationship objects related to a superseded item.
+    """
+    only_proposed = True
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = perms.get_item_if_user_can(MDR._concept, request.user, self.kwargs.get('iid'), perms.user_can_edit)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    active=True
+                ),
+            ],
+        })
+        return context
+
+
+class SupersedeRelationshipCreateView(LoginRequiredMixin, CreateView):
+    model = MDR.SupersedeRelationship
+    template_name = "aristotle_mdr/add_supersede_items.html"
+    pk_url_kwarg = 'iid'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = request.user
+        self.item = self.get_item()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
-        return {
-            "item": self.item.item,
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            "item": self.item,
             "user": self.request.user,
-        }
+        })
+        return kwargs
+
+    def get_item(self):
+        """Override this method to get the concept related to the SupersedeRelationship object"""
+        raise NotImplementedError
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['item'] = self.item
+        return context
+
+    def form_valid(self, form):
+        form.instance.newer_item = self.item
+        return super(SupersedeRelationshipCreateView, self).form_valid(form)
 
 
-class ProposedSupersedeItemView(SupersedeItemView):
+class AddSupersedeRelationship(SupersedeRelationshipCreateView):
+    """
+    The purpose of this view is to create a SupersedeRelationship object for a concept.
+    """
+    form_class = actions.SupersedeRelationshipFormWithProposed
+
+    def get_item(self):
+        return perms.get_item_if_user_can(MDR._concept, self.user, self.kwargs.get('iid'), perms.user_can_supersede)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    'aristotle:supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Add supersede relationship",
+                    active=True
+                )
+            ]
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse("aristotle:supersede", args=[self.item.pk])
+
+
+class AddProposedSupersedeRelationship(SupersedeRelationshipCreateView):
+    """
+    The purpose of this view is to create a "proposed" SupersedeRelationship object for a concept.
+    """
+    form_class = actions.SupersedeRelationshipForm
+
+    def get_item(self):
+        return perms.get_item_if_user_can(MDR._concept, self.user, self.kwargs.get('iid'), perms.user_can_edit)
+
+    def form_valid(self, form):
+        form.instance.proposed = True
+        return super(AddProposedSupersedeRelationship, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    'aristotle:proposed_supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Add proposed supersede relationship",
+                    active=True
+                )
+            ],
+            "proposed": True,
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse("aristotle:proposed_supersede", args=[self.item.pk])
+
+
+class SupersedeRelationshipUpdateView(LoginRequiredMixin, UpdateView):
+    model = MDR.SupersedeRelationship
+    template_name = "aristotle_mdr/edit_superseded_items.html"
+    pk_url_kwarg = "iid"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = request.user
+        self.item = self.get_item()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_item(self):
+        """
+        Override this method to get the concept related to the SupersedeRelationship object, and apply the necessary
+        permissions.
+        """
+        raise NotImplementedError
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            "item": self.item,
+            "user": self.user,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['item'] = self.item
+        return context
+
+
+class EditSupersedeRelationship(SupersedeRelationshipUpdateView):
+    """
+    The purpose of this view is to edit a SupersedeRelationship object.
+    """
+    form_class = actions.SupersedeRelationshipFormWithProposed
+
+    def get_item(self):
+        item = get_object_or_404(self.model, pk=self.kwargs['iid'])
+        if perms.user_can_supersede(self.user, item.newer_item):
+            return item.newer_item
+        else:
+            raise PermissionDenied
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    'aristotle:supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Edit supersede relationship",
+                    active=True
+                )
+            ]
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse("aristotle:supersede", args=[self.item.pk])
+
+
+class EditProposedSupersedeRelationship(SupersedeRelationshipUpdateView):
+    """
+    The purpose of this view is to edit a "proposed" SupersedeRelationship object.
+    """
+    form_class = actions.SupersedeRelationshipForm
+
+    def get_item(self):
+        item = get_object_or_404(self.model, pk=self.kwargs['iid'])
+        if perms.user_can_edit(self.user, item.newer_item):
+            return item.newer_item
+        else:
+            raise PermissionDenied
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.name,
+                    'aristotle:item',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    'aristotle:proposed_supersede',
+                    url_args=[self.item.id]
+                ),
+                Breadcrumb(
+                    "Edit proposed supersede relationship",
+                    active=True
+                ),
+            ],
+            'proposed': True,
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse("aristotle:proposed_supersede", args=[self.item.pk])
+
+
+class SupersedeRelationshipConfirmDeleteView(LoginRequiredMixin, ConfirmDeleteView):
+    model_base = MDR.SupersedeRelationship
+    form_title = "Delete Supersede Relationship"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "item": self.item.newer_item,
+        })
+        return context
+
+    def post(self, *args, **kwargs):
+        return self.perform_deletion()
+
+
+class DeleteSupersedeRelationship(SupersedeRelationshipConfirmDeleteView):
+    """
+    The purpose of this view is to delete a SupersedeRelationship object.
+    """
+    reverse_url = "aristotle:supersede"
+    permission_checks = [perms.user_can_supersede]
+
+    def get_warning_text(self):
+        return f"You are about to delete the supersede relationship between superseding item `{self.item.newer_item}` and " \
+               f"superseded item `{self.item.older_item}` within the registration authority `{self.item.registration_authority}`. Are you sure you want to continue?"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.newer_item.name,
+                    'aristotle:item',
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Supersede relationships",
+                    "aristotle:supersede",
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Delete supersede relationship",
+                    active=False
+                )
+            ]
+        })
+        return context
+
+    def perform_deletion(self):
+        self.item.delete()
+        return HttpResponseRedirect(reverse('aristotle:supersede', args=[self.item.newer_item.pk]))
+
+
+class DeleteProposedSupersedeRelationship(SupersedeRelationshipConfirmDeleteView):
+    """
+    The purpose of this view is to delete a "proposed" SupersedeRelationship object.
+    """
+    reverse_url = "aristotle:proposed_supersede"
     permission_checks = [perms.user_can_edit]
-    form_title = _('Propose Supersedes')
-    form_add_another_text = _('Add a proposed relationship')
 
-    def get_form(self, **kwargs):
-        return actions.SupersedeForm
+    def get_warning_text(self):
+        return f"You are about to delete the proposed supersede relationship between superseding item `{self.item.newer_item}` and " \
+               f"superseded item `{self.item.older_item}` within the registration authority `{self.item.registration_authority}`. Are you sure you want to continue?"
 
-    def get_editable_queryset(self):
-        """Get the SupersedeRelationship objects this user can edit"""
-        # Allow user to edit any proposed supersedes for now
-        qs = self.item.superseded_items_relation_set.all()
-        qs = qs.filter(proposed=True)
-        return qs
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            "breadcrumbs": [
+                Breadcrumb(
+                    self.item.newer_item.name,
+                    'aristotle:item',
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Proposed supersede relationships",
+                    "aristotle:supersede",
+                    url_args=[self.item.newer_item.id]
+                ),
+                Breadcrumb(
+                    "Delete proposed supersede relationship",
+                    active=False
+                )
+            ]
+        })
+        return context
 
-    def save_formset(self, formset):
-        instances = formset.save(commit=False)
-        for instance in instances:
-            instance.proposed = True
-            instance.save()
+    def perform_deletion(self):
+        self.item.delete()
+        return HttpResponseRedirect(reverse('aristotle:proposed_supersede', args=[self.item.newer_item.pk]))

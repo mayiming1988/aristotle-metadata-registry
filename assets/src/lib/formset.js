@@ -2,20 +2,19 @@ import { initDALWidget } from './dal_simple_init.js'
 import { reinitCKEditors } from './ckeditor_simple_init.js'
 import { reorderRows } from 'src/lib/moveable.js'
 
+/* Replace __prefix__ with the form number in an elements attributes */
 export function replacePrefix(element, num_forms) {
-    let name = $(element).attr('name')
-    let id = $(element).attr('id')
-
-    if (name && name.includes('__prefix__')) {
-        let new_name = name.replace('__prefix__', num_forms)
-        $(element).attr('name', new_name)
+    if (element.hasAttributes()) {
+        // Using .attributes instead of getAttributeNames for IE11 compatibility
+        let attrs = element.attributes
+        for (let i = 0; i < attrs.length; i++) {
+            let value = attrs[i].value
+            let newval = value.replace('__prefix__', num_forms)
+            if (value !== newval) {
+                attrs[i].value = newval
+            }
+        }
     }
-
-    if (id && id.includes('__prefix__')) {
-        let new_id = id.replace('__prefix__', num_forms)
-        $(element).attr('id', new_id)
-    }
-
 }
 
 // Adds a row to a formset given a form element and row css selector
@@ -61,6 +60,8 @@ export function addRow(formid, row_selector, urlfunc) {
     }
 
     // Remove redundant select2s (they'll be remade when reinserted into the node)
+    // These should no longer exist since we have a check when initialising
+    // This is here as a fallback
     formstage.find('span.select2.select2-container').remove();
 
     let all_rows = panelList.find(row_selector)
@@ -69,7 +70,7 @@ export function addRow(formid, row_selector, urlfunc) {
     // Append form to the panel list
     panelList.append(new_form)
 
-    new_form.find(':input').each(function() {
+    new_form.find(':input, div, button').each(function() {
         replacePrefix(this, num_forms)
     });
 
@@ -82,10 +83,11 @@ export function addRow(formid, row_selector, urlfunc) {
         initDALWidget(element, urlfunc)
     })
     reorderRows(panelList);
+    // Should never need to delete initialised editors, here as a fallback
     reinitCKEditors(new_form);
 }
 
-// initialize a general formset (urlfunc is optional)
+// Initialize a general formset (urlfunc is optional)
 export default function initFormset(urlfunc) {
     $('a.add_code_button').click(function() {
         addRow($(this).attr('formid'), '.form-inline', urlfunc);

@@ -72,8 +72,9 @@
                     </td>
                     <td>
                         {{version.revision.comment|linebreaks|default:"-"}}
-                        <span class="badge badge-info">{{ version.format }}</span>
-
+                        <a href="{% url 'aristotle_help:help_page' 'reversion-formats' %}" target="_blank">
+                            <span class="badge badge-info">{{ version.format }}</span>
+                        </a>
                     </td>
                     <td>
                         {# Visibility #}

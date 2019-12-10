@@ -102,7 +102,6 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertEqual(item1.stewardship_organisation, new_stewardship_org)
         self.assertEqual(item2.stewardship_organisation, new_stewardship_org)
 
-
     def test_bulk_action_change_of_stewardship_organisation(self):
         """Test that a superuser can move metadata from one S.O to another"""
 
@@ -128,11 +127,101 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertEqual(self.item1.stewardship_organisation, self.new_stewardship_org)
         self.assertEqual(self.item2.stewardship_organisation, self.new_stewardship_org)
 
+    def test_caching_of_permission_checks_for_move_to_stewardship_org(self):
+        """Test that the caching of permissions check for bulk action to move to stewardship organisation"""
+        self.login_manager()
+        permitted_origin = models.StewardOrganisation.objects.create(
+            name="Org 1",
+            description="1"
+        )
+        permitted_destination = models.StewardOrganisation.objects.create(
+            name='Org 2',
+            description="2",
+        )
+        disallowed_org = models.StewardOrganisation.objects.create(
+            name="Org 3",
+            description="3"
+        )
+
+        # Give the manager admin permissions in two Stewardship Organisation
+        permitted_origin.grant_role(
+            role=StewardOrganisation.roles.admin,
+            user=self.manager,
+        )
+        permitted_destination.grant_role(
+            role=StewardOrganisation.roles.admin,
+            user=self.manager
+
+        )
+        item1 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=permitted_origin)
+        item2 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=permitted_destination)
+        item3 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=disallowed_org)
+
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
+                'items': [item1.id, item2.id, item3.id],
+                'steward_org': [permitted_destination.id],
+                "confirmed": True
+            }
+        )
+        # Recache
+        item1.refresh_from_db()
+        item2.refresh_from_db()
+        item3.refresh_from_db()
+
+        # Check that the items have been moved
+        self.assertEqual(item1.stewardship_organisation, permitted_destination)
+        self.assertEqual(item2.stewardship_organisation, permitted_destination)
+
+        # Check that the item without permission was not moved
+        self.assertEqual(item3.stewardship_organisation, disallowed_org)
+
+
+    def test_both_sides_of_permissions_for_bulk_move_to_stewardship_organisation_checked(self):
+        """Test that the user moving items has permssion in both the origin and destination
+         stewardship organisation"""
+
+        self.login_manager()
+        old_stewardship_org = models.StewardOrganisation.objects.create(name="Old Steward")
+        new_stewardship_org = models.StewardOrganisation.objects.create(name="New Steward")
+
+        # Give the manager admin permissions in only the new stewardship organisation
+        new_stewardship_org.grant_role(
+            role=StewardOrganisation.roles.admin,
+            user=self.manager
+
+        )
+        item1 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=old_stewardship_org)
+
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
+                'items': [item1.id],
+                'steward_org': [new_stewardship_org.id],
+                "confirmed": True
+            }
+        )
+        # Recache
+        item1.refresh_from_db()
+
+        # Confirm that the items have not been moved
+        self.assertNotEqual(item1.stewardship_organisation, new_stewardship_org)
 
     def create_review_request(self, items):
-        self.login_registrar()
-        # Make a RR so the registrar can change status
-        self.make_review_request_iterable(items)
+            self.login_registrar()
+            # Make a RR so the registrar can change status
+            self.make_review_request_iterable(items)
 
     def review_changes(self, items, new_state):
 
