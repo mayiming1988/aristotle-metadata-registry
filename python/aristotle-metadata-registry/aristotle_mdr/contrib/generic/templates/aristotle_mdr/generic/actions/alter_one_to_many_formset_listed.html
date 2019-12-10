@@ -21,11 +21,11 @@
                     <header class="h5">
                         {{ form.instance.inline_editor_description }}
                     </header>
-                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ formset.prefix }}_collapse_{{forloop.counter}}" aria-expanded="false" aria-controls="{{ formset.prefix }}_collapse_{{forloop.counter}}">
+                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ formset.prefix }}_collapse_{{forloop.counter0}}" aria-expanded="false" aria-controls="{{ formset.prefix }}_collapse_{{forloop.counter0}}">
                         Toggle fields
                     </button>
                 </div>
-                <div class="collapse" id="{{ formset.prefix }}_collapse_{{forloop.counter}}">
+                <div class="collapse" id="{{ formset.prefix }}_collapse_{{forloop.counter0}}">
                     <ul>
                         {% for field in form.visible_fields %}
                             {% if not forloop.last %}
