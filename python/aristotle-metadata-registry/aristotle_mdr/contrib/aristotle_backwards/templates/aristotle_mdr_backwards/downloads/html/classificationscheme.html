@@ -1,0 +1,25 @@
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
+
+{% load aristotle_tags util_tags %}
+
+{% block objSpecific %}
+  <div class="">
+    {% if item.classificationStructure %}
+    <h3>Classification Structure</h3>
+    {{ item.classificationStructure | bleach }}
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block relationships %}
+  {% with vds=item.valueDomains.all %}
+    {% if vds %}
+      <h3>Value Domains implementing this Classification Scheme</h3>
+      <ul>
+      {% for vd in vds|can_view_iter:user %}
+        <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=vd skip_can_view=True %}</li> 
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+{% endblock %}
