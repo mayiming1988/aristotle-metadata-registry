@@ -1,4 +1,5 @@
 /* globals CKEDITOR */
+import { isFormstageElement } from 'src/lib/html.js'
 import 'ckeditor/ckeditor.js'
 // This import is necessary to include, otherwise the import won't work
 import 'ckeditor/plugins/justify/plugin.js'
@@ -10,7 +11,7 @@ export function initCKEditor(config) {
     let textareas = document.querySelectorAll('textarea[data-type=ckeditortype]')
     for (let te of textareas) {
         // If not inside a formstage
-        if (te.closest('.formstage') === null) {
+        if (!isFormstageElement(te)) {
             initCKEditorFromTextarea(te, config)
         }
     }

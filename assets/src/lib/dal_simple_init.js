@@ -1,3 +1,4 @@
+import { isFormstageElement } from 'src/lib/html.js'
 // DAL needs the full version
 import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
@@ -7,7 +8,7 @@ import 'select2/dist/css/select2.css'
 export function initDAL(urlfunc) {
     for (let element of document.querySelectorAll('[data-autocomplete-light-function=select2]')) {
         // If not inside a formstage
-        if (element.closest('.formstage') === null) {
+        if (!isFormstageElement(element)) {
             initDALWidget($(element), urlfunc)
         }
     }
