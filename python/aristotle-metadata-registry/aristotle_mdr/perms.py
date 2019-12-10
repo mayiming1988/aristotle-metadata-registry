@@ -267,7 +267,6 @@ def user_can_view_statuses_revisions(user, ra):
 
 
 def user_can_supersede(user, item):
-    logger.critical("USER CAN SUPERSEDE!")
     if user.is_anonymous:
         return False
     if user.is_superuser:

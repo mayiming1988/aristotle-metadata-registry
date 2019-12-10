@@ -54,6 +54,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
         max_length=512,
         required=False,
         label=_("Administrative Note"),
+        help_text="The administrative note is a publishable statement describing the reasons for registration.",
         widget=forms.Textarea
     )
     registrationAuthorities = forms.ChoiceField(
@@ -83,7 +84,6 @@ class ChangeStatusForm(ChangeStatusGenericForm):
     def clean_state(self):
         state = self.cleaned_data['state']
         state = int(state)
-        MDR.STATES[state]
         return state
 
 

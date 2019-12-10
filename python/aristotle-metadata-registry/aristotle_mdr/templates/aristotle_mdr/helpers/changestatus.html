@@ -1,80 +1,24 @@
-{% load util_tags %}
+{% load util_tags bootstrap3 %}
 
-<style>
-    .status .row {
-        /* border-top:1px solid lightgray; */
-        margin-top:1em;
-        padding-top:0.5em;
-    }
-    #administrative_note textarea {
-        width:100%
-    }
-</style>
-
-<section class="status container">
-    <div class="row">
-        <div class="col-sm-4 col-md-3">
-            <label for="id_registrationDate">{{ form.registrationDate.label }}</label>:
-            <span class="text-danger">{{ form.registrationDate.errors }}</span>
-        </div>
-        <div class="col-sm-7 col-md-5">
-            {{ form.registrationDate }}
-            <div>
-                Date the registration state will be active from.
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-4 col-md-3">
-            <label for="id_cascadeRegistration">
-                Cascade endorsement            
-            </label>
-        </div>
-        <div class="col-sm-8 col-md-6">
-            <span class="text-danger">{{ form.cascadeRegistration.errors }}</span>
-            <span>
-            {{ form.cascadeRegistration }}
-            </span>
-            <div>
-                {{ form.cascadeRegistration.help_text }}
-                <a tabindex="0"
-                   class="aristotle-popover"
-                   role="button"
-                   data-toggle="popover"
-                   title="Help about Cascaded Registration"
-                   data-placement="bottom"
-                   data-content="Associated items can be components of another piece of metadata, or other items that have been linked together by a user.<br><br>
-                For example, the associated metadata for a Data Element would be its Data Element Concept, Value Domain, Object Class and Property<br><br>
-                You can review what other metadata items will be changed by clicking 'Review Changes' button"
-                   data-html="true">
-                <i class="fa fa-question-circle"></i>
-                </a>
-            </div>
-
-        </div>
-    </div>
-    <div id="" class="row">
-        <div class="col-sm-4 col-md-3">
-            <label for="id_status">
-                {{ form.state.label }} <span class="text-danger">*</span>
-            </label>
-        </div>
-        <div class="col-sm-8 col-md-6">
-            <span>
-                <span class="text-danger">{{ form.state.errors }}</span>
-                {{ form.state }}
-
-            </span>
-        </div>
-    </div>
-    <div id="" class="row">
-        <div class="col-sm-4 col-md-3">
+<div class="row">
+    {% bootstrap_field form.registrationDate placeholder="" layout="horizontal" horizontal_field_class="col-md-5" %}
+</div>
+<div class="row">
+    {% bootstrap_field form.cascadeRegistration placeholder="" layout="horizontal" horizontal_field_class="col-md-5" %}
+</div>
+<div class="row">
+    {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}
+</div>
+{#{% bootstrap_field form.registrationAuthorities placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}#}
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-3 control-label">
             <label for="id_registrationAuthorities">
-            {{ form.registrationAuthorities.label }} <span class="text-danger">*</span>
-            <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
+                {{ form.registrationAuthorities.label }} <span>*</span>
+                <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
             </label>
         </div>
-        <div class="col-sm-8 col-md-6">
+        <div class="col-md-7">
             <ul>
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
@@ -90,14 +34,8 @@
             </ul>
         </div>
     </div>
-    <div id="administrative_note" class="row">
-        <div class="col-sm-4 col-md-3">
-            <label for="id_changeDetails">{{ form.changeDetails.label }}
-            </label>
-        </div>
-        <div class="col-sm-8 col-md-6">
-            <p>The administrative note is a publishable statement describing the reasons for registration.</p>
-            {{ form.changeDetails }}
-        </div>
-    </div>
-</section>
+</div>
+<div class="row">
+    {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-7" %}
+</div>
+

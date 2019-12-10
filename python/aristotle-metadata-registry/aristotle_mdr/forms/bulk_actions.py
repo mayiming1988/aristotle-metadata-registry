@@ -211,6 +211,22 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
         super().__init__(*args, **kwargs)
         self.fields['items'].help_text = "These are the items that will be registered. " \
                                          "Add or remove additional items with the autocomplete box."
+        self.fields['registrationDate'].help_text = "Date the registration state will be active from."
+        self.fields['cascadeRegistration'].label = "Cascade endorsement"
+        self.fields['cascadeRegistration'].help_text = self.fields['cascadeRegistration'].help_text +\
+                                                       '<a tabindex="0" class="aristotle-popover" role="button" ' \
+                                                       'data-toggle="popover" title="Help about Cascaded Registration" ' \
+                                                       'data-placement="bottom" ' \
+                                                       'data-content="Associated items can be components of another ' \
+                                                       'piece of metadata, or other items that have been linked together ' \
+                                                       'by a user.<br><br> For example, the associated metadata for a ' \
+                                                       'Data Element would be its Data Element Concept, Value Domain, ' \
+                                                       'Object Class and Property<br><br>You can review what other ' \
+                                                       'metadata items will be changed by clicking \'Review Changes\' ' \
+                                                       'button" data-html="true"> <i class="fa fa-question-circle"></i></a>'
+        self.fields['changeDetails'].help_text = "The administrative note is a publishable statement describing the " \
+                                                 "reasons for registration."
+        # self.fields['registrationAuthorities'].widget = forms.RadioSelect()
 
     cascadeRegistration = forms.ChoiceField(
         initial=0,
@@ -325,10 +341,10 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
         self.fields['changeDetails'] = forms.CharField(
             label="Change notes (optional)",
             required=False,
-            widget=forms.Textarea(attrs={'class': 'form-control'})
+            widget=forms.Textarea
         )
         self.fields['items'].help_text = "These are the items that will be moved to a new stewardship organisation. " \
-                                         "Add or remove additional items within the autocomplete box. "
+                                         "Add or remove additional items within the autocomplete box."
 
     def apply_move_permission_checking(self, item) -> bool:
         can_move_permission = self.move_from_checks.get(item.stewardship_organisation.pk, None)
@@ -401,7 +417,6 @@ class BulkDownloadForm(DownloadActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/bulk_download.html"
     classes = "fa-download"
     action_text = _('Bulk download')
-    items_label = "These are the items that will be downloaded"
 
     download_type = forms.ChoiceField(
         choices=[],
@@ -418,6 +433,7 @@ class BulkDownloadForm(DownloadActionForm):
             widget=forms.RadioSelect
         )
         self.fields['items'].required = True
+        self.fields['items'].help_text = "These are the items that will be downloaded"
 
     def make_changes(self):
         self.download_type = self.cleaned_data['download_type']

@@ -5,7 +5,7 @@
 {% block title %}Move multiple items to workgroup{% endblock %}
 
 {% block content %}
-    <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{ next }}">{% csrf_token %}
+    <form method="post" class="form-horizontal" action="{% url 'aristotle:bulk_action' %}?next={{ next }}">{% csrf_token %}
         <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
         <div class="modal-body">
             <header>
@@ -13,19 +13,13 @@
                 Select a workgroup below, and all items you have permission to move will
                 be moved into the selected workgroup.
             </header>
-            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
-            <div class="clearfix"></div>
-            <div id="workgroup">
-                {% bootstrap_field form.workgroup placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
+            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            {% bootstrap_field form.workgroup placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            <div class="pull-right">
+                <a class="btn btn-default" href="{{ next }}">Cancel</a>
+                <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to workgroup</button>
             </div>
-            <div id="comments">
-                {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
-            </div>
-        </div>
-        <div class="clearfix"></div>
-        <div>
-            <a class="btn btn-default" href="{{ next }}">Cancel</a>
-            <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to workgroup</button>
         </div>
     </form>
 {% endblock %}

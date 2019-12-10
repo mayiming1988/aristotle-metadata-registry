@@ -5,7 +5,7 @@
 {% block title %}Move multiple items to stewardship organisation{% endblock %}
 
 {% block content %}
-    <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
+    <form method="post" class="form-horizontal" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
         <input type="hidden" name="bulkaction" value="{{ bulk_action_title }}"/>
         <div class="modal-body">
             <div class="alert alert-warning" role="alert">
@@ -16,19 +16,14 @@
                 Select a stewardship organisation below, and all items you have permission to move will
                 be moved into the selected stewardship organisation.
             </header>
-            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-8" %}
-            <div id="steward_org">
-                {% bootstrap_field form.steward_org placeholder="" layout="horizontal" %}
+
+            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            {% bootstrap_field form.steward_org placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+            <div class="pull-right">
+                <a class="btn btn-default" href="{{ next }}">Cancel</a>
+                <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to Stewardship Organisation</button>
             </div>
-            <div class="clearfix"></div>
-            <div>
-                {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" %}
-            </div>
-        </div>
-        <div class="clearfix"></div>
-        <div>
-            <a class="btn btn-default" href="{{ next }}">Cancel</a>
-            <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to Stewardship Organisation</button>
         </div>
     </form>
 {% endblock %}
