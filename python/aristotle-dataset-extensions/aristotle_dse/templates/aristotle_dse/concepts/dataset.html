@@ -42,7 +42,7 @@
         </dd>
         <dt>Distribution files</dt>
         <dd>
-            {% if item|can_edit:request.user %}
+            {% if can_edit %}
                 <a href="{% url 'aristotle_dse:add_distribution_to_dataset' iid=item.id %}"
                    data-toggle="modal" data-target="#dse_modal"
                    class="btn btn-default btn-sm pull-right">
@@ -80,8 +80,7 @@
             {% endif %}
         </dd>
     </dl>
-
-    {% if item|can_edit:request.user %}
+    {% if can_edit %}
         {% bootstrap_modal 'dse_modal' size='lg' %}
     {% endif %}
 
