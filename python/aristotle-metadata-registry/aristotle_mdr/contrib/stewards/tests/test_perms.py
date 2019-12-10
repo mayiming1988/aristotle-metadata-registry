@@ -218,6 +218,7 @@ class OrgConceptVisibilityTests(BaseStewardOrgsTestCase, TestCase):
             mdr_models.ObjectClass.objects.visible(self.viewer),
         )
 
+
 class OrgPermissionsTests(BaseStewardOrgsTestCase, TestCase):
     def test_user_is_owner(self):
         self.assertTrue(self.steward_org_1.is_owner(self.org_manager))
