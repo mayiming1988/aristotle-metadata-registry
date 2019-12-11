@@ -9,7 +9,7 @@ from aristotle_mdr.views.versions import VersionsMixin
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from comet.models import Indicator, IndicatorSet
+from aristotle_mdr.utils.utils import is_active_extension
 
 from django.db.models import Q
 from django.conf import settings
@@ -129,9 +129,13 @@ class GeneralGraphicalConceptView(ObjectAPIView):
 
                             nodes.append(serialised_rel_attr)
 
-                            # Change the direction of arrows from Indicator to Indicator Set:
-                            if isinstance(rel_attr, IndicatorSet) and isinstance(item, Indicator):
-                                edges.append(({"from": item.id, "to": serialised_rel_attr["id"]}))
+                            if is_active_extension("comet"):
+                                from comet.models import Indicator, IndicatorSet
+                                # Change the direction of arrows from Indicator to Indicator Set:
+                                if isinstance(rel_attr, IndicatorSet) and isinstance(item, Indicator):
+                                    edges.append(({"from": item.id, "to": serialised_rel_attr["id"]}))
+                                else:
+                                    edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
                             else:
                                 edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
 
