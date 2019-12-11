@@ -3,23 +3,46 @@
 <div class="row">
     {% bootstrap_field form.registrationDate placeholder="" layout="horizontal" horizontal_field_class="col-md-5" %}
 </div>
+
 <div class="row">
-    {% bootstrap_field form.cascadeRegistration placeholder="" layout="horizontal" horizontal_field_class="col-md-5" %}
+    <div class="form-group">
+        {% bootstrap_label form.cascadeRegistration.label label_for="id_change_state-cascadeRegistration_0" label_class="col-md-3 control-label" %}
+        <div class="col-md-9">
+            {% bootstrap_field form.cascadeRegistration show_label=False form_group_class="" show_help=False %}
+            <div class="help-block">
+                {{ form.cascadeRegistration.help_text }}
+                <a tabindex="0"
+                   class="aristotle-popover"
+                   role="button"
+                   data-toggle="popover"
+                   title=""
+                   data-placement="bottom"
+                   data-content="Associated items can be components of another piece of metadata, or other items that
+                   have been linked together by a user.<br><br> For example, the associated metadata for a Data Element
+                   would be its Data Element Concept, Value Domain, Object Class and Property<br><br>You can review what
+                   other metadata items will be changed by clicking 'Review Changes' button"
+                   data-html="true"
+                   data-original-title="Help about Cascaded Registration">
+                    <i class="fa fa-question-circle"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+
 <div class="row">
-    {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}
+    {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-7" %}
 </div>
+
 {#{% bootstrap_field form.registrationAuthorities placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}#}
 <div class="row">
     <div class="form-group">
         <div class="col-md-3 control-label">
-            <label for="id_registrationAuthorities">
-                {{ form.registrationAuthorities.label }} <span>*</span>
-                <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
-            </label>
+            {% bootstrap_label form.registrationAuthorities.label label_for="registration-authorities-id" label_class="required" %}
         </div>
+        <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
         <div class="col-md-7">
-            <ul>
+            <ul id="registration-authorities-id" class="registration-authorities-list">
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
                         <li>
@@ -35,7 +58,7 @@
         </div>
     </div>
 </div>
+
 <div class="row">
     {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-7" %}
 </div>
-

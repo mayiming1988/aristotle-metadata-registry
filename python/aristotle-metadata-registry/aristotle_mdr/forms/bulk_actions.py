@@ -213,17 +213,6 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
                                          "Add or remove additional items with the autocomplete box."
         self.fields['registrationDate'].help_text = "Date the registration state will be active from."
         self.fields['cascadeRegistration'].label = "Cascade endorsement"
-        self.fields['cascadeRegistration'].help_text = self.fields['cascadeRegistration'].help_text +\
-                                                       '<a tabindex="0" class="aristotle-popover" role="button" ' \
-                                                       'data-toggle="popover" title="Help about Cascaded Registration" ' \
-                                                       'data-placement="bottom" ' \
-                                                       'data-content="Associated items can be components of another ' \
-                                                       'piece of metadata, or other items that have been linked together ' \
-                                                       'by a user.<br><br> For example, the associated metadata for a ' \
-                                                       'Data Element would be its Data Element Concept, Value Domain, ' \
-                                                       'Object Class and Property<br><br>You can review what other ' \
-                                                       'metadata items will be changed by clicking \'Review Changes\' ' \
-                                                       'button" data-html="true"> <i class="fa fa-question-circle"></i></a>'
         self.fields['changeDetails'].help_text = "The administrative note is a publishable statement describing the " \
                                                  "reasons for registration."
         # self.fields['registrationAuthorities'].widget = forms.RadioSelect()

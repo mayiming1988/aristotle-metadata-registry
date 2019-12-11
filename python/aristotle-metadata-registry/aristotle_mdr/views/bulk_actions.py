@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
@@ -146,7 +147,7 @@ def get_bulk_actions():
     return actions
 
 
-class ChangeStatusBulkActionView(ReviewChangesView):
+class ChangeStatusBulkActionView(LoginRequiredMixin, ReviewChangesView):
     change_step_name = 'change_state'
 
     form_list = [
