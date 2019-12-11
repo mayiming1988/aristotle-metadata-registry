@@ -1,7 +1,7 @@
 import reversion
 import aristotle_mdr.models as MDR
 import aristotle_mdr.contrib.favourites.models as fav_models
-from typing import Any, Dict
+from typing import Any
 from django import forms
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -9,6 +9,7 @@ from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from aristotle_mdr.forms import ChangeStatusForm, CASCADE_HELP_TEXT, CASCADE_OPTIONS_PLURAL
+from aristotle_mdr.forms.fields import ForbiddenAllowedModelMultipleChoiceField
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
@@ -22,63 +23,8 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.utils import fetch_aristotle_downloaders
 
 
-class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
-    def __init__(self, *args, **kwargs):
-        self.validate_queryset = kwargs.pop('validate_queryset')
-        super().__init__(*args, **kwargs)
-
-    def _check_values(self, value):
-        """
-        Given a list of possible PK values, returns a QuerySet of the
-        corresponding objects. Skips values if they are not in the queryset.
-        This allows us to force a limited selection to the client, while
-        ignoring certain additional values if given. However, this means
-        *extra checking must be done* to limit over exposure and invalid
-        data.
-        """
-        from django.core.exceptions import ValidationError
-        from django.utils.encoding import force_text
-
-        key = self.to_field_name or 'pk'
-        # deduplicate given values to avoid creating many querysets or
-        # requiring the database backend deduplicate efficiently.
-        try:
-            value = frozenset(value)
-        except TypeError:
-            # list of lists isn't hashable, for example
-            raise ValidationError(
-                self.error_messages['list'],
-                code='list',
-            )
-        for pk in value:
-            try:
-                self.validate_queryset.filter(**{key: pk})
-            except (ValueError, TypeError):
-                raise ValidationError(
-                    self.error_messages['invalid_pk_value'],
-                    code='invalid_pk_value',
-                    params={'pk': pk},
-                )
-        qs = self.validate_queryset.filter(**{'%s__in' % key: value})
-        pks = set(force_text(getattr(o, key)) for o in qs)
-        for val in value:
-            if force_text(val) not in pks:
-                raise ValidationError(
-                    self.error_messages['invalid_choice'],
-                    code='invalid_choice',
-                    params={'value': val},
-                )
-        return qs
-
-
-class RedirectBulkActionMixin:
-    redirect = True
-
-    def get_redirect_url(self):
-        return self.redirect_url
-
-
 class BulkActionForm(UserAwareForm):
+    items_help_text = ""  # Override this attribute to provide the items help text to the template.
     classes = ""
     redirect: bool = False
     confirm_page: Any = None
@@ -92,16 +38,6 @@ class BulkActionForm(UserAwareForm):
         required=False,
         widget=HiddenInput()
     )
-
-    # Queryset is all as we try to be nice and process what we can in bulk actions.
-    items = ForbiddenAllowedModelMultipleChoiceField(
-        queryset=MDR._concept.objects.all(),
-        validate_queryset=MDR._concept.objects.all(),
-        label="Related items",
-        required=False,
-    )
-    items_label = "Select some items"
-    queryset = MDR._concept.objects.all()
 
     def __init__(self, form, *args, **kwargs):
         self.initial_items = kwargs.pop('items', [])
@@ -119,11 +55,12 @@ class BulkActionForm(UserAwareForm):
             super().__init__(*args, **kwargs)
 
         self.fields['items'] = ForbiddenAllowedModelMultipleChoiceField(
-            label=self.items_label,
-            validate_queryset=MDR._concept.objects.all(),
+            label="Items",
+            help_text=self.items_help_text,
             queryset=queryset,
-            initial=self.initial_items,
+            validate_queryset=MDR._concept.objects.all(),
             required=False,
+            initial=self.initial_items,
             widget=widgets.ConceptAutocompleteSelectMultiple()
         )
 
@@ -167,7 +104,6 @@ class LoggedInBulkActionForm(BulkActionForm):
 class AddFavouriteForm(LoggedInBulkActionForm):
     classes = "fa-bookmark"
     action_text = _('Add favourite')
-    items_label = "Items that will be added to your favourites list"
 
     def make_changes(self):
         items = self.items_to_change
@@ -198,7 +134,6 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 class RemoveFavouriteForm(LoggedInBulkActionForm):
     classes = "fa-minus-square"
     action_text = _('Remove favourite')
-    items_label = "Items that will be removed from your favourites list"
 
     def make_changes(self):
         items = self.items_to_change
@@ -215,8 +150,12 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_status.html"
     classes = "fa-university"
     action_text = _('Change registration status')
-    items_label = "These are the items that will be registered. " \
-                  "Add or remove additional items with the autocomplete box."
+    items_help_text = "These are the items that will be registered. Add or remove additional items with the " \
+                      "autocomplete box."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cascadeRegistration'].label = "Cascade endorsement"
 
     cascadeRegistration = forms.ChoiceField(
         initial=0,
@@ -231,31 +170,35 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
 
 
 class BulkMoveMetadataMixin:
-    @staticmethod
-    def generate_moving_message(org_name, successfully_moved_items: int, failed_items=None) -> str:
+    org_type = ""  # Override this attribute with "workgroup" or "registration authority".
+
+    def generate_moving_message(self, org_name, successfully_moved_items: int, failed_items=None) -> str:
         if not failed_items:
-            message = _("%(num_items)s items moved into the workgroup '%(new_wgs)s'.") % {
+            message = _("%(num_items)s items moved into the %(org_type)s '%(new_wgs)s'.") % {
                 'num_items': successfully_moved_items,
-                'new_wgs': org_name
+                'new_wgs': org_name,
+                'org_type': self.org_type,
             }
         else:
             message = _(
-                "%(num_items)s items moved into the workgroup '%(new_wgs)s'. \n"
+                "%(num_items)s items moved into the %(org_type)s '%(new_wgs)s'. \n"
                 "Some items failed, they had the id's: %(bad_ids)s"
             ) % {
-                'new_wgs': org_name,
                 'num_items': successfully_moved_items,
+                'new_wgs': org_name,
+                'org_type': self.org_type,
                 'bad_ids': ", ".join(failed_items),
             }
         return message
 
 
 class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
+    org_type = "workgroup"
+    items_help_text = "These are the items that will be moved between workgroups. Add or remove additional items " \
+                      "with the autocomplete box."
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
     classes = "fa-users"
     action_text = _('Change workgroup')
-    items_label = "These are the items that will be moved between workgroups." \
-                  " Add or remove additional items with the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -314,11 +257,12 @@ class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
 
 
 class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
+    org_type = "registration authority"
+    items_help_text = "These are the items that will be moved to a new stewardship organisation. Add or remove " \
+                      "additional items within the autocomplete box."
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
     classes = "fa-sitemap"
     action_text = _("Change stewardship organisation")
-    items_label = "These are the items that will be moved between workgroups." \
-                  " Add or remove additional items within the autocomplete box. "
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -332,15 +276,13 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
         self.fields['changeDetails'] = forms.CharField(
             label="Change notes (optional)",
             required=False,
-            widget=forms.Textarea(attrs={'class': 'form-control'})
+            widget=forms.Textarea
         )
 
     def apply_move_permission_checking(self, item, move_from_checks) -> bool:
-        can_move_permission = False
 
         if item.stewardship_organisation is None:
-            # No org, the user can move their own item
-            can_move_permission = True
+            can_move_permission = True  # If there is no org, the user can move their own item.
         else:
             can_move_permission = move_from_checks.get(item.stewardship_organisation.pk, None)
             if can_move_permission is None:
@@ -407,10 +349,10 @@ class QuickPDFDownloadForm(DownloadActionForm):
 
 
 class BulkDownloadForm(DownloadActionForm):
+    items_help_text = "These are the items that will be downloaded"
     confirm_page = "aristotle_mdr/actions/bulk_actions/bulk_download.html"
     classes = "fa-download"
     action_text = _('Bulk download')
-    items_label = "These are the items that will be downloaded"
 
     download_type = forms.ChoiceField(
         choices=[],

@@ -3,23 +3,23 @@
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
 {% block content %}
-<h1>
-    Version history of
-    {{ item.name }}
-    ({{ item.item_type_name }})
-</h1>
-<ol class="breadcrumb">
-    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-    <li><a href="#">{% trans "Version history" %}</a></li>
-</ol>
+    <h1>
+        Version history of
+        {{ item.name }}
+        ({{ item.item_type_name }})
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li><a href="#">{% trans "Version history" %}</a></li>
+    </ol>
 
-<table class="table">
-<thead>
-    <tr>
-        <th>{% trans "Date" %}</th>
-        <th>{% trans "Comment" %}</th>
-        <th>{% trans "User" %}</th>
-        {% comment %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "Comment" %}</th>
+            <th>{% trans "User" %}</th>
+            {% comment %}
         {% if sort == "mod_asc" %}
         <th>
         <a href="?{% paginator_get request page.number %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
@@ -30,18 +30,18 @@
         {% endif %}
         Last Updated</th>
         {% endcomment %}
-    </tr>
-</thead>
-<tbody>
-    {% for version in versions %}
-    <tr>
-        <td><time datetime="{{ version.revision.date_created|isotime }}">{{ version.revision.date_created }}</time></td>
-        <td>{% firstof version.revision.comment _('No version comment made') %}</td>
-        <td>{{ version.revision.user }}</td>
-        {# <td><a href='' title="{% trans 'Compare to previous' %}"><i class="fa fa-copy"></i></a></td> #}
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
+        </tr>
+        </thead>
+        <tbody>
+        {% for version in versions %}
+            <tr>
+                <td><time datetime="{{ version.revision.date_created|isotime }}">{{ version.revision.date_created }}</time></td>
+                <td>{% firstof version.revision.comment _('No version comment made') %}</td>
+                <td>{{ version.revision.user }}</td>
+                {# <td><a href='' title="{% trans 'Compare to previous' %}"><i class="fa fa-copy"></i></a></td> #}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}

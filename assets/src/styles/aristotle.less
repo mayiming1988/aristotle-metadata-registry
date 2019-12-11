@@ -921,3 +921,34 @@ a[aria-expanded=false] .fa-chevron-down {
     text-decoration: none !important;
     border-bottom: none !important;
 }
+
+/*
+Add an asterisk to a form required field inside a django {% bootstrap_field %}
+To make this work it is necessary to add the required_css_class="required" attribute in the template tag.
+Usage:
+
+   {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}
+
+*/
+
+.form-group.required label:after {
+    content: ' *'; font-weight: bold;
+}
+
+/*
+Add an asterisk to a form label inside a {% bootstrap_label %}
+To make this work it is necessary to add the label_class="required" attribute in the template tag.
+Usage:
+
+   {% bootstrap_label form.registrationAuthorities.label label_for="id_registrationAuthorities" label_class="required" %}
+
+*/
+
+label.required:after {
+    content: ' *'; font-weight: bold;
+}
+
+.registration-authorities-list {
+    list-style-type: none;
+    padding-left: 0;
+}
