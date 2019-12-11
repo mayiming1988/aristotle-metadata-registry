@@ -9,7 +9,7 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareForm
 from aristotle_mdr.forms.forms import ChangeStatusGenericForm, CASCADE_HELP_TEXT, CASCADE_OPTIONS_PLURAL
 
-from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
+from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.contrib.autocomplete.widgets import (
     ConceptAutocompleteSelectMultiple,
@@ -20,11 +20,11 @@ from aristotle_mdr.widgets.widgets import DataAttrSelect
 from . import models
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class RequestReviewForm(ChangeStatusGenericForm):
-
     due_date = forms.DateField(
         required=False,
         label=_("Due date"),
@@ -107,7 +107,6 @@ class RequestReviewCreateForm(RequestReviewFormBase):
 
 
 class RequestReviewUpdateForm(RequestReviewFormBase):
-
     class Meta(RequestReviewFormBase.Meta):
         """Inherit from base class Meta"""
 
@@ -155,8 +154,9 @@ class RequestCommentForm(UserAwareModelForm):
         fields = ['body']
 
 
-class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionForm, RequestReviewForm):
-    classes="fa-flag"
+class RequestReviewBulkActionForm(LoggedInBulkActionForm, RequestReviewForm):
+    redirect = True
+    classes = "fa-flag"
     action_text = _('Request review')
 
     @classmethod
