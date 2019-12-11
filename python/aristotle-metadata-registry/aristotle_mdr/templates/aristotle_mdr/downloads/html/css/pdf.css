@@ -145,7 +145,7 @@ table.justified td, table.justified th {
 .dss_inclusion_html {
     width: 20%;
 }
-.dss_inclusions .ref {
+.justified .ref {
     padding-right: 10px;
 }
 .justified .padding-0 {
