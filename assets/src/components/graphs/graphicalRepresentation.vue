@@ -242,9 +242,6 @@ export default {
         },
         edgesProcessor: function (responseEdges) {
 
-            console.log("THESE ARE THE EDGES:")
-            console.log(responseEdges)
-
             let edges = []
 
             for (let element of responseEdges) {
