@@ -59,6 +59,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'model_name_plural': self.model._meta.verbose_name_plural.title,
+            'model_name': self.model._meta.verbose_name.title,
             'model': self.model._meta.model_name,
             'app_label': self.model._meta.app_label,
             'item': self.item,
@@ -247,6 +248,13 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if self.request.POST:
             form = self.get_form()
             context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
+            recently_edited = 'last_fetched' in form.errors
+            context['last_fetched_error'] = recently_edited
+            context['only_last_fetched_error'] = recently_edited and len(form.errors) == 1
+            if recently_edited:
+                recent_version_a, recent_version_b = Version.objects.get_for_object(self.item).all()[:2] #.first()
+                context['recent_version_a'] = recent_version_a
+                context['recent_version_b'] = recent_version_b
 
         fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
