@@ -215,7 +215,6 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
         self.fields['cascadeRegistration'].label = "Cascade endorsement"
         self.fields['changeDetails'].help_text = "The administrative note is a publishable statement describing the " \
                                                  "reasons for registration."
-        # self.fields['registrationAuthorities'].widget = forms.RadioSelect()
 
     cascadeRegistration = forms.ChoiceField(
         initial=0,
