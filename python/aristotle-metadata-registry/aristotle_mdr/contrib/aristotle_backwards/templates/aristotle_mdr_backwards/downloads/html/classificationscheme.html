@@ -9,9 +9,7 @@
     {{ item.classificationStructure | bleach }}
     {% endif %}
   </div>
-{% endblock %}
 
-{% block relationships %}
   {% with vds=item.valueDomains.all %}
     {% if vds %}
       <h3>Value Domains implementing this Classification Scheme</h3>

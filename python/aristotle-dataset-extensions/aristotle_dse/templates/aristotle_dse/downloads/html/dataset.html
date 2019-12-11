@@ -23,7 +23,7 @@
             {% if item.distribution_set.exists %}
                 <ol>
                     {% if item.distribution_set.exists %}
-                        {% for distribution in item.distribution_set.all|can_view_iter:request.user %}
+                        {% for distribution in item.distribution_set.all|can_view_iter:user %}
                             <li class="well">
                                 <span class="file_type">{{distribution.format_type}}</span>
                                 {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
