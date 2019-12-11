@@ -76,7 +76,8 @@ class WorkgroupVerificationMixin:
 
 class CheckIfModifiedMixin(forms.ModelForm):
     modified_since_form_fetched_error = _(
-        "The object you are editing has been changed, review the changes before continuing then if you wish to save your changes click the Save button below."
+        "The object you are editing has been changed, review the changes before continuing then if you wish to save "
+        "your changes click the Save button below."
     )
     modified_since_field_missing = _(
         "Unable to determine if this save will overwrite an existing save. Please try again. "

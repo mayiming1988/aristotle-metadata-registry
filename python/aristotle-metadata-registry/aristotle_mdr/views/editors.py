@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
-from django.db import transaction
+from django.utils import timezone
 
 import reversion
 from reversion.models import Version
@@ -212,6 +213,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         formsets_invalid = self.validate_formsets(extra_formsets)
 
         if form_invalid or formsets_invalid:
+            form.data = form.data.copy()
+            form.data['last_fetched'] = timezone.now()
             return self.form_invalid(form, formsets=extra_formsets)
         else:
             # Create the revision
