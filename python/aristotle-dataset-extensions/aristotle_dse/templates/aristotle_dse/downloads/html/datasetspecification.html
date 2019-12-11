@@ -22,7 +22,7 @@
 
     {% if item.data_elements.exists or item.clusters.exists %}
             <header>Metadata items in this Data Set Specification</header>
-        <table class="dss_inclusions">
+      `  <table class="justified">
           <thead>
             <tr>
               <th class="dss_inclusion_ref">Ref</th>
@@ -69,6 +69,6 @@
               <th>#</th>
             </tr>
           </tfoot>
-        </table>
+        </table>`
     {% endif %}
 {% endblock %}
