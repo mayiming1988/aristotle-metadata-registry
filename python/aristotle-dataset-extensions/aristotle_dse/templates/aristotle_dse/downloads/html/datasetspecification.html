@@ -4,7 +4,7 @@
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
     {% if item.collection_method or item.statistical_unit %}
-        <dl>Collection and usage information</h2>
+        <h2>Collection and usage information</h2>
         <dd>
             {% if item.statistical_unit %}
                 <strong>Statistical Unit</strong>
@@ -22,7 +22,7 @@
 
     {% if item.data_elements.exists or item.clusters.exists %}
             <header>Metadata items in this Data Set Specification</header>
-      `  <table class="justified">
+        <table class="justified">
           <thead>
             <tr>
               <th class="dss_inclusion_ref">Ref</th>
@@ -69,6 +69,6 @@
               <th>#</th>
             </tr>
           </tfoot>
-        </table>`
+        </table>
     {% endif %}
 {% endblock %}
