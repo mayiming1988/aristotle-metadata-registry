@@ -18,7 +18,7 @@ register = template.Library()
 
 
 @register.filter
-def rels_for_download(qs, user):
+def rels_for_download(qs, user=None):
     if not user:
         return qs.public().prefetch_related("statuses")
     else:
