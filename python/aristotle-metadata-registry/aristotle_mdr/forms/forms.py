@@ -39,6 +39,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     registrationDate = forms.DateField(
         required=False,
         label=_("Registration date"),
+        help_text="Date the registration state will be active from.",
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
         initial=timezone.now()
     )
