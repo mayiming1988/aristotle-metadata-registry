@@ -119,15 +119,6 @@ a {
     color: #224;
 }
 
-table.permissible_values {
-    border: 1px dotted lightgray;
-    width: 100%;
-    margin-top: 30px;
-    border-collapse: collapse;
-}
-
-
-
 table.justified {
     border: 1px dotted lightgray;
     width: 100%;
