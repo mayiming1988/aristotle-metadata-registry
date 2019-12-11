@@ -1,5 +1,5 @@
 from django.forms import Field
-from django.forms.models import ModelMultipleChoiceField
+from django.forms import models
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 from django.forms.widgets import EmailInput
@@ -8,7 +8,7 @@ from aristotle_mdr import perms
 from aristotle_mdr.utils import get_status_change_details
 
 
-class ReviewChangesChoiceField(ModelMultipleChoiceField):
+class ReviewChangesChoiceField(models.ModelMultipleChoiceField):
 
     def __init__(self, queryset, static_content, ra, user, **kwargs):
 
@@ -90,3 +90,52 @@ class MultipleEmailField(Field):
             return cleaned_values
         else:
             raise ValidationError(errors)
+
+
+class ForbiddenAllowedModelMultipleChoiceField(models.ModelMultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        self.validate_queryset = kwargs.pop('validate_queryset')
+        super().__init__(*args, **kwargs)
+
+    def _check_values(self, value):
+        """
+        Given a list of possible PK values, returns a QuerySet of the
+        corresponding objects. Skips values if they are not in the queryset.
+        This allows us to force a limited selection to the client, while
+        ignoring certain additional values if given. However, this means
+        *extra checking must be done* to limit over exposure and invalid
+        data.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils.encoding import force_text
+
+        key = self.to_field_name or 'pk'
+        # deduplicate given values to avoid creating many querysets or
+        # requiring the database backend deduplicate efficiently.
+        try:
+            value = frozenset(value)
+        except TypeError:
+            # list of lists isn't hashable, for example
+            raise ValidationError(
+                self.error_messages['list'],
+                code='list',
+            )
+        for pk in value:
+            try:
+                self.validate_queryset.filter(**{key: pk})
+            except (ValueError, TypeError):
+                raise ValidationError(
+                    self.error_messages['invalid_pk_value'],
+                    code='invalid_pk_value',
+                    params={'pk': pk},
+                )
+        qs = self.validate_queryset.filter(**{'%s__in' % key: value})
+        pks = set(force_text(getattr(o, key)) for o in qs)
+        for val in value:
+            if force_text(val) not in pks:
+                raise ValidationError(
+                    self.error_messages['invalid_choice'],
+                    code='invalid_choice',
+                    params={'value': val},
+                )
+        return qs
