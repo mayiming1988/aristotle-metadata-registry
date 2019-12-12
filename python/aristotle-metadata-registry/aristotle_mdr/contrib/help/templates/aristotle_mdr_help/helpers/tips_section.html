@@ -1,4 +1,3 @@
-
 {% load i18n aristotle_help aristotle_tags util_tags %}
 
 {% if help or custom_help %}
@@ -16,8 +15,8 @@
         {% endif %}
     {% endif %}
      <p>For more information on {{model_name_plural}}, read the
-        <a href="{% url 'aristotle_help:concept_help' app_label model %}">
-        help page.
+        <a target="_blank" href="{% url 'aristotle_help:concept_help' app_label model %}">
+          help page.
         </a>
      </p>
 {% endif %}
