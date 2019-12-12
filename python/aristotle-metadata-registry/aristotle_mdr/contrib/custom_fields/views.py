@@ -20,10 +20,10 @@ import json
 
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
-    template_name='aristotle_mdr/custom_fields/list.html'
-    model=models.CustomField
-    paginate_by=20
-    model_name='Custom Field'
+    template_name = 'aristotle_mdr/custom_fields/list.html'
+    model = models.CustomField
+    paginate_by = 20
+    model_name = 'Custom Field'
     headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
     attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
     blank_value = {
@@ -91,10 +91,10 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
 
 
 class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
-    model=models.CustomField
-    form_class=CustomFieldDeleteForm
-    template_name='aristotle_mdr/custom_fields/delete.html'
-    cancel_url_name='aristotle_custom_fields:list'
+    model = models.CustomField
+    form_class = CustomFieldDeleteForm
+    template_name = 'aristotle_mdr/custom_fields/delete.html'
+    cancel_url_name = 'aristotle_custom_fields:list'
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
