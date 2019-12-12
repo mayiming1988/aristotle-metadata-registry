@@ -922,6 +922,12 @@ a[aria-expanded=false] .fa-chevron-down {
     border-bottom: none !important;
 }
 
+// Add margin around ckeditor contents
+// This is required to keep the look when using divarea
+.cke_contents {
+    margin: 20px !important;
+}
+
 /*
 Add an asterisk to a form required field inside a django {% bootstrap_field %}
 To make this work it is necessary to add the required_css_class="required" attribute in the template tag.
