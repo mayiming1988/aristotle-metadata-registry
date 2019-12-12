@@ -5,9 +5,12 @@
 
 {% if form.errors or invalid_tabs or last_fetched_error %}
     <div class="alert alert-danger">
+        <p>
+        <strong>Alert:</strong>
             {% if not only_last_fetched_error %}
                 {% if form.errors or invalid_tabs %}
                     There were errors saving your {{ model_name }}, please review the errors shown below.
+                    </p>
 
                     {% if invalid_tabs %}
                     <p>Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
@@ -17,14 +20,15 @@
             {% endif %}
 
             {% if last_fetched_error %}
-            <p>This item was edited by another user while you were making changes. You can
+            This item was edited by another user while you were making changes. You can
                 <a target="_blank" href="{% url 'aristotle:compare_versions' object.id %}?v1={{recent_version_a.pk}}&v2={{recent_version_b.pk}}"
                     title="View the most recent changes to this item (opens in a new window).">
                     compare their changes to the previously saved version</a>.
             </p><p>
                 You can still save your changes below, however it will overwrite any changes other users have made.
-            </p>
+                <br>A notification will be sent to the other editors of this item notifying them of changes.
             {% endif %}
+        </p>
     </div>
 {% endif %}
 
