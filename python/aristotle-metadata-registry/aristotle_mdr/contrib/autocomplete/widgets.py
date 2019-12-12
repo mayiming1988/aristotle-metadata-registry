@@ -61,6 +61,7 @@ class FrameworkDimensionAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
 
 class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:framework'
+    size = 'large'
 
 
 class WorkgroupAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
