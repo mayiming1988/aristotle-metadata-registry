@@ -254,8 +254,12 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             recently_edited = 'last_fetched' in form.errors
             context['last_fetched_error'] = recently_edited
             context['only_last_fetched_error'] = recently_edited and len(form.errors) == 1
+
             if recently_edited:
-                recent_version_a, recent_version_b = Version.objects.get_for_object(self.item).all()[:2]
+                recent_version_a, recent_version_b = (
+                    *Version.objects.get_for_object(self.item).all()[:2],
+                    None, None
+                )[:2]
                 context['recent_version_a'] = recent_version_a
                 context['recent_version_b'] = recent_version_b
 

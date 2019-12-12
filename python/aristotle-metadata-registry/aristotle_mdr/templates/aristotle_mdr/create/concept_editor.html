@@ -20,13 +20,18 @@
             {% endif %}
 
             {% if last_fetched_error %}
-            This item was edited by another user while you were making changes. You can
-                <a target="_blank" href="{% url 'aristotle:compare_versions' object.id %}?v1={{recent_version_a.pk}}&v2={{recent_version_b.pk}}"
-                    title="View the most recent changes to this item (opens in a new window).">
-                    compare their changes to the previously saved version</a>.
-            </p><p>
-                You can still save your changes below, however it will overwrite any changes other users have made.
-                <br>A notification will be sent to the other editors of this item notifying them of changes.
+            This item was edited by another user while you were making changes.
+                {% if recent_version_a and recent_version_b %}
+                    You can
+                    <a target="_blank" href="{% url 'aristotle:compare_versions' object.id %}?v1={{recent_version_a.pk}}&v2={{recent_version_b.pk}}"
+                        title="View the most recent changes to this item (opens in a new window).">
+                        compare their changes to the previously saved version</a>.
+                {% else %}
+                    Review changes to the item from the <a target="_blank" href="{{item.get_absolute_url}}">item page</a>.
+                {% endif %}
+                </p><p>
+                    You can still save your changes below, however it will overwrite any changes other users have made.
+                    <br>A notification will be sent to the other editors of this item notifying them of changes.
             {% endif %}
         </p>
     </div>
