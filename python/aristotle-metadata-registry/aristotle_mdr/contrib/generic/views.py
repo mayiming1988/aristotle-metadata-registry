@@ -540,9 +540,7 @@ class ExtraFormsetMixin:
 
         invalid_tabs = set()
         # We get formset passed on errors
-        logger.error(extra_formsets)
         for item in extra_formsets:
-            logger.error(item)
             if (
                     item['formset'].non_form_errors() or (
                         item['formset'].errors and
