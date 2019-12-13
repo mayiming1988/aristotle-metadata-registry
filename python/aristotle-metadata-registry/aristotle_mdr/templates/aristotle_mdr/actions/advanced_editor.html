@@ -19,7 +19,8 @@
         <li class="active">Advanced editor</li>
     </ol>
 
-    <form method="post" action="{% url 'aristotle:edit_item' item.id %}">{% csrf_token %}{{form.last_fetched}}
+    <form method="post" action="{% url 'aristotle:edit_item' item.id %}">
+          {% csrf_token %}{{form.last_fetched}}
           {% if item.is_superseded  %}
               <div class=" alert alert-info">
                   {% trans 'This item has been superseded by one or more newer versions' %}

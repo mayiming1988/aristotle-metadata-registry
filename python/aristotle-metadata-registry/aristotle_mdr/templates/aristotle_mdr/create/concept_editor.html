@@ -3,11 +3,37 @@
 {% load aristotle_tags util_tags %}
 
 
-{% if form.errors or invalid_tabs %}
+{% if form.errors or invalid_tabs or last_fetched_error %}
     <div class="alert alert-danger">
-            There were errors saving your {{ model_name }}, please review the errors shown below.
-            Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
-            more information.
+        <p>
+        <strong>Alert:</strong>
+            {% if not only_last_fetched_error %}
+                {% if form.errors or invalid_tabs %}
+                    There were errors saving your {{ model_name }}, please review the errors shown below.
+                    </p>
+
+                    {% if invalid_tabs %}
+                    <p>Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
+                        more information.</p>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
+            {% if last_fetched_error %}
+            This item was edited by another user while you were making changes.
+                {% if recent_version_a and recent_version_b %}
+                    You can
+                    <a target="_blank" href="{% url 'aristotle:compare_versions' object.id %}?v1={{recent_version_a.pk}}&v2={{recent_version_b.pk}}"
+                        title="View the most recent changes to this item (opens in a new window).">
+                        compare their changes to the previously saved version</a>.
+                {% else %}
+                    Review changes to the item from the <a target="_blank" href="{{item.get_absolute_url}}">item page</a>.
+                {% endif %}
+                </p><p>
+                    You can still save your changes below, however it will overwrite any changes other users have made.
+                    <br>A notification will be sent to the other editors of this item notifying them of changes.
+            {% endif %}
+        </p>
     </div>
 {% endif %}
 
