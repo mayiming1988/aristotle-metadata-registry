@@ -7,15 +7,17 @@
 {% block form_title %}Step 2: Select a role{% endblock %}
 
 {% block wizard_content %}
+<hr>
 <p>
-    Select the role you would like ({{ root_item.name }}) to have in this link
+    Select the role you would like <em>{{ root_item.name }}</em> to have in this link.
 </p>
 {% if not roles_exist %}
 <p>
     The relation you selected doesn't have any roles.
     {% if relation|can_edit:user %}
-    <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}" class="suppress-leave-warning">
-        Click here to add some</a>
+        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}" target="_blank">
+            Click here to add some
+        </a>
     {% endif %}
 </p>
 {% endif %}

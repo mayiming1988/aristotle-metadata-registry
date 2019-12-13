@@ -1,11 +1,9 @@
 from typing import Dict
-from django import forms
-from django.forms.widgets import TextInput, CheckboxSelectMultiple, Select
-
+from django.forms import widgets
 from django.utils.safestring import mark_safe
 
 
-class NameSuggestInput(TextInput):
+class NameSuggestInput(widgets.TextInput):
     def __init__(self, *args, **kwargs):
         self.suggest_fields = kwargs.pop('name_suggest_fields')
         self.separator = kwargs.pop('separator', '-')
@@ -20,7 +18,7 @@ class NameSuggestInput(TextInput):
 
 
 # Thanks http://stackoverflow.com/questions/6727372/
-class RegistrationAuthoritySelect(forms.Select):
+class RegistrationAuthoritySelect(widgets.Select):
     def render(self, name, value, attrs=None, renderer=None):
         if value is not None:
             attrs['disabled'] = 'disabled'
@@ -36,7 +34,7 @@ class RegistrationAuthoritySelect(forms.Select):
             return super().render(name, value, attrs, renderer)
 
 
-class TableCheckboxSelect(CheckboxSelectMultiple):
+class TableCheckboxSelect(widgets.CheckboxSelectMultiple):
 
     def __init__(self, extra_info, static_info, headers, top_header, order, attrs=None, choices=(), deselections=False):
         super().__init__(attrs, choices)
@@ -103,9 +101,9 @@ class TableCheckboxSelect(CheckboxSelectMultiple):
         return context
 
 
-class MultiTextWidget(TextInput):
+class MultiTextWidget(widgets.TextInput):
     template_name = 'aristotle_mdr/widgets/multi_input.html'
-    subwidget = TextInput
+    subwidget = widgets.TextInput
 
     class Media:
         js = ('aristotle_mdr/multifield.js',)
@@ -153,7 +151,7 @@ class MultiTextWidget(TextInput):
         return values
 
 
-class DataAttrSelect(Select):
+class DataAttrSelect(widgets.Select):
     """Select widget that adds extra data attributes to <option> elements"""
     def __init__(self, attrs=None, choices=(), data: Dict[str, Dict[str, str]] = {}):
         super().__init__(attrs, choices)

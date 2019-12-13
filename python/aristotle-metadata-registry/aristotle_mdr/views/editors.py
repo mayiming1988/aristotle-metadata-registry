@@ -359,28 +359,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
 
             return HttpResponseRedirect(url_slugify_concept(item))
 
-    # TODO: This is only called in a test. Is this ever used?
-    def clone_components(self, clone):
-        original = self.item
-        fields = getattr(self.model, 'clone_fields', [])
-        for field_name in fields:
-            field = self.model._meta.get_field(field_name)
-            remote_field_name = field.remote_field.name
-            manager = getattr(original, field.get_accessor_name(), None)
-            if manager is None:
-                components = []
-            else:
-                components = manager.all()
-
-            new_components = []
-            for component in components:
-                # Set pk to none so we insert instead of update
-                component.pk = None
-                # Set the remote field to the clone
-                setattr(component, remote_field_name, clone)
-                new_components.append(component)
-            field.related_model.objects.bulk_create(new_components)
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 

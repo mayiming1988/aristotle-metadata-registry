@@ -2,38 +2,38 @@
 
 {% block title %}Add members to {{ item.name }}{% endblock %}
 {% block content %}
-<form method="post" action="{% url 'aristotle:addWorkgroupMembers' item.id %}">
-{% csrf_token %}
-<div class="modal-body">
-    <header>This form allows you to give additional roles (and their permissions) to users.
-    </header>
-    <section>
+    <form method="post" action="{% url 'aristotle:addWorkgroupMembers' item.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+            <header>This form allows you to give additional roles (and their permissions) to users.
+            </header>
+            <section>
 
-    <div>
-        {{ form.role.errors }}
-        {{ form.user.errors }}
-        <div>
-            {{ form.role.label }}{{ form.role }}
+                <div>
+                    {{ form.role.errors }}
+                    {{ form.user.errors }}
+                    <div>
+                        {{ form.role.label }}{{ form.role }}
+                    </div>
+                    <div>
+                        {{ form.user.label }}
+                        {{ form.user }}
+                    </div>
+                </div>
+
+
+                {% block save %}
+                {% endblock %}
+
+            </section>
         </div>
-        <div>
-            {{ form.user.label }}
-            {{ form.user }}
-        </div>
-    </div>
-
-
-    {% block save %}
-    {% endblock %}
-
-    </section>
-    </div>
-    <div class="modal-footer">
-        {% if request.is_ajax %}
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        {% else %}
-            <a class="btn btn-default" href="{% url 'aristotle:workgroup' item.id %}">Cancel</a>
-        {% endif %}
+        <div class="modal-footer">
+            {% if request.is_ajax %}
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            {% else %}
+                <a class="btn btn-default" href="{% url 'aristotle:workgroup' item.id %}">Cancel</a>
+            {% endif %}
             <input type="submit" class="btn btn-primary" value="Add members" />
-    </div>
-</form>
+        </div>
+    </form>
 {% endblock %}
