@@ -28,7 +28,7 @@ function promote_to_items() {
     let params = ''
     request("PUT", url, body, params).then(
         () => {
-            addHeaderMessage("Promoting item was succesful!");
+            addHeaderMessage("Promoting item was successful!");
             document.getElementById(this.id).innerText = "Promoted";
             document.getElementById(this.id).disabled = true;
         });

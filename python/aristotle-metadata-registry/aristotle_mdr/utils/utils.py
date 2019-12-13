@@ -483,7 +483,6 @@ def get_cascaded_ids(items=[]):
             cascade = item.registry_cascade_items
 
         cascaded_ids = [item.id for item in cascade]
-
         all_cascaded_ids.extend(cascaded_ids)
 
     return all_cascaded_ids
