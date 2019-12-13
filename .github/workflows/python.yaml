@@ -100,7 +100,8 @@ jobs:
 
     - name: Install postgres dependencies
       run: |
-        sudo apt-get install libpq-dev -y
+        sudo apt update
+        sudo apt install libpq-dev -y
 
     - name: Run tests
       run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.TOX_MODULE }}
