@@ -19,7 +19,9 @@ jobs:
         run: pip install -U setuptools pip pipenv
 
       - name: Install postgres dependencies (required for install of Pipfile dependencies)
-        run: sudo apt-get --allow-releaseinfo-change update && sudo apt install libpq-dev
+        run: |
+            sudo apt-get --allow-releaseinfo-change update || true
+            sudo apt install libpq-dev
 
       - name: Install Pip dependencies
         run: pipenv install --deploy --dev --system
