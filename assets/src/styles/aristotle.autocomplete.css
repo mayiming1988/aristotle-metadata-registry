@@ -45,12 +45,22 @@ input[type='text'].autocomplete {
     float: none !important;
 }
 
+.aristotle-select2 .select2-selection__choice strong,
+.aristotle-select2 .select2-selection__choice {
+    white-space: normal;
+}
+
 .aristotle-select2 .select2-selection__clear::after {
-    content: " Remove all items";
+    content: " Remove item";
     font-size: 90%;
     font-weight: normal;
 }
 
+.aristotle-select2.select2-selection--multiple .select2-selection__clear::after {
+    content: " Remove all items";
+    font-size: 90%;
+    font-weight: normal;
+}
 
 .aristotle-select2 .select2-search--inline {
     width:100%;
