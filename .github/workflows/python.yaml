@@ -100,7 +100,6 @@ jobs:
 
     - name: Install postgres dependencies
       run: |
-        sudo apt-get update
         sudo apt-get install libpq-dev -y
 
     - name: Run tests
