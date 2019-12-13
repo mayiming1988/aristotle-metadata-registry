@@ -1,9 +1,13 @@
 /* globals CKEDITOR */
 import { isFormstageElement } from 'src/lib/html.js'
-import 'ckeditor/ckeditor.js'
-// This import is necessary to include, otherwise the import won't work
+import { addPlugins } from 'src/lib/ckeditor_plugins.js'
+
+// Ckeditor imports
+import 'ckeditor'
+// Import non standard plugins, so they are able to be enabled by individual editors
 import 'ckeditor/plugins/justify/plugin.js'
-import  {addPlugins} from 'src/lib/ckeditor_plugins.js'
+
+// Add custom plugins
 addPlugins(CKEDITOR)
 
 // Initialize a ckeditor instance config can be provided to function or in data-config attr
@@ -25,6 +29,7 @@ export function initCKEditorFromTextarea(textarea, config) {
         if (config === undefined) {
             config = JSON.parse(textarea.getAttribute('data-config'));
         }
+
         config.specialChars = [
             '&euro;', '&lsquo;', '&rsquo;', '&ldquo;', '&rdquo;', '&ndash;', '&mdash;', '&iexcl;', '&cent;', '&pound;',
             '&curren;', '&yen;', '&brvbar;', '&sect;', '&uml;', '&copy;', '&ordf;', '&laquo;', '&not;', '&reg;', '&macr;',

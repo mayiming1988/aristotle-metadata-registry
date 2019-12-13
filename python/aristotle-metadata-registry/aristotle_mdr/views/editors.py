@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
-from django.db import transaction
+from django.utils import timezone
 
 import reversion
 from reversion.models import Version
@@ -59,6 +60,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'model_name_plural': self.model._meta.verbose_name_plural.title,
+            'model_name': self.model._meta.verbose_name.title,
             'model': self.model._meta.model_name,
             'app_label': self.model._meta.app_label,
             'item': self.item,
@@ -211,6 +213,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         formsets_invalid = self.validate_formsets(extra_formsets)
 
         if form_invalid or formsets_invalid:
+            form.data = form.data.copy()
+            form.data['last_fetched'] = timezone.now()
             return self.form_invalid(form, formsets=extra_formsets)
         else:
             # Create the revision
@@ -247,6 +251,17 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if self.request.POST:
             form = self.get_form()
             context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
+            recently_edited = 'last_fetched' in form.errors
+            context['last_fetched_error'] = recently_edited
+            context['only_last_fetched_error'] = recently_edited and len(form.errors) == 1
+
+            if recently_edited:
+                recent_version_a, recent_version_b = (
+                    *Version.objects.get_for_object(self.item).all()[:2],
+                    None, None
+                )[:2]
+                context['recent_version_a'] = recent_version_a
+                context['recent_version_b'] = recent_version_b
 
         fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
@@ -358,28 +373,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 item.save()
 
             return HttpResponseRedirect(url_slugify_concept(item))
-
-    # TODO: This is only called in a test. Is this ever used?
-    def clone_components(self, clone):
-        original = self.item
-        fields = getattr(self.model, 'clone_fields', [])
-        for field_name in fields:
-            field = self.model._meta.get_field(field_name)
-            remote_field_name = field.remote_field.name
-            manager = getattr(original, field.get_accessor_name(), None)
-            if manager is None:
-                components = []
-            else:
-                components = manager.all()
-
-            new_components = []
-            for component in components:
-                # Set pk to none so we insert instead of update
-                component.pk = None
-                # Set the remote field to the clone
-                setattr(component, remote_field_name, clone)
-                new_components.append(component)
-            field.related_model.objects.bulk_create(new_components)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

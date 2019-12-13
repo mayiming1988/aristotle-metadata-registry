@@ -571,11 +571,22 @@ dl.treble_defintions {
     padding: 5px 10px;
 }
 
-.aristotle-select2 {
-    min-width: 150px;
-    min-height: 28px;
+.select.aristotle-select2 + span.select2-container, .aristotle-select2-large {
+    // Because DAL doesn't put the select2-container at the correct depth,
+    // we've got this CSS selector to put this CSS on a span that wraps the
+    // initial entry and the dropdown
+    min-width : 200px;
+    min-height: 40px !important;
+    max-width: 500px;
     padding: unset;
 }
+
+select.aristotle-select2 + span.select2-container, .aristotle-select2 {
+    max-width: 400px;
+    min-width: 150px;
+    padding: unset;
+}
+
 
 .ta-fixed-width {
     resize: vertical
@@ -920,6 +931,12 @@ a[aria-expanded=false] .fa-chevron-down {
     // This class exists to remove decoration, e.g. underlines or highlights from text
     text-decoration: none !important;
     border-bottom: none !important;
+}
+
+// Add margin around ckeditor contents
+// This is required to keep the look when using divarea
+.cke_contents {
+    margin: 20px !important;
 }
 
 /*

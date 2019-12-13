@@ -76,7 +76,8 @@ class WorkgroupVerificationMixin:
 
 class CheckIfModifiedMixin(forms.ModelForm):
     modified_since_form_fetched_error = _(
-        "The object you are editing has been changed, review the changes before continuing then if you wish to save your changes click the Save button below."
+        "The object you are editing has been changed, review the changes before continuing then if you wish to save "
+        "your changes click the Save button below."
     )
     modified_since_field_missing = _(
         "Unable to determine if this save will overwrite an existing save. Please try again. "
@@ -110,14 +111,8 @@ class CheckIfModifiedMixin(forms.ModelForm):
 
 
 class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
-    """
-    Add this in when we look at reintroducing the fancy templates.
-    required_css_class = 'required'
-    """
-
     def __init__(self, *args, **kwargs):
         from comet.managers import FrameworkDimensionQuerySet
-        # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
 
         if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
@@ -127,11 +122,14 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                     del self.fields[fname]
 
         for f in self.fields:
+            # Add workgroup
             if f == "workgroup":
                 self.fields[f].widget = widgets.WorkgroupAutocompleteSelect()
                 self.fields[f].widget.choices = self.fields[f].choices
                 if not self.user.is_superuser:
                     self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
+
+            # Add foreign keys and m2m key widgets
             elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == ConceptQuerySet:
                 if hasattr(self.fields[f].queryset, 'visible'):
                     if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
@@ -141,17 +139,20 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                     self.fields[f].queryset = self.fields[f].queryset.all().visible(self.user)
                     self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
                     self.fields[f].widget.choices = self.fields[f].choices
+
             elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == FrameworkDimensionQuerySet:
                 if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
                     field_widget = widgets.FrameworkDimensionAutocompleteSelectMultiple
                     self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
                     self.fields[f].queryset = self.fields[f].queryset.all()
+
+            # Add date field
             elif type(self.fields[f]) == forms.fields.DateField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
-        # Name suggest button
+        # Add the name suggestion button
         aristotle_settings = fetch_aristotle_settings()
         self.fields['name'].widget = NameSuggestInput(
             name_suggest_fields=self._meta.model.name_suggest_fields,
@@ -168,12 +169,13 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             field.name for field in MDR.concept._meta.fields
             if field.name not in field_names
         ]
+
         for name in self.fields:
             if name in concept_field_names and name != 'make_new_item':
                 yield self[name]
 
     def object_specific_fields(self):
-        # returns every field that isn't in a concept
+        """ Returns every field that isn't in a concept"""
         obj_field_names = [
             field.name for field in self._meta.model._meta.get_fields()
             if field not in MDR.concept._meta.fields
@@ -458,7 +460,7 @@ def record_relation_inlineformset_factory():
 
 
 def reference_link_inlineformset_factory():
-    """Create an inline formset factory for organization record"""
+    """Create an inline formset factory for reference link"""
     from aristotle_cloud.contrib.steward_extras.models import MetadataReferenceLink
     base_formset = inlineformset_factory(
         MDR._concept, MetadataReferenceLink,
@@ -466,7 +468,6 @@ def reference_link_inlineformset_factory():
         fields=('metadata', 'reference', 'description'),
         widgets={
             'reference': forms.widgets.Select(attrs={'class': 'form-control'}),
-            # 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
         },
         extra=1,
     )
