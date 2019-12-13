@@ -80,7 +80,7 @@
                         <th>Count</th>
                     </tr>
                     </thead>
-                    {% for name, data in item.relational_attributes.items %}
+                    {% for name, data in relational_attributes.items %}
                         <tr>
                             <td>
                                 <a href="{% url 'aristotle_mdr:item_related' item.pk name %}">
