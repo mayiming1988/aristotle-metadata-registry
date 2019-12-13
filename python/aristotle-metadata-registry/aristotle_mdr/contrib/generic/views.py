@@ -910,14 +910,24 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
 
 
 class BootTableListView(ListView):
-    """Lists objects in a bootstrap table (with optional pagination)"""
+    """
+    Lists objects in a bootstrap table (with optional pagination).
+    This View is useful for
+    """
     template_name = 'aristotle_mdr/generic/boottablelist.html'
-    # Need to override these
-    headers: List[str]
-    attrs: List[str]
+
+    # Need to override these:
+
+    table_headers: List[str]
+    model_attrs: List[str]
     model_name = ''
-    # Can optionally override these
-    blank_value: Dict[str, str]
+
+    # Can optionally override these:
+
+    # Provide a key value pair with the model field name and string text to be used in case the model field has an empty
+    # value: e.g. {'model_field': 'Not assigned yet...',}
+    model_blank_field_replacement: Dict[str, str]
+
     page_heading = ''
     create_button_text = ''
     create_url_name = ''
@@ -940,10 +950,10 @@ class BootTableListView(ListView):
         listing = []
         for item in iterable:
             itemdict = {'attrs': [], 'pk': item.pk}
-            for attr in self.attrs:
+            for attr in self.model_attrs:
                 val = getattr(item, attr)
-                if not val and attr in self.blank_value:
-                    val = self.blank_value[attr]
+                if not val and attr in self.model_blank_field_replacement:
+                    val = self.model_blank_field_replacement[attr]
                 itemdict['attrs'].append(val)
             listing.append(itemdict)
 
@@ -951,7 +961,7 @@ class BootTableListView(ListView):
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data()
-        headers = copy(self.headers)
+        headers = copy(self.table_headers)
 
         page_heading = self.get_heading()
         create_button_text = self.get_create_text()
@@ -988,8 +998,8 @@ class BootTableListView(ListView):
 class CancelUrlMixin:
     cancel_url_name = ''
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self):
+        context = {}
         if self.cancel_url_name:
             context['cancel_url'] = reverse(self.cancel_url_name)
         return context
@@ -1016,7 +1026,7 @@ class VueFormView(FormView):
 
     # Fields to strip from initial
     non_write_fields: List = []
-    # Wether to capitalize option names
+    # Whether to capitalize option names
     capitalize_options: bool = True
 
     def get_vue_initial(self):
