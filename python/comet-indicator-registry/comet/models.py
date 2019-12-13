@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from typing import List
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from django.utils.translation import ugettext as _
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -65,17 +65,23 @@ class Indicator(MDR.concept):
                 "qs": IndicatorSet.objects.filter(indicatorinclusion__indicator=self)
             },
         }
+
         if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from aristotle_dse.models import DataSetSpecification, Dataset
+
+            numdefn_datasets = IndicatorNumeratorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dendefn_datasets = IndicatorDenominatorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dissagedefn_datasets = IndicatorDisaggregationDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            datasets = Dataset.objects.filter(
+                id__in=Subquery(
+                    numdefn_datasets.union(dendefn_datasets).union(dissagedefn_datasets)
+                )
+            )
 
             rels.update({
                 "data_sources": {
                     "all": _("Datasets that are used in this Indicator"),
-                    "qs": Dataset.objects.filter(
-                        Q(indicatornumeratordefinition__indicator=self) |
-                        Q(indicatordenominatordefinition__indicator=self) |
-                        Q(indicatordisaggregationdefinition__indicator=self)
-                    )
+                    "qs": datasets
                 },
                 # "dss": {
                 #     "all": _("Data Set Specifications that include this Indicator"),
