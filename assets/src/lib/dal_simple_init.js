@@ -97,10 +97,16 @@ export function initDALWidget(element, urlfunc) {
         };
     }
 
+    // Set the dropdown CSS C
+    let dropdownCssClass = "aristotle-select2";
+    if (element.attr('multiple')) {
+        dropdownCssClass = 'aristotle-select2-large'
+    }
     $(element).select2({
         tokenSeparators: element.attr('data-tags') ? [','] : null,
         debug: true,
         containerCssClass: ':all:',
+        dropdownCssClass: dropdownCssClass,
         placeholder: element.attr('data-placeholder') || '',
         language: element.attr('data-autocomplete-light-language'),
         minimumInputLength: element.attr('data-minimum-input-length') || 0,

@@ -7,21 +7,17 @@
 {% block form_title %}Step 1: Select a relationship{% endblock %}
 
 {% block wizard_content %}
-    <h2>
-      {% blocktrans %}
-      Add a new link 
-      {% endblocktrans %}
-    </h2>
-    <p>Select the relationship for this link</p>
+<hr>
+    <p>Select the relationship for this link.</p>
     <p>
        Click the blue link icon (<i class="fa fa-external-link-square"></i>) in the drop down to
        view the relation definition in a new window.
     </p>
     <p>
-        <a 
-          target="_blank"
+        To get help on relations, click
+        <a target="_blank"
           href="{% url 'aristotle_help:concept_help' app='aristotle_mdr_links' model='relation' %}">
-            Read more about relationships
+            here.
         </a>
     </p>
     <div>
