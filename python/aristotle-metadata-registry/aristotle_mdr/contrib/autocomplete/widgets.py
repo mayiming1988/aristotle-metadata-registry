@@ -66,7 +66,7 @@ class FrameworkDimensionAutocompleteMixin(object):
             attrs={
                 'data-html': 'true',
                 'class': 'aristotle-select2',
-        }
+            }
         )
         super().__init__(*args, **kwargs)
 
