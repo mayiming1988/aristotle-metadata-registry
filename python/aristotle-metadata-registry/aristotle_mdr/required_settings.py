@@ -268,7 +268,7 @@ CKEDITOR_CONFIGS = {
         ],
         'width': "",
         'disableNativeSpellChecker': False,
-        # 'extraPlugins': 'aristotle_glossary',
+        'extraPlugins': 'aristotle_glossary,divarea',
         'removePlugins': 'contextmenu,liststyle,tabletools,tableselection,elementspath',
         'extraAllowedContent': 'a[data-aristotle-concept-id]'
     },

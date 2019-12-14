@@ -30,7 +30,7 @@
                 <i class="fa fa-exclamation-triangle"></i> Versioning, superseding and standardisation go hand in hand.
             </div>
             <div class="panel-body">
-                Version markers should <em>not</em> replace superseding items and the standisation process.
+                Version markers should <em>not</em> replace superseding items and the standardisation process.
                 Once an item has been made standard it should rarely need to be changed.
                 <br>If a new version of an item is to be created, this can be achieved by creating a new item, with an updated version.
                 Once the new item is standardised, these two items can then be semantically linked via the superseding option.

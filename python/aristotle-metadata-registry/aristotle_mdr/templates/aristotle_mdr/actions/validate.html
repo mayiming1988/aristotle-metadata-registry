@@ -1,29 +1,29 @@
 {% extends 'aristotle_mdr/base.html' %}
 
 {% block title %}
-  Validate
+    Validate
 {% endblock %}
 
 {% block content %}
-  <h1>{{ item_name }} Validation</h1>
-  {% if not setup_valid %}
-    <p>
-      No Validation rules avaliable
-    </p>
-  {% else %}
-    <div class="list-group">
-    {% for result in results %}
-    <a href="#" class="list-group-item">
-      <div class="h4 list-group-item-heading">
-        {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
-      </div>
-      {% if result.message %}
-        <p class="list-group-item-text">
-          {{ result.message }}
+    <h1>{{ item_name }} Validation</h1>
+    {% if not setup_valid %}
+        <p>
+            No Validation rules avaliable
         </p>
-      {% endif %}
-    </a>
-    {% endfor %}
-    </div>
-  {% endif %}
+    {% else %}
+        <div class="list-group">
+            {% for result in results %}
+                <a href="#" class="list-group-item">
+                    <div class="h4 list-group-item-heading">
+                        {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
+                    </div>
+                    {% if result.message %}
+                        <p class="list-group-item-text">
+                            {{ result.message }}
+                        </p>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
 {% endblock %}

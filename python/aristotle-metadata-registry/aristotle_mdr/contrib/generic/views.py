@@ -561,7 +561,8 @@ class ExtraFormsetMixin:
                 if error in ["name", "definition", "version"]:
                     invalid_tabs.add('definition')
                 else:
-                    invalid_tabs.add('references')
+                    if error != "last_fetched":
+                        invalid_tabs.add('references')
         return invalid_tabs
 
     def save_formsets(self, extra_formsets):
@@ -736,7 +737,9 @@ class ExtraFormsetMixin:
             from django.forms.models import model_to_dict
             for index, obj in enumerate(getattr(item, weak['field_name']).all()):
                 o = model_to_dict(obj)
-                o['ORDER'] = o.pop(weak['model'].ordering_field)
+                ordering_field = weak['model'].ordering_field
+                if ordering_field and ordering_field in o.keys():
+                    o['ORDER'] = o.pop(weak['model'].ordering_field)
                 for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
                     o.pop(k, None)
                 initial.append(o)

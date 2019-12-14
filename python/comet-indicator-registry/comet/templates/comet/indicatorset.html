@@ -3,11 +3,12 @@
 
 {% block objSpecific %}
     {% if item.indicatorinclusion_set.exists %}
+        <div class="clearfix"></div>
         <h3>Indicators:</h3>
         <table class="table">
             <thead>
             <tr>
-                <th>Name</th>
+                <th>Label</th>
                 <th>Indicator</th>
                 <th>Outcome Areas</th>
             </tr>

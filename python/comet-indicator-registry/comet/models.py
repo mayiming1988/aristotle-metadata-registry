@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from typing import List
 
 from django.db import models
+from django.db.models import Q, Subquery
 from django.utils.translation import ugettext as _
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -11,6 +12,9 @@ from model_utils.models import TimeStampedModel
 import aristotle_mdr.models as MDR
 import aristotle_dse.models as aristotle_dse
 from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
+from aristotle_mdr.utils import (
+    fetch_aristotle_settings,
+)
 from aristotle_mdr.utils.model_utils import (
     ManagedItem,
     aristotleComponent,
@@ -52,6 +56,41 @@ class Indicator(MDR.concept):
         ('disaggregators', 'indicatordisaggregationdefinition_set'),
     ]
     clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordisaggregationdefinition']
+
+    @property
+    def relational_attributes(self):
+        rels = {
+            "indicator_sets": {
+                "all": _("Indicator Sets that include this Indicator"),
+                "qs": IndicatorSet.objects.filter(indicatorinclusion__indicator=self)
+            },
+        }
+
+        if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_dse.models import DataSetSpecification, Dataset
+
+            numdefn_datasets = IndicatorNumeratorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dendefn_datasets = IndicatorDenominatorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dissagedefn_datasets = IndicatorDisaggregationDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            datasets = Dataset.objects.filter(
+                id__in=Subquery(
+                    numdefn_datasets.union(dendefn_datasets).union(dissagedefn_datasets)
+                )
+            )
+
+            rels.update({
+                "data_sources": {
+                    "all": _("Datasets that are used in this Indicator"),
+                    "qs": datasets
+                },
+                # "dss": {
+                #     "all": _("Data Set Specifications that include this Indicator"),
+                #     "qs": DataSetSpecification.objects.filter(
+                #         dssdeinclusion__data_element=self
+                #     ).distinct()
+                # },
+            })
+        return rels
 
     def add_component(self, model_class, **kwargs):
         kwargs.pop('indicator', None)
@@ -146,6 +185,16 @@ class IndicatorSet(MDR.concept):
         ('indicators', 'indicatorinclusion_set'),
     ]
     clone_fields = ['indicatorinclusion']
+
+    @property
+    def relational_attributes(self):
+        rels = {
+            "outcome_areas": {
+                "all": _("Outcome areas for Indicators in this Indicator Set"),
+                "qs": OutcomeArea.objects.filter(indicators__indicatorinclusion__indicator_set=self)
+            },
+        }
+        return rels
 
 
 class IndicatorInclusion(aristotleComponent):
