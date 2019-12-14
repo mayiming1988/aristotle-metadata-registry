@@ -9,6 +9,7 @@ from aristotle_mdr.views.versions import VersionsMixin
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.utils.utils import is_active_extension
 
 from django.db.models import Q
 from django.conf import settings
@@ -17,7 +18,6 @@ from django.core.exceptions import PermissionDenied
 
 import collections
 from re import finditer
-import reversion
 from typing import List
 
 from aristotle_mdr_api.v4.concepts.serializers import (
@@ -120,15 +120,25 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         nodes.append(source_item)
 
         if hasattr(item, 'relational_attributes'):
-
             for d in item.relational_attributes.values():
                 for rel_attr in d['qs']:
                     if perms.user_can_view(self.request.user, rel_attr):
                         serialised_rel_attr = ConceptSerializer(rel_attr).data
                         serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
                         if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
+
                             nodes.append(serialised_rel_attr)
-                            edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+
+                            if is_active_extension("comet"):
+                                from comet.models import Indicator, IndicatorSet
+                                # Change the direction of arrows from Indicator to Indicator Set:
+                                if isinstance(rel_attr, IndicatorSet) and isinstance(item, Indicator):
+                                    edges.append(({"from": item.id, "to": serialised_rel_attr["id"]}))
+                                else:
+                                    edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                            else:
+                                edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+
                             seen_items_ids.add(serialised_rel_attr["id"])
 
         for field in item._meta.get_fields():
