@@ -55,8 +55,24 @@ class UserAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple
     size = 'large'
 
 
-class FrameworkDimensionAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:framework'
+class FrameworkDimensionAutocompleteMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.model = kwargs.pop('model', None)
+        kwargs.update(
+            url=reverse_lazy(
+                'aristotle-autocomplete:framework',
+                args=[self.model._meta.app_label, self.model._meta.model_name]
+            ),
+            attrs={
+                'data-html': 'true',
+                'class': 'aristotle-select2',
+            }
+        )
+        super().__init__(*args, **kwargs)
+
+
+class FrameworkDimensionAutocompleteSelect(FrameworkDimensionAutocompleteMixin, ModelSelect2):
+    pass
 
 
 class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
