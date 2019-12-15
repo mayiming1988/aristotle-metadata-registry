@@ -115,7 +115,7 @@ export function initDALWidget(element, urlfunc) {
     // Set the dropdown CSS C
     let dropdownCssClass = "aristotle-select2";
     if (element.attr('multiple')) {
-        dropdownCssClass = 'aristotle-select2-large'
+        dropdownCssClass = 'aristotle-select2-multiple'
     }
     $(element).select2({
         tokenSeparators: element.attr('data-tags') ? [','] : null,
