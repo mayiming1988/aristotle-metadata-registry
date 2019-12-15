@@ -44,9 +44,7 @@ export function initDALWidget(element, urlfunc) {
         }
         // This is an item that was loaded with the page.
         if (item.id && !item.body) {
-            var result = $('<strong>')
-            // Some of the worst Javascript I've written.
-            // But I was at cruising altitude and had no internet access.
+            var result = $('<strong>');
             result.html(
                 item.text +
                 " <small>(id: " + item.id + ")</small> " +
