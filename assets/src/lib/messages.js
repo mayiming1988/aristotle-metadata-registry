@@ -12,6 +12,7 @@ export function addHeaderMessage(message) {
     var row = $('#messages-row')
     row.find('.alert').removeAttr('hidden')
     var message_list = row.find('ul')
+
     var element = $('<li>', {text: message})
     message_list.append(element)
 }

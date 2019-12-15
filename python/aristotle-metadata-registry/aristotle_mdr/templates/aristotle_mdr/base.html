@@ -46,7 +46,7 @@
    <div id="messages-row">
         <div class="alert alert-info" role="alert" {% if not messages %}hidden{% endif %}>
         <button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <ul class="messages text-center">
+            <ul class="messages text-center list-unstyled">
                 {% for message in messages %}
                 <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}

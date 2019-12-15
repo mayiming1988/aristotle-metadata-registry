@@ -563,7 +563,8 @@ class ExtraFormsetMixin:
                 if error in ["name", "definition", "version"]:
                     invalid_tabs.add('definition')
                 else:
-                    invalid_tabs.add('references')
+                    if error != "last_fetched":
+                        invalid_tabs.add('references')
         return invalid_tabs
 
     def save_formsets(self, extra_formsets):

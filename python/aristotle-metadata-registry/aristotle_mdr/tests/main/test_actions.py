@@ -8,7 +8,6 @@ from aristotle_mdr import models
 
 @tag('clone')
 class CloneViewTestCase(AristotleTestUtils, TestCase):
-
     def setUp(self):
         super().setUp()
         self.view = CloneItemView()
@@ -32,13 +31,3 @@ class CloneViewTestCase(AristotleTestUtils, TestCase):
         self.view.item = self.vd
         self.view.model = type(self.vd)
 
-    @tag('unit')
-    def test_clone_components_function(self):
-        clone = models.ValueDomain.objects.create(
-            name='Goodness clone',
-            definition='A measure of good'
-        )
-        self.view.clone_components(clone)
-        self.assertEqual(clone.permissiblevalue_set.count(), 2)
-        self.assertEqual(clone.permissiblevalue_set.get(order=0).meaning, 'Not very good')
-        self.assertEqual(clone.permissiblevalue_set.get(order=1).meaning, 'Very good')
