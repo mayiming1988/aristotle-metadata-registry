@@ -13,47 +13,41 @@
 
 {% block objSpecific %}
 
+    {% with datasets=item.dataset_set.all|order_by:"name"|can_view_iter:request.user %}
+    {% if datasets %}
+        The following data sets are included in this catalog:
 
-    The following data sets are included in this catalog:
-
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Details</th>
-            <th title="Number of distributions">#</th>
-            <th>
-                <a href="{% url 'aristotle_dse:add_dataset_to_catalog' iid=item.id %}"
-                   data-toggle="modal" data-target="#dse_modal"
-                   class="btn btn-default btn-sm pull-right">
-                    <i class="fa fa-plus"></i>
-                    Edit datasets
-                </a>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for d in item.dataset_set.all|order_by:"name"|can_view_iter:request.user %}
+        <table class="table">
+            <thead>
             <tr>
-                <td>
-                    {% include "aristotle_mdr/helpers/itemLink.html" with item=d skip_can_view=True %}
-                </td>
-                <td>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=d name=False skip_can_view=True %}
-                </td>
-                <td>
-                    {{d.distribution_set.count}}
-                </td>
-                <td>
-
-                </td>
+                <th>Name</th>
+                <th>Details</th>
+                <th title="Number of distributions">#</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    {% if item|can_edit:request.user %}
-        {% bootstrap_modal 'dse_modal' size='lg' %}
+            </thead>
+            <tbody>
+            {% for d in datasets %}
+                <tr>
+                    <td>
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=d skip_can_view=True %}
+                    </td>
+                    <td>
+                        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=d name=False skip_can_view=True %}
+                    </td>
+                    <td>
+                        {{d.distribution_set.count}}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {% if item.dataset_set.all %}
+            <p>You do not have permission to view any of the datasets in this data catalog.</p>
+        {% else %}
+            <p>There are no datasets in this data catalog.</p>
+        {% endif %}
     {% endif %}
+    {% endwith %}
 
 {% endblock %}
