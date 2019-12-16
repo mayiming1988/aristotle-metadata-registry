@@ -12,7 +12,7 @@ from aristotle_mdr.contrib.generic.views import (
 )
 
 urlpatterns = [
-    path('item/<int:iid>/datasetspecification/<slug:name_slug>/', DatasetSpecificationView.as_view(), name='datasetspecification'),
+    path('item/<int:iid>/datasetspecification/<slug:name_slug>', DatasetSpecificationView.as_view(), name='datasetspecification'),
 
     path('dse/',  include([
 
