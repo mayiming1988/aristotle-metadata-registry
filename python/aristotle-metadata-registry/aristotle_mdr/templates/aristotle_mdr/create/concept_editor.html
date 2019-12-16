@@ -3,11 +3,37 @@
 {% load aristotle_tags util_tags %}
 
 
-{% if form.errors or invalid_tabs %}
+{% if form.errors or invalid_tabs or last_fetched_error %}
     <div class="alert alert-danger">
-            There were errors saving your {{ model_name }}, please review the errors shown below.
-            Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
-            more information.
+        <p>
+            <strong>Alert:</strong>
+            {% if not only_last_fetched_error %}
+                {% if form.errors or invalid_tabs %}
+                    There were errors saving your {{ model_name }}, please review the errors shown below.
+                    </p>
+
+                    {% if invalid_tabs %}
+                        <p>Check the tabs with the red exclamation marks (<i class="fa fa-exclamation-circle text-danger"></i>) for
+                            more information.</p>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
+        {% if last_fetched_error %}
+            This item was edited by another user while you were making changes.
+            {% if recent_version_a and recent_version_b %}
+                You can
+                <a target="_blank" href="{% url 'aristotle:compare_versions' object.id %}?v1={{recent_version_a.pk}}&v2={{recent_version_b.pk}}"
+                   title="View the most recent changes to this item (opens in a new window).">
+                    compare their changes to the previously saved version</a>.
+            {% else %}
+                Review changes to the item from the <a target="_blank" href="{{item.get_absolute_url}}">item page</a>.
+            {% endif %}
+            </p><p>
+            You can still save your changes below, however it will overwrite any changes other users have made.
+            <br>A notification will be sent to the other editors of this item notifying them of changes.
+        {% endif %}
+        </p>
     </div>
 {% endif %}
 
@@ -15,43 +41,43 @@
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
             <a href="#tab_definition" aria-controls="home" role="tab" data-toggle="tab">{% trans 'Definition' context 'creating items' %}
-            {% if 'definition' in invalid_tabs %}
-            <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
-            {% endif %}
+                {% if 'definition' in invalid_tabs %}
+                    <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                {% endif %}
             </a>
         </li>
 
         <li role="presentation">
             <a href="#tab_names" aria-controls="profile" role="tab" data-toggle="tab">Names & References
-            {% if 'references' in invalid_tabs %}
-            <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
-            {% endif %}
+                {% if 'references' in invalid_tabs %}
+                    <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                {% endif %}
             </a>
         </li>
         {% if form.object_specific_fields or weak_formsets or through_formsets %}
             <li role="presentation">
                 <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}
-                {% if 'components' in invalid_tabs %}
-                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
-                {% endif %}
+                    {% if 'components' in invalid_tabs %}
+                        <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                    {% endif %}
                 </a>
             </li>
         {% endif %}
         {% if show_slots_tab %}
             <li role="presentation">
                 <a href="#tab_slots" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Slots' context 'When saving changes to an item' %}
-                {% if 'slots' in invalid_tabs %}
-                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
-                {% endif %}
+                    {% if 'slots' in invalid_tabs %}
+                        <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                    {% endif %}
                 </a>
             </li>
         {% endif %}
         {% if show_id_tab %}
             <li role="presentation">
                 <a href="#tab_identifiers" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Identifiers' context 'When saving changes to an item' %}
-                {% if 'identifiers' in invalid_tabs %}
-                <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
-                {% endif %}
+                    {% if 'identifiers' in invalid_tabs %}
+                        <i title="This tab contains an error" class="fa fa-exclamation-circle text-danger"></i>
+                    {% endif %}
                 </a>
             </li>
         {% endif %}
@@ -153,87 +179,87 @@
             {% if additional_records_active %}
                 {% if recordrelation_FormSet %}
                     <div class="formset_field">
-                      <label for="org_records">Organisation Records:</label>
-                      {% with formset=recordrelation_FormSet %}
-                          {{ formset.management_form }}
-                          <table class="form table table-hover">
-                              <thead>
-                              <tr>
-                                  <th></th>
-                                  <th>{% trans 'Organisation Record Type' %}</th>
-                                  <th>{% trans 'Organisation Record' %}</th>
-                                  <th>{% trans 'Delete' %}</th>
-                              </tr>
-                              </thead>
-                              <tbody id="org_records" class="draggableTable">
-                              {% for recordform in formset.forms %}
-                                  <tr class="movablerow">
-                                      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                                          {% for hidden in recordform.hidden_fields %}
-                                              {{ hidden }}
-                                          {% endfor %}
-                                      </td>
-                                      {% for field in recordform.visible_fields %}
-                                          <td>
-                                              {% if field.errors %}
-                                                  <div class="alert alert-danger">
-                                                  {{ field.errors }}
-                                              {% endif %}
-                                              {{ field }}
-                                              {% if field.errors %}
-                                                  </div>
-                                              {% endif %}
-                                          </td>
-                                      {% endfor %}
-                                  </tr>
-                              {% endfor %}
-                              </tbody>
-                          </table>
-                          <a class="btn btn-primary add_code_button" formid="org_records">
-                              <i class="fa fa-plus-circle"></i> Add a record
-                          </a>
-                        </div>
-                    {% endwith %}
+                        <label for="org_records">Organisation Records:</label>
+                        {% with formset=recordrelation_FormSet %}
+                            {{ formset.management_form }}
+                            <table class="form table table-hover">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>{% trans 'Organisation Record Type' %}</th>
+                                    <th>{% trans 'Organisation Record' %}</th>
+                                    <th>{% trans 'Delete' %}</th>
+                                </tr>
+                                </thead>
+                                <tbody id="org_records" class="draggableTable">
+                                {% for recordform in formset.forms %}
+                                    <tr class="movablerow">
+                                        <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                            {% for hidden in recordform.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        </td>
+                                        {% for field in recordform.visible_fields %}
+                                            <td>
+                                                {% if field.errors %}
+                                                    <div class="alert alert-danger">
+                                                    {{ field.errors }}
+                                                {% endif %}
+                                                {{ field }}
+                                                {% if field.errors %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <a class="btn btn-primary add_code_button" formid="org_records">
+                                <i class="fa fa-plus-circle"></i> Add a record
+                            </a>
+                            </div>
+                        {% endwith %}
                 {% endif %}
             {% endif %}
             {% if reference_links_active %}
                 {% if referencelinks_FormSet %}
                     <div class="formset_field">
-                      <label for="metadatareferencelink_set">Reference Documents:</label>
-                      {% with formset=referencelinks_FormSet %}
-                          {{ formset.management_form }}
+                        <label for="metadatareferencelink_set">Reference Documents:</label>
+                        {% with formset=referencelinks_FormSet %}
+                            {{ formset.management_form }}
 
-                          <table class="form table table-hover">
-                              <thead>
-                              <tr>
-                                  <th></th>
-                                  <th>{% trans 'Reference Document' %}</th>
-                                  <th>{% trans 'Note' %}</th>
-                                  <th>{% trans 'Delete' %}</th>
-                              </tr>
-                              </thead>
-                              <tbody id="metadatareferencelink_set" class="draggableTable">
-                              {% for recordform in formset.forms %}
-                                  <tr class="movablerow">
-                                      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                                          {% for hidden in recordform.hidden_fields %}
-                                              {{ hidden }}
-                                          {% endfor %}
-                                      </td>
-                                      {% for field in recordform.visible_fields %}
-                                          <td>
-                                              {{ field.errors.as_ul }}
-                                              {{ field }}
-                                          </td>
-                                      {% endfor %}
-                                  </tr>
-                              {% endfor %}
-                              </tbody>
-                          </table>
-                          <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
-                              <i class="fa fa-plus-circle"></i> Add a record
-                          </a>
-                      {% endwith %}
+                            <table class="form table table-hover">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>{% trans 'Reference Document' %}</th>
+                                    <th>{% trans 'Note' %}</th>
+                                    <th>{% trans 'Delete' %}</th>
+                                </tr>
+                                </thead>
+                                <tbody id="metadatareferencelink_set" class="draggableTable">
+                                {% for recordform in formset.forms %}
+                                    <tr class="movablerow">
+                                        <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                            {% for hidden in recordform.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        </td>
+                                        {% for field in recordform.visible_fields %}
+                                            <td>
+                                                {{ field.errors.as_ul }}
+                                                {{ field }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
+                                <i class="fa fa-plus-circle"></i> Add a record
+                            </a>
+                        {% endwith %}
                     </div>
                 {% endif %}
             {% endif %}
@@ -278,12 +304,12 @@
         {% if show_slots_tab %}
             <div role="tabpanel" class="tab-pane" id="tab_slots">
                 <div class="alert alert-info">
-                  <p>
-                    <strong>Slots are optional</strong>
-                    but can be used to annotate metadata with additional attributes.
-                    Below are the slots that have been configured to be used with
-                    your registry for this particular metadata type.
-                  </p>
+                    <p>
+                        <strong>Slots are optional</strong>
+                        but can be used to annotate metadata with additional attributes.
+                        Below are the slots that have been configured to be used with
+                        your registry for this particular metadata type.
+                    </p>
                 </div>
                 {# Slots also displays custom fields #}
                 {% for custom_field in form.custom_fields %}
@@ -370,27 +396,27 @@
                 these fields to be completed before metadata can be endorsed or published.
             </p>
             {% if form.object_specific_fields or weak_formsets or through_formsets %}
-            <h2>{{ model_name|title }} Components</h2>
-            <p>
-                The fields in the tab are specific to <em>{{model_name_plural}}</em>
-                and allow for item specific metadata and relations to be
-                recorded.
+                <h2>{{ model_name|title }} Components</h2>
+                <p>
+                    The fields in the tab are specific to <em>{{model_name_plural}}</em>
+                    and allow for item specific metadata and relations to be
+                    recorded.
 
-                For more information on <em>{{model_name_plural}}</em>, read the
-                <a href="{% url 'aristotle_help:concept_help' app_label model %}" target="_blank">
-                    help page.</a>
-            </p>
-                {% endif %}
-                {% if show_slots_tab %}
-                    <h2>Slots</h2>
-                    <p>
-                        This tab allows for the storage of additional attributes not captured.
-                        If enabled, this can be used to record additional registry-specified
-                        custom fields.<br>
-                        Users may also have the opportunity to store user-defined content with
-                        a name and value.
-                    </p>
-                {% endif %}
+                    For more information on <em>{{model_name_plural}}</em>, read the
+                    <a href="{% url 'aristotle_help:concept_help' app_label model %}" target="_blank">
+                        help page.</a>
+                </p>
+            {% endif %}
+            {% if show_slots_tab %}
+                <h2>Slots</h2>
+                <p>
+                    This tab allows for the storage of additional attributes not captured.
+                    If enabled, this can be used to record additional registry-specified
+                    custom fields.<br>
+                    Users may also have the opportunity to store user-defined content with
+                    a name and value.
+                </p>
+            {% endif %}
             {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
         </div>
     </div>

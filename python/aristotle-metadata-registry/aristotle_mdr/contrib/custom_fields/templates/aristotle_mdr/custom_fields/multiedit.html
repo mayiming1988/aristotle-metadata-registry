@@ -10,6 +10,19 @@
 {% endblock %}
 
 {% block page %}
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li>
+            <a href="{% url 'aristotle_custom_fields:list' %}">Custom Fields</a>
+        </li>
+        <li>
+            <a href="{% url 'aristotle_custom_fields:edit' %}">Custom Fields Editor</a>
+        </li>
+        <li class="active">Editor</li>
+    </ol>
+
 <h1>Edit Custom Fields for {{ edited_model }}</h1>
 <div class="alert alert-warning">
     If you are adding a Custom Field for a particular model, you must select the correct allowed model.
