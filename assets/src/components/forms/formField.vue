@@ -1,6 +1,8 @@
 <template>
     <component :is="tag" :name="name" :class="fieldClass" :value="value" @input="emitOnInput" @change="emitOnChange">
-        <option v-for="option in options" :key="option[0]" :value="option[0]" :selected="option[0] == value">{{ option[1] }}</option>
+        <option v-for="option in options" :key="option[0]" :value="option[0]" :selected="option[0] == value">
+            {{ option[1] }}
+        </option>
     </component>
 </template>
 

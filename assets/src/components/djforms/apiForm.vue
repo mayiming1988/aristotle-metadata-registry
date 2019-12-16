@@ -3,8 +3,8 @@
         :fields="fields"
         :initial="initial"
         :errors="errors"
-        @submit="submitData">
-    </Form>
+        @submit="submitData"
+    />
 </template>
 
 <script>

@@ -1,7 +1,11 @@
 <template>
     <div class="outer-formset">
-        <alert v-if="message.length > 0" type="success">{{ message }}</alert>
-        <alert v-if="errors.length > 0" type="danger">{{ errors }}</alert>
+        <alert v-if="message.length > 0" type="success">
+            {{ message }}
+        </alert>
+        <alert v-if="errors.length > 0" type="danger">
+            {{ errors }}
+        </alert>
         <FormSet
                 :fields="fields"
                 :initial="initial"
@@ -9,8 +13,8 @@
                 :errors="errors"
                 :showLabels="showLabels"
                 :showDelete="showDelete"
-                @submit="onSubmit">
-        </FormSet>
+                @submit="onSubmit"
+        />
     </div>
 </template>
 

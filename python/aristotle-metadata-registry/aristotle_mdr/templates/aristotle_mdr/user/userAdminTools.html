@@ -5,6 +5,10 @@
 {% endblock %}
 
 {% block page %}
+    <ol class="breadcrumb">
+        <li class="active">Registry Administrator tools</li>
+    </ol>
+
     <h1>{% block title %}Registry Administrator tools{% endblock %}</h1>
     <aside>
         <section id="members">
@@ -35,7 +39,7 @@
 
             <h3>Manage Registry</h3>
             <ul class="list-group">
-                <a class="list-group-item" href="{% url 'aristotle_custom_fields:list' %}">
+                <a class="list-group-item" href="{% url 'aristotle_custom_fields:edit' %}">
                     <i class="fa fa-fw fa-i-cursor" aria-hidden="true"></i>
                     Manage Custom Fields
                 </a>

@@ -17,20 +17,65 @@ from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.utils.utils import get_concept_name_to_content_type, get_content_type_to_concept_name
 
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 
-class CustomFieldListView(IsSuperUserMixin, BootTableListView):
+class CustomFieldListView(IsSuperUserMixin, ListView):
+
     template_name = 'aristotle_mdr/custom_fields/list.html'
     model = models.CustomField
     paginate_by = 20
     model_name = 'Custom Field'
-    headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
-    attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
-    blank_value = {
-        'allowed_model': 'All'
+    table_headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
+    model_attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
+    model_blank_field_replacement = {
+        'allowed_model': 'All',
     }
 
     delete_url_name = 'aristotle_custom_fields:delete'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.foreign_key_extra_filtering_value = kwargs.get('content_type')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_listing(self, iterable) -> List[Dict]:
+        listing = []
+        for item in iterable:
+            itemdict = {'attrs': [], 'pk': item.pk}
+            for attr in self.model_attrs:
+                val = getattr(item, attr)
+                if not val and attr in self.model_blank_field_replacement:
+                    val = self.model_blank_field_replacement[attr]
+                itemdict['attrs'].append(val)
+            listing.append(itemdict)
+
+        return listing
+
+    def get_queryset(self):
+        my_ct = ContentType.objects.get(model=self.foreign_key_extra_filtering_value)
+        queryset = models.CustomField.objects.filter(allowed_model=my_ct)
+        return queryset
+
+    def get_context_data(self, **kwargs) -> dict:
+
+        context = super().get_context_data()
+
+        if context['page_obj'] is not None:
+            iterable = context['page_obj']
+        else:
+            iterable = context['object_list']
+
+        logger.critical("THIS IS THE ITERABLE")
+        logger.critical(iterable)
+
+        final_list = self.get_listing(iterable)
+
+        context.update({
+            'list': final_list,
+            'delete_url_name': self.delete_url_name,
+        })
+        return context
 
 
 class CustomFieldListCreateView(IsSuperUserMixin, ListView):
@@ -94,7 +139,7 @@ class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin,
     model = models.CustomField
     form_class = CustomFieldDeleteForm
     template_name = 'aristotle_mdr/custom_fields/delete.html'
-    cancel_url_name = 'aristotle_custom_fields:list'
+    cancel_url_name = 'aristotle_custom_fields:edit'
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()

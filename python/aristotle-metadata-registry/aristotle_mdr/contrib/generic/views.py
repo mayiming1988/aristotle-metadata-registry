@@ -1002,6 +1002,8 @@ class CancelUrlMixin:
     def get_context_data(self):
         context = {}
         if self.cancel_url_name:
+            logger.critical("THIS IS THE CANCEL")
+            logger.critical(self.cancel_url_name)
             context['cancel_url'] = reverse(self.cancel_url_name)
         return context
 

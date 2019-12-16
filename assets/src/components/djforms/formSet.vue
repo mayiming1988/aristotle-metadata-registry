@@ -5,7 +5,10 @@
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}</h4>
+                            <h4 class="panel-title">
+                                <i class="fa fa-lg fa-bars grabber"/>
+                                {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}
+                            </h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
@@ -19,11 +22,13 @@
                                         :fe_errors="getIndexValidationErrors('formsData', index)"
                                         :showSubmit="false"
                                         :showLabels="true"
-                                        :showChoiceField="displayChoiceField(item.vid)">
-
+                                        :showChoiceField="displayChoiceField(item.vid)"
+                                >
                                     <template v-if="showDeleteItem(item.new)" slot="after">
                                         <div class="col-md-1">
-                                            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                                            <button class="btn btn-danger" @click="deleteRow(index)">
+                                                Delete
+                                            </button>
                                         </div>
                                     </template>
                                 </baseForm>
@@ -34,9 +39,12 @@
             </div>
         </draggable>
         <div class="vue-formset-button-group">
-            <button class="btn btn-success" @click="addRow">Add</button>
-            <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
-
+            <button class="btn btn-success" @click="addRow">
+                Add
+            </button>
+            <button class="btn btn-primary" @click="submitFormSet">
+                Submit Edits
+            </button>
         </div>
     </div>
 </template>
