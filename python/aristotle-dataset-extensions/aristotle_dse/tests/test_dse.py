@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.test import TestCase, tag
 from django.utils import timezone
 
+
 def setUpModule():
     from django.core.management import call_command
     call_command('load_aristotle_help', verbosity=0)
@@ -42,7 +43,7 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.DataSetSpecification
 
     @skip('Weak editing currently disabled on this model')
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         oc = MDR.ObjectClass.objects.create(
             name="a very nice object class"
         )
@@ -210,7 +211,7 @@ class DistributionViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'distribution'
     itemType = models.Distribution
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",
