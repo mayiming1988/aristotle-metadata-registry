@@ -213,17 +213,6 @@ class DatasetViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Edit distributions")
 
-    @skip("We are not using this button anymore. Datasets are added from the Distributions.")
-    def test_user_with_edit_permission_can_see_edit_distributions_button(self):
-        """Test that the edit distribution button is visible on the Dataset item page"""
-        dataset = self.create_public_dataset()
-
-        self.login_superuser()
-        response = self.client.get(dataset.get_absolute_url())
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Edit distributions')
-
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'distribution'
