@@ -1,5 +1,5 @@
 <template>
-  <button class="btn" :disabled="disabled === 'true'" :class="buttonType" @click="deleteClicked">{{ buttonText }}</button>
+  <button class="btn" :disabled="disabled" :class="buttonType" @click="deleteClicked">{{ buttonText }}</button>
 </template>
 
 <script>
@@ -21,8 +21,8 @@ export default {
         default: 'Are you sure you want to delete'
       },
       disabled: {
-        type: String,
-        default: 'false'
+        type: Boolean,
+        default: false
       }
     },
     methods: {
