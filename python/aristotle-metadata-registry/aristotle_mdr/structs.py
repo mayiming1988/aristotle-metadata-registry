@@ -133,12 +133,22 @@ class Tree:
 class Breadcrumb:
     """Object representing a single breadcrumb"""
 
-    def __init__(self, name: str, url_name='', url_args=[], active=False):
+    def __init__(self, name: str, url_name='', url_args=[], query_parameters=[], active=False):
+        """Query parameters expects a list of strings containing parameters
+           e.g. ['status=5', 'letter=z']"""
         self._name = name
         self.active = active
 
         if url_name:
             self.url = reverse(url_name, args=url_args)
+            if query_parameters:
+                self.url = self.url + '?'
+                for index, parameter in enumerate(query_parameters):
+                    self.url = self.url + parameter
+                    if not index == len(query_parameters) - 1:
+                        # If it's the end of the list, don't append an ampersand
+                        self.url = self.url + '&'
+
         else:
             self.url = ''
 
