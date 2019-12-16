@@ -1,5 +1,15 @@
 {% extends 'aristotle_mdr/user/base.html' %}
 {% block page %}
+    <ol class="breadcrumb">
+        <li class="active">
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li class="active">
+            <a href="{% url 'aristotle_custom_fields:list' %}">Custom Fields</a>
+        </li>
+        <li class="active">Custom Fields Editor</li>
+    </ol>
+
 <h1>Select a model to edit Custom Fields for</h1>
 <div class="container">
     <div class="col-md-8">
