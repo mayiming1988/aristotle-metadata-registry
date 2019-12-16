@@ -32,6 +32,12 @@ class Indicator(MDR.concept):
 
     template = "comet/indicator.html"
     outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
+    quality_statement = ConceptForeignKey(
+        "QualityStatement",
+        null=True, blank=True, on_delete=models.SET_NULL,
+        help_text=_("A statement of multiple quality dimensions for the purpose of assessing the quality of the data for reporting against this Indicator.")
+    )
+    dimensions = ConceptManyToManyField("FrameworkDimension", related_name="indicators", blank=True)
 
     computation_description = MDR.RichTextField(blank=True)
     computation = MDR.RichTextField(blank=True)
@@ -40,15 +46,9 @@ class Indicator(MDR.concept):
     denominator_description = MDR.RichTextField(blank=True)
     disaggregation_description = MDR.RichTextField(blank=True)
 
-    quality_statement = ConceptForeignKey(
-        "QualityStatement",
-        null=True, blank=True, on_delete=models.SET_NULL,
-        help_text=_("A statement of multiple quality dimensions for the purpose of assessing the quality of the data for reporting against this Indicator.")
-    )
     rationale = MDR.RichTextField(blank=True)
     benchmark = MDR.RichTextField(blank=True)
     reporting_information = MDR.RichTextField(blank=True)
-    dimensions = ConceptManyToManyField("FrameworkDimension", related_name="indicators", blank=True)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),
