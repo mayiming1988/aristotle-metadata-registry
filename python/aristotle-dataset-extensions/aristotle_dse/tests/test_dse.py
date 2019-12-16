@@ -228,7 +228,7 @@ class DistributionViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'distribution'
     itemType = models.Distribution
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",
