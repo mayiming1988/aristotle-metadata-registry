@@ -1,7 +1,9 @@
 {% load i18n aristotle_tags util_tags %}
 
 <ul>
-  {% lookup current_statuses item.id as item_statuses %}
+  {# Lookup value, if not avaliable do query here #}
+  {% lookup_or current_statuses item.id item.current_statuses as item_statuses %}
+
   {% for status in item_statuses %}
   <li>
      <a href="{% url 'aristotle:registrationAuthority' status.registrationAuthority.id status.registrationAuthority.name|slugify %}">{{ status.registrationAuthority }}</a>
