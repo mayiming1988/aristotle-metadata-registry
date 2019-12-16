@@ -42,14 +42,6 @@
         </dd>
         <dt>Distribution files</dt>
         <dd>
-            {% if can_edit %}
-                <a href="{% url 'aristotle_dse:add_distribution_to_dataset' iid=item.id %}"
-                   data-toggle="modal" data-target="#dse_modal"
-                   class="btn btn-default btn-sm pull-right">
-                    <i class="fa fa-plus"></i>
-                    Edit distributions
-                </a>
-            {% endif %}
             {% if item.distribution_set.exists %}
                 <ol>
                     {% if item.distribution_set.exists %}

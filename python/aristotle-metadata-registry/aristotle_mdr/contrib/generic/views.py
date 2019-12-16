@@ -206,6 +206,7 @@ class GenericAlterManyToManyView(GenericAlterManyToSomethingFormView):
     """
 
     template_name = "aristotle_mdr/generic/actions/alter_many_to_many.html"
+    form_label = _('Attach')
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -215,7 +216,7 @@ class GenericAlterManyToManyView(GenericAlterManyToSomethingFormView):
         class M2MForm(forms.Form):
             items_to_add = forms.ModelMultipleChoiceField(
                 queryset=self.model_to_add.objects.visible(self.request.user),
-                label="Attach",
+                label=self.form_label,
                 required=False,
                 widget=widgets.ConceptAutocompleteSelectMultiple(
                     model=self.model_to_add
@@ -250,12 +251,13 @@ class GenericAlterManyToManyView(GenericAlterManyToSomethingFormView):
 class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
     template_name = "aristotle_mdr/generic/actions/alter_many_to_many_order.html"
+    form_label = _('Attach')
 
     def get_form_class(self):
         class M2MOrderForm(forms.Form):
             item_to_add = forms.ModelChoiceField(
                 queryset=self.model_to_add.objects.visible(self.request.user),
-                label="Attach",
+                label=self.form_label,
                 required=False,
                 widget=widgets.ConceptAutocompleteSelect(
                     model=self.model_to_add
@@ -279,7 +281,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
         return context
 
-    def get_form(self):
+    def get_form(self, form_class=None):
         return None
 
     def dispatch(self, request, *args, **kwargs):
