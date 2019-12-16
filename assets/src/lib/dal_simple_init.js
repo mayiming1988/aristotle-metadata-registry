@@ -110,7 +110,7 @@ export function initDALWidget(element, urlfunc) {
         };
     }
 
-    // Set the dropdown CSS C
+    // Set the dropdown CSS class
     let dropdownCssClass = "aristotle-select2";
     if (element.attr('multiple')) {
         dropdownCssClass = 'aristotle-select2-multiple'
