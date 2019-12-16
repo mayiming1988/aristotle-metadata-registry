@@ -5,5 +5,5 @@ import Vue from 'vue'
 
 import 'src/styles/aristotle.dashboard.less'
 
-initCore()
-new Vue(rootComponent)
+initCore();
+new Vue(rootComponent);
