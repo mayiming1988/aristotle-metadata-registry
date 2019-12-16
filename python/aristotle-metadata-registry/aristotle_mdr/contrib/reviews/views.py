@@ -421,10 +421,14 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
         cascaded_ids = get_cascaded_ids(items=review.concepts.all())
 
         for concept in review.concepts.all():
-            if concept.id in cascaded_ids:
-                # Concept was added as a cascade
-                concepts.append({'item': concept, 'remove': False})
+            if review.cascade_registration:
+                if concept.id in cascaded_ids:
+                    # Concept was added as a cascade
+                    concepts.append({'item': concept, 'remove': False})
+                else:
+                    concepts.append({'item': concept, 'remove': True})
             else:
+                # If it's not a cascaded review, items are removed not demoted
                 concepts.append({'item': concept, 'remove': True})
 
         context['concepts'] = concepts
@@ -455,6 +459,7 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
             concept.info = extra_info[concept.id]
 
         context['statuses'] = queryset
+        context['cascaded_review'] = review.cascade_registration
 
         return context
 

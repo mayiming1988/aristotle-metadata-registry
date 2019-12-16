@@ -95,7 +95,7 @@
                         {% include item.item.list_details_template with item=item %}
                     {% endif %}
                 </td>
-                <td>
+                <td class="col-md-3">
                     <ul>
                         {% for s in item.current_statuses %}
                         <li>{{ s.registrationAuthority }}: <em>{{ s.state_name }}</em> on
