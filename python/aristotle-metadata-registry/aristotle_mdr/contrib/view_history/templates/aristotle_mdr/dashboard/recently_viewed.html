@@ -6,6 +6,13 @@
 {% endblock %}
 
 {% block page %}
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userProfile' %}">My Profile</a>
+        </li>
+        <li class="active">Recently viewed metadata</li>
+    </ol>
+
     <h1>{% block title %}Recently viewed metadata{% endblock %}</h1>
 
     <div>

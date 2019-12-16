@@ -18,14 +18,14 @@ def get_django_url(url: str, model=None) -> str:
 class AristotleSelect2Mixin:
     url: str = None
     model = None
-    size: str = 'standard'  # choices are 'standard' and 'large'
+    type: str = 'single'  # choices are 'single' and 'multi'
 
     def __init__(self, *args, **kwargs):
         model = kwargs.pop("model", None)
         url = get_django_url(self.url, model)
         css_class = 'aristotle-select2'
-        if self.size == 'large':
-            css_class += '-large'
+        if self.type == 'multiple':
+            css_class += '-multiple'
 
         kwargs.update(
             url=url,
@@ -39,7 +39,7 @@ class AristotleSelect2Mixin:
 
 class ConceptAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:concept'
-    size = 'large'
+    type = 'multiple'
 
 
 class ConceptAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
@@ -52,7 +52,7 @@ class UserAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
 
 class UserAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:user'
-    size = 'large'
+    type = 'multiple'
 
 
 class FrameworkDimensionAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
@@ -61,7 +61,7 @@ class FrameworkDimensionAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
 
 class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:framework'
-    size = 'large'
+    type = 'multiple'
 
 
 class WorkgroupAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):

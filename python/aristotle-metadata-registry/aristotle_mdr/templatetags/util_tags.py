@@ -165,6 +165,16 @@ def dict_lookup(mapping, *keys):
     return result
 
 
+@register.simple_tag(name='lookup_or')
+def dict_lookup_or(mapping, key, default):
+    """Return value in mapping or a default
+    Useful when using a mapping of cached values"""
+    if key in mapping:
+        return mapping[key]
+
+    return default
+
+
 @register.inclusion_tag('aristotle_mdr/helpers/breadcrumbs.html')
 def breadcrumb_list(crumbs: List[Breadcrumb]):
     return {'breadcrumbs': crumbs}

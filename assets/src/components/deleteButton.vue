@@ -1,5 +1,5 @@
 <template>
-  <button class="btn" :class="buttonType" @click="deleteClicked">{{ buttonText }}</button>
+  <button class="btn" :disabled="disabled" :class="buttonType" @click="deleteClicked">{{ buttonText }}</button>
 </template>
 
 <script>
@@ -19,6 +19,10 @@ export default {
       modalText: {
         type: String,
         default: 'Are you sure you want to delete'
+      },
+      disabled: {
+        type: Boolean,
+        default: false
       }
     },
     methods: {
