@@ -732,26 +732,17 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
                 add_item_url(item, active=last_active)
             ]
     elif item.stewardship_organisation:
-        if item.workgroup:
-            breadcrumbs = [Breadcrumb(item.stewardship_organisation.name,
-                                      item.stewardship_organisation.get_absolute_url())]
-            if item.workgroup.can_view(user):
-                breadcrumbs.append(Breadcrumb(item.workgroup.name,
-                                              item.workgroup.get_absolute_url()))
-            else:
-                breadcrumbs.append(Breadcrumb('Metadata',
-                                              'aristotle_mdr:stewards:group:browse',
-                                              url_args=item.stewardship_organisation.slug))
-            breadcrumbs.append(add_item_url(item, active=last_active))
-            return breadcrumbs
-        else:
-            # Item only has the stewardship organisation
-            return [
-                Breadcrumb(item.stewardship_organisation.name,
-                           item.stewardship_organisation.get_absolute_url()),
-                Breadcrumb('Metadata',
-                           'aristotle_mdr:stewards:group:browse',
-                           url_args=item.stewardship_organisation.slug),
-                add_item_url(item, active=last_active)
-            ]
+        # Item has a stewardship organisation
+        return [
+            Breadcrumb(item.stewardship_organisation.name,
+                       item.stewardship_organisation.get_absolute_url()),
+            Breadcrumb('Metadata',
+                       'aristotle_mdr:stewards:group:browse',
+                       url_args=item.stewardship_organisation.slug),
+            Breadcrumb(f'{str(item._type).title()}',
+                       'aristotle_mdr:stewards:group:browse',
+                       url_args=item.stewardship_organisation.slug,
+                       query_parameters=[f'content_type={item._type.model}']),
+            add_item_url(item, active=last_active)
+        ]
     return []
