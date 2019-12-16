@@ -11,7 +11,6 @@ export default {
                     this.modal_visible = false
                 })
         },
-
     }
 }
 

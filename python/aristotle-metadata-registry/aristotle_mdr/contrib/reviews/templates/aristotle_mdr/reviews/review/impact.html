@@ -6,7 +6,7 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_bundle %}
-{% render_bundle 'review_impacts' 'js' %}
+    {% render_bundle 'review_impacts' 'js' %}
 {% endblock %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}

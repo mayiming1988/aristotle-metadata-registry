@@ -83,12 +83,6 @@ class Indicator(MDR.concept):
                     "all": _("Datasets that are used in this Indicator"),
                     "qs": datasets
                 },
-                # "dss": {
-                #     "all": _("Data Set Specifications that include this Indicator"),
-                #     "qs": DataSetSpecification.objects.filter(
-                #         dssdeinclusion__data_element=self
-                #     ).distinct()
-                # },
             })
         return rels
 
