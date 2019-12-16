@@ -1,5 +1,14 @@
 {% extends 'aristotle_mdr/generic/boottablelist.html' %}
 
+{% block breadcrumbs %}
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li class="active">Custom Fields</li>
+    </ol>
+{% endblock %}
+
 {% block extra_content %}
     <a href="{% url 'aristotle_custom_fields:edit' %}" class="btn btn-primary pull-right">Create/Edit</a>
 {% endblock %}

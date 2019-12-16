@@ -6,7 +6,7 @@
 
 
 {% block webpack_bundle %}
-{% render_bundle 'review_items' 'js' %}
+    {% render_bundle 'review_items' 'js' %}
 {% endblock %}
 
 
@@ -31,25 +31,25 @@
                 </td>
                 <td>
                     {% if concept.remove %}
-                    <delete-button
-                            button-type="btn-danger"
-                            button-text="Remove"
-                            modal-text="Are you sure you want to remove {{ concept.item.name }} from this review? This is a permanent action."
-                            item-id="{{ concept.item.id }}"
-                            item-name="{{ concept.item.name }}"
-                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
-                            @click="deleteClicked">
-                    </delete-button>
+                        <delete-button
+                                button-type="btn-danger"
+                                button-text="Remove"
+                                modal-text="Are you sure you want to remove {{ concept.item.name }} from this review? This is a permanent action."
+                                item-id="{{ concept.item.id }}"
+                                item-name="{{ concept.item.name }}"
+                                url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                                @click="actionClicked">
+                        </delete-button>
                     {% else %}
-                    <delete-button
-                            modal-text="Are you sure you want to demote {{ concept.item.name }} to Impacts?"
-                            button-text="Demote"
-                            button-type="btn-warning"
-                            item-id="{{ concept.item.id }}"
-                            item-name="{{ concept.item.name }}"
-                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
-                            @click="deleteClicked">
-                    </delete-button>
+                        <delete-button
+                                modal-text="Are you sure you want to demote {{ concept.item.name }} to Impacts?"
+                                button-text="Demote"
+                                button-type="btn-warning"
+                                item-id="{{ concept.item.id }}"
+                                item-name="{{ concept.item.name }}"
+                                url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                                @click="actionClicked">
+                        </delete-button>
                     {% endif %}
                 </td>
 
@@ -59,9 +59,9 @@
                     id="deleteTagModal"
                     title="Delete Tag"
                     :text="modal_text"
-                    @yes="deleteConfirmed"
+                    @yes="actionConfirmed"
                     :visible="modal_visible"
-                    @no="deleteCancelled">
+                    @no="actionCancelled">
             </yesno-modal>
 
         </table>

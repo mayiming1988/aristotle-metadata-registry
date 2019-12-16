@@ -1,29 +1,31 @@
 {% extends "aristotle_mdr/helpers/wizard_form.html" %}
 
-{% load i18n %}
+{% load bootstrap3 i18n %}
 
 {% block title %}Change Status{% endblock %}
 
 {% block form_tag %}
-<form method="post" action="{% url 'aristotle:change_state_bulk_action' %}?next={{next}}">
+    <form class="form-horizontal" method="post" action="{% url 'aristotle:change_state_bulk_action' %}?next={{next}}">
 {% endblock %}
 
 {% block form %}
-      <header>This form allows you to change the status of items in your registration authorities.
-      </header>
-      <div class="changeStatusDiv">
-          <label>
-          {{ wizard.form.items.label }}
-          </label>
-          {{ wizard.form.items }}
-      </div>
-      {% include 'aristotle_mdr/helpers/changestatus.html' with form=wizard.form %}
+    <div class="modal-body">
+        <header>
+            This form allows you to change the status of items in your registration authorities.
+        </header>
+        <hr>
+        <div class="row">
+            {% bootstrap_field form.items placeholder="" layout="horizontal" horizontal_field_class="col-md-9" %}
+        </div>
+        {% include 'aristotle_mdr/helpers/changestatus.html' with form=wizard.form %}
+
+    </div>
 {% endblock %}
 
 {% block buttons %}
-<div class="pull-right">
-<a class="btn btn-default" href="{{ next }}" >Cancel</a>
-<input class="btn btn-success" type="submit" name="submit_next" value="{% trans 'Review Changes' %}" />
-<input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
-</div>
+    <div class="pull-right">
+        <a class="btn btn-default" href="{{ next }}" >Cancel</a>
+        <input class="btn btn-success" type="submit" name="submit_next" value="{% trans 'Review Changes' %}" />
+        <input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
+    </div>
 {% endblock %}

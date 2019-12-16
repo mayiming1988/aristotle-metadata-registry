@@ -11,6 +11,7 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from django.urls import reverse
 from django.test import TestCase, tag
+from django.utils import timezone
 
 
 def setUpModule():
@@ -42,7 +43,7 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.DataSetSpecification
 
     @skip('Weak editing currently disabled on this model')
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         oc = MDR.ObjectClass.objects.create(
             name="a very nice object class"
         )
@@ -192,12 +193,32 @@ class DatasetViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'dataset'
     itemType = models.Dataset
 
+    def create_public_dataset(self) -> models.Dataset:
+        """Helper method that creates a public dataset"""
+        dataset = models.Dataset.objects.create(name="Dataset",
+                                                definition="A dataset",
+                                                submitter=self.editor)
+        MDR.Status.objects.create(
+            concept=dataset,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=MDR.STATES.standard
+        )
+        return dataset
+
+    def test_user_without_edit_permission_cannot_see_edit_distributions_button(self):
+        """Test that the edit distribution button is not visible on the Dataset item page"""
+        dataset = self.create_public_dataset()
+        response = self.client.get(dataset.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Edit distributions")
+
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'distribution'
     itemType = models.Distribution
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",

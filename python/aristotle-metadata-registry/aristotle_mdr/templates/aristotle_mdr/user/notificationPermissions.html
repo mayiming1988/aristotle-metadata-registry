@@ -13,6 +13,13 @@
 {% endblock %}
 
 {% block outerpage %}
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userProfile' %}">My Profile</a>
+        </li>
+        <li class="active">Notification settings</li>
+    </ol>
+
     <div class="col-md-6">
         {% if form %}
             <form method="post">

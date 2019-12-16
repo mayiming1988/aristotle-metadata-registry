@@ -307,6 +307,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'statuses': self.item.current_statuses,
             'discussions': self.item.relatedDiscussions.all(),
             'activetab': 'item',
+            'relational_attributes': self.item.relational_attributes,
             'has_links': links_from or links_to,
             'links_from': links_from,
             'links_to': links_to,

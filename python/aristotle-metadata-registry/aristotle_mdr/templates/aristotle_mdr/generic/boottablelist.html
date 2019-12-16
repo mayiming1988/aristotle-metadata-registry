@@ -1,6 +1,9 @@
 {% extends 'aristotle_mdr/user/base.html' %}
 
 {% block page %}
+{% block breadcrumbs %}
+{% endblock %}
+
 <h1>{{ page_heading }}</h1>
 {% if create_url %}
   <a class="btn btn-success pull-right" href="{{ create_url }}">{{ create_button_text }}</a>

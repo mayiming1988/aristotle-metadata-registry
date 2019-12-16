@@ -223,6 +223,9 @@ a.expand {
     h3 {
         font-size:1.3em;
     }
+    h4.border-bottom {
+        border-bottom:1px solid lightgray;
+    }
 }
 
 body footer.footer {
@@ -577,11 +580,22 @@ dl.treble_defintions {
     padding: 5px 10px;
 }
 
-.aristotle-select2 {
-    min-width: 150px;
-    min-height: 28px;
+.select.aristotle-select2 + span.select2-container, .aristotle-select2-multiple {
+    // Because DAL doesn't put the select2-container at the correct depth,
+    // we've got this CSS selector to put this CSS on a span that wraps the
+    // initial entry and the dropdown
+    min-width : 200px;
+    min-height: 40px !important;
+    max-width: 500px;
     padding: unset;
 }
+
+select.aristotle-select2 + span.select2-container, .aristotle-select2 {
+    max-width: 400px;
+    min-width: 150px;
+    padding: unset;
+}
+
 
 .ta-fixed-width {
     resize: vertical
@@ -926,4 +940,41 @@ a[aria-expanded=false] .fa-chevron-down {
     // This class exists to remove decoration, e.g. underlines or highlights from text
     text-decoration: none !important;
     border-bottom: none !important;
+}
+
+// Add margin around ckeditor contents
+// This is required to keep the look when using divarea
+.cke_contents {
+    margin: 20px !important;
+}
+
+/*
+Add an asterisk to a form required field inside a django {% bootstrap_field %}
+To make this work it is necessary to add the required_css_class="required" attribute in the template tag.
+Usage:
+
+   {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-5" %}
+
+*/
+
+.form-group.required label:after {
+    content: ' *'; font-weight: bold;
+}
+
+/*
+Add an asterisk to a form label inside a {% bootstrap_label %}
+To make this work it is necessary to add the label_class="required" attribute in the template tag.
+Usage:
+
+   {% bootstrap_label form.registrationAuthorities.label label_for="id_registrationAuthorities" label_class="required" %}
+
+*/
+
+label.required:after {
+    content: ' *'; font-weight: bold;
+}
+
+.registration-authorities-list {
+    list-style-type: none;
+    padding-left: 0;
 }
