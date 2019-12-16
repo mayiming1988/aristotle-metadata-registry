@@ -519,9 +519,11 @@ class HTMLDownloader(Downloader):
         return object_dict
 
     def get_caches(self, context: Dict) -> Dict:
+        """Fetch related objects for items in bulk to be used in template"""
         # Build set of all items & subitem id's
         all_ids: Set = {i.id for i in self.items}
 
+        # Fetch for subitems if they are avaliable
         if 'subitems' in context:
             subitems = context['subitems']
             # Add to all_ids
@@ -531,6 +533,7 @@ class HTMLDownloader(Downloader):
 
         # Bulk lookup current status
         status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
+
         # Bulk lookup custom values (with non empty content)
         custom_values = CustomValue.objects.filter(
             concept__in=all_ids

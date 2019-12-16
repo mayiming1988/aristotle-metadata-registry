@@ -4,15 +4,14 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.forms import ModelForm, BooleanField
+from django_jsonforms.forms import JSONSchemaField
 
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-import aristotle_mdr.models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
-from django_jsonforms.forms import JSONSchemaField
 from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
-
+import aristotle_mdr.models as MDR
 
 import logging
 
@@ -40,6 +39,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     registrationDate = forms.DateField(
         required=False,
         label=_("Registration date"),
+        help_text="Date the registration state will be active from.",
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
         initial=timezone.now()
     )
@@ -54,6 +54,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
         max_length=512,
         required=False,
         label=_("Administrative Note"),
+        help_text="The administrative note is a publishable statement describing the reasons for registration.",
         widget=forms.Textarea
     )
     registrationAuthorities = forms.ChoiceField(
@@ -83,7 +84,6 @@ class ChangeStatusForm(ChangeStatusGenericForm):
     def clean_state(self):
         state = self.cleaned_data['state']
         state = int(state)
-        MDR.STATES[state]
         return state
 
 

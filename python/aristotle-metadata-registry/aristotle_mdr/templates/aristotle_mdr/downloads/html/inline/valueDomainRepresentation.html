@@ -8,78 +8,77 @@ So we've split this out into its own template.
 
 
 <div>
-<table class="table table-striped valueDomainRepresentation">
-{% if item.dataType %}
-<tr>
-  <th>Data Type</th>
-  <td><a href="{% url 'aristotle:dataType' item.dataType.id %}">{{ item.dataType }}</a></td>
-</tr>
-{% endif %}
-{% if item.unitOfMeasure %}
-<tr>
-  <th>Unit Of Measure</th>
-  <td><a href="{% url 'aristotle:unitOfMeasure' item.unitOfMeasure.id %}">
-    {{ item.unitOfMeasure }}
-    {% if item.unitOfMeasure.symbol %}<tt>({{ item.unitOfMeasure.symbol }})</tt>{% endif %}
-  </td>
-</tr>
-{% endif %}
-{% if item.format %}
-<tr>
-  <th>Format</th>
-  <td>{{ item.format }}</td>
-</tr>
-{% endif %}
-{% if item.maximumLength %}
-<tr>
-  <th>Maximum character length</th>
-  <td>{{ item.maximumLength }}</td>
-</tr>
-{% endif %}
-</table>
+    <table class="table table-striped valueDomainRepresentation">
+        {% if item.dataType %}
+        <tr>
+            <th>Data Type</th>
+            <td><a href="{% url 'aristotle:dataType' item.dataType.id %}">{{ item.dataType }}</a></td>
+        </tr>
+        {% endif %}
+        {% if item.unitOfMeasure %}
+        <tr>
+            <th>Unit Of Measure</th>
+            <td><a href="{% url 'aristotle:unitOfMeasure' item.unitOfMeasure.id %}">
+                {{ item.unitOfMeasure }}
+                {% if item.unitOfMeasure.symbol %}<tt>({{ item.unitOfMeasure.symbol }})</tt>{% endif %}
+            </td>
+        </tr>
+        {% endif %}
+        {% if item.format %}
+        <tr>
+            <th>Format</th>
+            <td>{{ item.format }}</td>
+        </tr>
+        {% endif %}
+        {% if item.maximumLength %}
+        <tr>
+            <th>Maximum character length</th>
+            <td>{{ item.maximumLength }}</td>
+        </tr>
+        {% endif %}
+    </table>
 
-{% with permissible_values=item.permissiblevalue_set.all %}
-{% if permissible_values|length > 0 %}
+    {% with permissible_values=item.permissiblevalue_set.all %}
+    {% if permissible_values|length > 0 %}
     <header>Permissible Values</header>
     <table class="codeList table table-striped">
         <thead>
-            <tr>
-                <th>Value</th>
-                <th>Meaning</th>
-            </tr>
+        <tr>
+            <th>Value</th>
+            <th>Meaning</th>
+        </tr>
         </thead>
         <tbody>
-          {% for perm in permissible_values %}
-              <tr>
-                  <td>{{ perm.value }}</td>
-                  <td>{{ perm.meaning }}</td>
-              </tr>
-          {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
-{% endwith %}
-
-{% with supplementary_values=item.supplementaryvalue_set.all %}
-{% if supplementary_values|length > 0 %}
-    <header>Supplementary Values</header>
-    <table class="codeList table table-striped">
-        <thead>
-            <tr>
-                <th>Value</th>
-                <th>Meaning</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for perm in supplementary_values %}
-            <tr>
-                <td>{{ perm.value }}</td>
-                <td>{{ perm.meaning }}</td>
-            </tr>
+        {% for perm in permissible_values %}
+        <tr>
+            <td>{{ perm.value }}</td>
+            <td>{{ perm.meaning }}</td>
+        </tr>
         {% endfor %}
         </tbody>
     </table>
-{% endif %}
-{% endwith %}
+    {% endif %}
+    {% endwith %}
 
+    {% with supplementary_values=item.supplementaryvalue_set.all %}
+    {% if supplementary_values|length > 0 %}
+    <header>Supplementary Values</header>
+    <table class="codeList table table-striped">
+        <thead>
+        <tr>
+            <th>Value</th>
+            <th>Meaning</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for perm in supplementary_values %}
+        <tr>
+            <td>{{ perm.value }}</td>
+            <td>{{ perm.meaning }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endwith %}
 </div>
