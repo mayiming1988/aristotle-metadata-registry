@@ -33,7 +33,7 @@
         </dd>
         <dt>Distribution files</dt>
         <dd>
-            {% with distributions=item.distribution_set.all|can_view_iter:request.user %}
+            {% with distributions=item.distribution_set.all|can_view_iter:user %}
             {% if distributions %}
                 <ol>
                     {% for distribution in distributions %}
