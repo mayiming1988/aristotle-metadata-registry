@@ -25,7 +25,7 @@
             {% include "aristotle_mdr/helpers/itemLink.html" with item=item %}
             {#  TODO: How to add link in PDF { if item.download_URL } #}
 
-            {% if item.distributiondataelementpath_set.exists or item|can_edit:user %}
+            {% if item.distributiondataelementpath_set.exists %}
                 <p>
                     <strong>Data Elements in this distribution</strong>
                 </p>
