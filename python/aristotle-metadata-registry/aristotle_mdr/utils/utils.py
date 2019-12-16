@@ -16,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 import bleach
 import logging
 import re
-from pypandoc import _ensure_pandoc_path
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -317,7 +316,10 @@ def is_active_extension(extension_name):
 def pandoc_installed() -> bool:
     installed = True
     try:
+        from pypandoc import _ensure_pandoc_path
         _ensure_pandoc_path(quiet=True)
+    except ModuleNotFoundError:
+        installed = False
     except OSError:
         installed = False
 
