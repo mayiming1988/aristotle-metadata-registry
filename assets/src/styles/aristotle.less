@@ -12,6 +12,11 @@
 
   an override for the main
 */
+
+body {
+    height: 100%;
+}
+
 @screen-sm-min:599px;
 @screen-sm-max:760px;
 @screen-md-regular:992px;
@@ -22,15 +27,16 @@
     }
 }
 @media (min-width:@screen-md-regular)  {
+    // Make body a column flex container
     body {
         display: -ms-flexbox;
         display: flex;
-        min-height: 100%;
         flex-direction: column;
     }
-     body > #content.container {
-        flex-grow: 10;
-     }
+    // Make the content grow to fill the body flex container
+    body > #content {
+        flex: 1 0 auto;
+    }
 }
 
 @media (min-width:@screen-sm-min)  {
