@@ -32,13 +32,15 @@
                     </button>
                 </div>
                 <div class="collapse" id="{{ formset.prefix }}_collapse_{{forloop.counter0}}">
-                    <ul>
+                    <table class="formset_table">
                         {% for field in form.visible_fields %}
                             {% if not forloop.last %}
-                                <li style="display:table-row">
+                                <tr>
 
-                                    <label style="display:table-cell;vertical-align:top;padding-bottom:15px">{{ field.label }}</label>
-                                    <div style="display:table-cell">
+                                    <th>
+                                        <label>{{ field.label }}</label>
+                                    </th>
+                                    <td>
                                         {% if field.errors %}
                                             <div class="alert alert-danger">
                                         {% endif %}
@@ -47,11 +49,11 @@
                                             {{ field.errors.as_ul }}
                                             </div>
                                         {% endif %}
-                                    </div>
-                                </li>
+                                    </td>
+                                </tr>
                             {% endif %}
                         {% endfor %}
-                    </ul>
+                    </table>
                 </div>
             </td>
             <td>
