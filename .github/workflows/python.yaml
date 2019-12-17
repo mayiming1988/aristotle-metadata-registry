@@ -1,4 +1,4 @@
-name: Main Python Tests
+name: Python
 on:
   pull_request:
     paths:
@@ -45,15 +45,19 @@ jobs:
           mypy $(find ./python/ -maxdepth 3 -name '__init__.py' -printf '%h\n')
 
   main_testing:
-    needs: [python_lint, python_typing]
+    needs:
+      - python_lint
+      - python_typing
     name: Main Testing
     strategy:
       matrix:
-        python_module: ['Aristotle Metadata Registry',
-                        'Dataset Extensions',
-                        'Comet Indicator Registry',
-                        'GraphQL',
-                        'API']
+        python_module:
+          - 'Aristotle Metadata Registry'
+          - 'Dataset Extensions'
+          - 'Comet Indicator Registry'
+          - 'GraphQL'
+          - 'API'
+
         include:
           - python_module: 'Aristotle Metadata Registry'
             TOX_MODULE: amr
@@ -80,13 +84,15 @@ jobs:
     - name: Restart elasticsearch
       run: |
         sudo sysctl -w vm.max_map_count=262144
-        docker restart $(docker ps -a -q)
+        docker restart $(docker ps --all --quiet)
 
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
         node-version: 10.x
     - uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
 
     - name: Install tox
       run: pip install "tox>=3.0"
