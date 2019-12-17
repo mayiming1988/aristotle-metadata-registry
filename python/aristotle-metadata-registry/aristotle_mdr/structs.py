@@ -132,7 +132,9 @@ class Tree:
 
 class Breadcrumb:
     """Object representing a single breadcrumb"""
-    def __init__(self, name, url='',  query_parameters=[], active=False):
+    length: int = 9  # The number of words to display in the title
+
+    def __init__(self, name, url='', query_parameters=[], active=False):
         if url:
             self.url = url + self.add_query_parameters(query_parameters)
         self._name = name
@@ -140,17 +142,19 @@ class Breadcrumb:
 
     def add_query_parameters(self, query_parameters) -> str:
         parameters = ''
-        for index, parameter in enumerate(query_parameters):
-            parameters = parameters + parameter
-            if not index == len(query_parameters) - 1:
-                # If it's the end of the list, don't append an ampersand
-                parameters = parameters + '&'
+        if query_parameters:
+            parameters = '?'
+            for index, parameter in enumerate(query_parameters):
+                parameters = parameters + parameter
+                if not index == len(query_parameters) - 1:
+                    # If it's the end of the list, don't append an ampersand
+                    parameters = parameters + '&'
         return parameters
 
     @property
     def name(self):
         """Display name for breadcrumb"""
-        return truncate_words(self._name, 10)
+        return truncate_words(self._name, self.length)
 
 
 class ReversibleBreadcrumb(Breadcrumb):
@@ -163,9 +167,3 @@ class ReversibleBreadcrumb(Breadcrumb):
         if url_name:
             self.url = reverse(url_name, args=url_args)
         super().__init__(name, self.url, query_parameters, active)
-
-    @property
-    def name(self):
-        """Display name for breadcrumb"""
-        return truncate_words(self._name, 10)
-

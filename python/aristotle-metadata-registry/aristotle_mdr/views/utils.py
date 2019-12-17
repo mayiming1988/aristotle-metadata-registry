@@ -30,7 +30,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 import datetime
 import json
@@ -726,9 +726,9 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
             share = item.submitter.profile.share
             other_users_name = item.submitter.full_name or item.submitter.short_name or item.submitter.email
             return [
-                Breadcrumb(f"{other_users_name}'s Sandbox",
-                           'aristotle:sharedSandbox',
-                           url_args=[share.uuid]),
+                ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
+                                     'aristotle:sharedSandbox',
+                                     url_args=[share.uuid]),
                 add_item_url(item, active=last_active)
             ]
     elif item.stewardship_organisation:
@@ -736,13 +736,13 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
         return [
             Breadcrumb(item.stewardship_organisation.name,
                        item.stewardship_organisation.get_absolute_url()),
-            Breadcrumb('Metadata',
-                       'aristotle_mdr:stewards:group:browse',
-                       url_args=item.stewardship_organisation.slug),
-            Breadcrumb(f'{str(item._type).title()}',
-                       'aristotle_mdr:stewards:group:browse',
-                       url_args=item.stewardship_organisation.slug,
-                       query_parameters=[f'content_type={item._type.model}']),
+            ReversibleBreadcrumb('Metadata',
+                                 'aristotle_mdr:stewards:group:browse',
+                                 url_args=[item.stewardship_organisation.slug]),
+            ReversibleBreadcrumb(f'{item.item_type_name}',
+                                 'aristotle_mdr:stewards:group:browse',
+                                 url_args=[item.stewardship_organisation.slug],
+                                 query_parameters=[f'content_type={item.item_type.id}']),
             add_item_url(item, active=last_active)
         ]
     return []
