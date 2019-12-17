@@ -16,6 +16,7 @@ from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from braces.views import LoginRequiredMixin
 from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
+from aristotle_mdr.structs import Breadcrumb
 
 
 class All(LoginRequiredMixin, TemplateView):
@@ -214,6 +215,12 @@ class DeletePost(LoginRequiredMixin, ConfirmDeleteView):
 
         return reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk])
 
+    def get_breadcrumbs(self):
+        return [
+            Breadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.item.pk]),
+            Breadcrumb(name="Delete post", active=True),
+        ]
+
 
 class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, UpdateView):
     model = MDR.DiscussionPost
@@ -255,29 +262,36 @@ class CommentMixin(object):
 
         return comment
 
+    def dispatch(self, request, *args, **kwargs):
+        self.comment = self.get_object()
+        self.discussion_post = self.comment.post
+        return super().dispatch(request, *args, **kwargs)
 
-class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, DeleteView):
-    model = MDR.DiscussionComment
+
+class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, ConfirmDeleteView):
+    model_base = MDR.DiscussionComment
     permission_required = "aristotle_mdr.can_delete_comment"
     raise_exception = True
     redirect_unauthenticated_users = True
+    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+    item_kwarg = "cid"
+    warning_text = _("You are about to delete this comment, confirm below, or click cancel to return to the post.")
 
     def get_success_url(self):
         # TODO: How does this work, is it even tested?
         from django.utils.functional import lazy
-        success_url = lazy(reverse, self)('aristotle:discussionsPost', args=self.kwargs['cid'])
+        success_url = reverse('aristotle:discussionsPost', args=[self.discussion_post.pk])
         return success_url
 
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+    def get_breadcrumbs(self):
+        return [
+            Breadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.discussion_post.pk]),
+            Breadcrumb(name="Delete comment", active=True),
+        ]
 
-    def delete(self, request, *args, **kwargs):
-        comment = self.get_object()
-        post = comment.post
-
-        comment.delete()
-
-        return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
+    def perform_deletion(self):
+        self.comment.delete()
+        return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[self.discussion_post.pk]))
 
 
 class EditComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, UpdateView):

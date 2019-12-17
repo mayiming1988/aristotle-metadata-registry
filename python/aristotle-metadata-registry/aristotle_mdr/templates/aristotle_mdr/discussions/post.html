@@ -27,60 +27,87 @@
 {% endif %}
 
 <div class="thread">
-    <div class="comment panel-success panel">
-        <div class="panel-heading">
-            <span class="author">{{ post.author.display_name }}</span>
-            <small class="date" title='{{ post.created }}'>Posted {{ post.created|naturaltime }}</small>
-            {% if post.edited %}
-                , <span class="edit" title='{{ post.modified }}'>edited {{ post.modified|naturaltime }}</span>
-            {% endif %}
-        {% if request.user|can_alter_post:post and post.active %}
-            <span class="post_action_bar btn-group btn-group-sm pull-right">
-                <a href="{% url 'aristotle:discussionsEditPost' post.id %}"class="btn btn-default btn-sm"><i class="fa fa-pencil fa-fw"></i> Edit</a>
-                <a href="{% url 'aristotle:discussionsDeletePost' post.id %}" class="btn btn-default btn-sm"><i class="fa fa-trash fa-fw"></i> Delete post and all comments</a>
-                <a class="btn btn-danger btn-sm" href="{% url 'aristotle:discussionsPostToggle' post.id %}">Close</a>
-            </span>
-        {% endif %}
+    <div class="row">
+        <div class="col-xs-1">
+            <div class="thumbnail">
+                <img class="img-responsive user-photo" src="{{ post.author.profile.profile_picture_url }}" width="20px" alt="Profile Picture">
+            </div>
         </div>
-        <div class="panel-body">{{ post.body|linebreaks }}</div>
-        {% if post.relatedItems.first %}
-             <div class="panel-footer">
-             Related Items
-                {% for item in post.relatedItems.all %}
-                    | <a href="{% url 'aristotle:item' item.id %}">{{ item.name }} (id:{{ item.id }})</a>
-                {% endfor %}
-             </div>
-        {% endif %}
+        <div class="col-xs-11">
+            <div class="comment panel-success panel">
+                <div class="panel-heading">
+                    <span class="author">{{ post.author.display_name }}</span>
+                    <span class="date" title='{{ post.created }}'>commented {{ post.created|naturaltime }}</span>
+                    {% if post.edited %}
+                        , <span class="edit" title='{{ post.modified }}'>edited {{ post.modified|naturaltime }}</span>
+                    {% endif %}
+                {% if request.user|can_alter_post:post and post.active %}
+                    <span class="post_action_bar btn-group btn-group-sm pull-right">
+                        <a href="{% url 'aristotle:discussionsEditPost' post.id %}"class="btn btn-default btn-sm"><i class="fa fa-pencil fa-fw"></i> Edit</a>
+                        <a data-toggle="modal" data-target="#discussion_deletes"
+                           href="{% url 'aristotle:discussionsDeletePost' post.id %}" class="btn btn-default btn-sm"><i class="fa fa-trash fa-fw"></i> Delete post and all comments</a>
+                        <a class="btn btn-danger btn-sm" href="{% url 'aristotle:discussionsPostToggle' post.id %}">Close</a>
+                    </span>
+                {% endif %}
+                </div>
+                <div class="panel-body">{{ post.body|linebreaks }}</div>
+                {% if post.relatedItems.first %}
+                     <div class="panel-footer">
+                     Related Items
+                        {% for item in post.relatedItems.all %}
+                            | <a href="{% url 'aristotle:item' item.id %}">{{ item.name }} (id:{{ item.id }})</a>
+                        {% endfor %}
+                     </div>
+                {% endif %}
+            </div>
+        </div>
+
     </div>
 
 {% for comment in post.comments.all %}
-    {% if not comment.author %}
-    <div class="comment panel panel-danger" id="comment_{{comment.id }}">
-        <div class="panel-heading">
-            <span class="author"><strong>System message: </strong></span>
-            <small class="date" title='{{ comment.created }}'>Posted {{ comment.created|naturaltime }}</small>
+    <div class="row">
+        <div class="col-xs-1">
+            <div class="thumbnail">
+                {% if comment.author %}
+                    <img class="img-responsive user-photo" src="{{ comment.author.profile.profile_picture_url }}" width="20px" alt="Profile Picture">
+                {% else %}
+                {% endif %}
+            </div>
         </div>
-        <div class="panel-body">{{ comment.body|linebreaks }}</div>
-    </div>
 
-    {% else %}
-    <div class="comment panel panel-{% cycle 'default' 'info' %}" id="comment_{{comment.id }}">
-        <div class="panel-heading">
-            <span class="author">{{ comment.author.display_name }}</span>
-            <small class="date" title='{{ comment.created }}'>Posted {{ comment.created|naturaltime }}</small>
-            {% if comment.modified %}
-                , <small><span class="edit"  title='{{ comment.modified }}'>edited {{ comment.modified|naturaltime }}</span></small>
+        <div class="col-xs-11">
+            {% if not comment.author %}
+                <div class="comment panel panel-danger" id="comment_{{comment.id }}">
+                    <div class="panel-heading">
+                        <span class="author"><strong>System message: </strong></span> -
+                        <span class="date" title='{{ comment.created }}'>commented {{ comment.created|naturaltime }}</span>
+                    </div>
+                    <div class="panel-body">{{ comment.body|linebreaks }}</div>
+                </div>
+
+            {% else %}
+
+
+                <div class="comment panel panel-{% cycle 'default' 'info' %}" id="comment_{{comment.id }}">
+                    <div class="panel-heading">
+                        <span class="author">{{ comment.author.display_name }}</span>
+                        <span class="date" title='{{ comment.created }}'>commented {{ comment.created|naturaltime }}</span>
+                        {% if comment.modified %}
+                            , <span class="edit"  title='{{ comment.modified }}'>edited {{ comment.modified|naturaltime }}</span>
+                        {% endif %}
+                    {% if request.user|can_alter_comment:comment and post.active %}
+                        <span class="comment_action_bar btn-group pull-right">
+                            <a href="{% url 'aristotle:discussionsEditComment' comment.id %}" class="btn btn-sm btn-default"><i class="fa fa-pencil fa-fw"></i> Edit</a>
+                            <a data-toggle="modal" data-target="#discussion_deletes"
+                               href="{% url 'aristotle:discussionsDeleteComment' post.id comment.id %}" class="btn btn-sm btn-default"><i class="fa fa-trash fa-fw"></i> Delete comment</a>
+                        </span>
+                    {% endif %}
+                    </div>
+                    <div class="panel-body">{{ comment.body|linebreaks }}</div>
+                </div>
             {% endif %}
-        {% if request.user|can_alter_comment:comment and post.active %}
-            <span class="comment_action_bar btn-group pull-right">
-                <a href="{% url 'aristotle:discussionsEditComment' comment.id %}" class="btn btn-sm btn-default"><i class="fa fa-pencil fa-fw"></i> Edit</a>
-                <a href="{% url 'aristotle:discussionsDeleteComment' comment.id %}" class="btn btn-sm btn-default"><i class="fa fa-trash fa-fw"></i> Delete comment</a>
-            </span>
-        {% endif %}
         </div>
-        <div class="panel-body">{{ comment.body|linebreaks }}</div>
     </div>
-    {% endif %}
 {% endfor %}
 </div>
 {% if post.closed %}
@@ -98,4 +125,8 @@
     <a class="btn btn-danger padded" href="{% url 'aristotle:discussionsPostToggle' post.id %}">Close discussion</a>
 </form>
 {% endif %}
+
+<div v-pre>{% bootstrap_modal "discussion_deletes" size='md' %}</div>
+
+
 {% endblock %}
