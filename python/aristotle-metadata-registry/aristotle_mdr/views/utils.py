@@ -707,7 +707,7 @@ def add_item_url(item, active=False) -> Breadcrumb:
     """Helper function to add item breadcrumbs """
     if active:
         return Breadcrumb(item.name, active=True)
-    return Breadcrumb(item.name, 'aristotle:item', url_args=item.id)
+    return ReversibleBreadcrumb(item.name, 'aristotle:item', url_args=[item.id])
 
 
 def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
@@ -719,18 +719,25 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
         # It's in a sandbox
         if item.submitter == user:
             # It's in our own sandbox
-            return [Breadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
+            return [ReversibleBreadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
                     add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
-            share = item.submitter.profile.share
             other_users_name = item.submitter.full_name or item.submitter.short_name or item.submitter.email
-            return [
-                ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
-                                     'aristotle:sharedSandbox',
-                                     url_args=[share.uuid]),
-                add_item_url(item, active=last_active)
-            ]
+            if not hasattr(item.submitter.profile, 'share'):
+                # You are viewing the item without a share being created, this is something only a superuser could do
+                return [
+                    Breadcrumb(f"Sandboxed Item"),
+                    add_item_url(item, active=last_active)
+                ]
+            else:
+                share = item.submitter.profile.share
+                return [
+                    ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
+                                         'aristotle:sharedSandbox',
+                                         url_args=[share.uuid]),
+                    add_item_url(item, active=last_active)
+                ]
     elif item.stewardship_organisation:
         # Item has a stewardship organisation
         return [
