@@ -1062,7 +1062,7 @@ class _concept(baseAristotleObject):
             4. or a stewardship organisation"""
         not_registered = not self.statuses.all()
         no_review_or_revoked = (not self.rr_review_requests.all() or
-                                self.rr_review_requests.objects.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
+                                self.rr_review_requests.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
         no_workgroup = self.workgroup is None
         no_stewardship_org = self.stewardship_organisation is None
         return not_registered and no_review_or_revoked and no_workgroup and no_stewardship_org
