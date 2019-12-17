@@ -199,14 +199,34 @@ class StewardURLManager(GroupURLManager):
             current_group_context = "metadata"
             model = MDR._concept
 
+            def dispatch(self, *args, **kwargs):
+                content_type = self.request.GET.get("content_type", None)
+                allowed_ct_ids = [ct.id for ct in ContentType.objects.all()]
+
+                self.model_class = None
+                if content_type:
+                    if not content_type.isdigit() or not int(content_type) in allowed_ct_ids:
+                        # Not a ContentType id or not even an integer
+                        raise Http404
+
+                    self.model_class = ContentType.objects.get_for_id(content_type).model_class()
+
+                return super().dispatch(*args, **kwargs)
+
             def get_queryset(self, *args, **kwargs):
                 qs = super().get_queryset(*args, **kwargs)
-                return qs.filter(stewardship_organisation=self.get_group())
+
+                if self.model_class:
+                    return self.model_class.objects.filter(stewardship_organisation=self.get_group())
+                else:
+                    return qs.filter(stewardship_organisation=self.get_group())
 
             def get_context_data(self, *args, **kwargs):
                 # Call the base implementation first to get a context
                 self.kwargs['app'] = "aristotle_mdr"
                 context = super().get_context_data(*args, **kwargs)
+                context['model'] = self.model_class
+
                 return context
 
             def get_template_names(self):
