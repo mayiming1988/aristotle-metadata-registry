@@ -8,8 +8,9 @@
         </alert>
         <FormSet
                 :fields="fields"
-                :initial="initial"
                 :allowed="allowed"
+                :initial="initial"
+                :addButtonMessage="addButtonMessage"
                 :errors="errors"
                 :showLabels="showLabels"
                 :showDelete="showDelete"
@@ -36,32 +37,37 @@
         }),
         props: {
             dataFields: {
-                type: String
-            },
-            dataInitial: {
                 type: String,
-                default: '[]'
             },
             dataAllowed: {
                 type: String,
-                default: '[]'
+                default: '[]',
             },
-            url: {
-                type: String
+            dataInitial: {
+                type: String,
+                default: '[]',
             },
-            showLabels: {
-                type: Boolean,
-                default: true
+            dataAddButtonMessage: {
+                type: String,
+                default: 'Add',
             },
             showDelete: {
                 type: Boolean,
-                default: true
+                default: true,
+            },
+            url: {
+                type: String,
+            },
+            showLabels: {
+                type: Boolean,
+                default: true,
             },
         },
         created: function () {
             this.allowed = JSON.parse(this.dataAllowed)
             this.fields = JSON.parse(this.dataFields)
             this.initial = JSON.parse(this.dataInitial)
+            this.addButtonMessage = this.dataAddButtonMessage
         },
         methods: {
             onSubmit: function (data) {

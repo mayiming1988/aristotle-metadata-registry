@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
-from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
+from aristotle_mdr.contrib.generic.views import CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.slots.models import Slot
 
@@ -66,9 +66,6 @@ class CustomFieldListView(IsSuperUserMixin, ListView):
         else:
             iterable = context['object_list']
 
-        logger.critical("THIS IS THE ITERABLE")
-        logger.critical(iterable)
-
         final_list = self.get_listing(iterable)
 
         context.update({
@@ -89,33 +86,60 @@ class CustomFieldListCreateView(IsSuperUserMixin, ListView):
 
 
 class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
-    """ View to edit the values for all custom fields """
+    """
+    View to edit the values for all custom fields
+    """
     template_name = 'aristotle_mdr/custom_fields/multiedit.html'
     form_class = CustomFieldForm
     non_write_fields = ['hr_type', 'hr_visibility']
 
-    def get_custom_fields(self) -> Iterable[models.CustomField]:
-        content_type_mapping = get_concept_name_to_content_type()
+    def dispatch(self, request, *args, **kwargs):
+        self.metadata_type = kwargs.get('metadata_type')
+        return super().dispatch(request, args, kwargs)
 
-        metadata_type = self.kwargs['metadata_type']
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        self.content_type = self.get_name_of_edited_model(self.metadata_type)
+        context.update({
+            'edited_model': self.content_type,
+            'vue_allowed_models': json.dumps(self.get_allowed_models()),
+            'vue_formset_add_button_message': "Add Custom Field for {}".format(self.content_type),
+        })
+        return context
 
-        if metadata_type in content_type_mapping:
-            content_type = content_type_mapping[metadata_type]
-            return models.CustomField.objects.filter(allowed_model=content_type)
-        elif metadata_type == 'all':
-            return models.CustomField.objects.filter(allowed_model=None)
-        else:
-            raise Http404
+    def get_form_kwargs(self):
+        kwargs = super(CustomFieldEditCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'content_type': self.metadata_type
+        })
+        return kwargs
 
     def get_vue_initial(self) -> List[Dict[str, str]]:
-        fields = self.get_custom_fields()
+        fields = self.get_custom_field_objects()
         serializer = CustomFieldSerializer(fields, many=True)
 
         return serializer.data
 
+    def get_custom_field_objects(self) -> Iterable[models.CustomField]:
+        """
+        Get a Queryset of CustomField objects.
+        :return: Queryset
+        """
+        content_type_mapping = get_concept_name_to_content_type()
+
+        # self.metadata_type = self.kwargs['metadata_type']
+
+        if self.metadata_type in content_type_mapping:
+            content_type = content_type_mapping[self.metadata_type]
+            return models.CustomField.objects.filter(allowed_model=content_type)
+        elif self.metadata_type == 'all':
+            return models.CustomField.objects.filter(allowed_model=None)
+        else:
+            raise Http404
+
     def get_allowed_models(self):
         allowed_models: Dict = {}
-        # We don't need to do any form of permission checking because this is a super user only view
+        # We don't need to do any form of permission checking because this is a super user only view.
         for allowed_model in ContentType.objects.all():
             allowed_models[allowed_model.pk] = allowed_model.name.title()
 
@@ -126,13 +150,6 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         if metadata_type in mapping:
             return mapping[metadata_type]
         return 'All Models'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-        context['edited_model'] = self.get_name_of_edited_model(self.kwargs['metadata_type'])
-
-        context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
-        return context
 
 
 class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):

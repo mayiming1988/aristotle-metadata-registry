@@ -27,14 +27,16 @@
     </div>
     <hr>
     <div id="vue-container">
-        <formset
+        <formSet
                 data-fields="{{ vue_fields }}"
                 data-allowed="{{ vue_allowed_models }}"
                 data-initial="{{ vue_initial }}"
+{#                data-related-model="{{ edited_model }}"#}
+                data-add-button-message="{{ vue_formset_add_button_message }}"
                 data-dont-submit="{{ vue_dont_submit }}"
                 url="{% url 'api_v4:custom_field_list' %}"
                 :show-delete="true">
-        </formset>
+        </formSet>
     </div>
 
 {% endblock %}

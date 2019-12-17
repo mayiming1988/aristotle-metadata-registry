@@ -71,12 +71,7 @@
                 if (name !== 'choices') {
                     return true
                 }
-                else if (name == 'choices' && displayField == true) {
-                    return true
-                }
-                else {
-                    return false
-                }
+                else return name == 'choices' && displayField == true;
             },
 
             hasErrors: function (field_name) {

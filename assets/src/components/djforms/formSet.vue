@@ -6,7 +6,7 @@
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
                             <h4 class="panel-title">
-                                <i class="fa fa-lg fa-bars grabber"/>
+                                <i class="fa fa-lg fa-bars grabber" />
                                 {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}
                             </h4>
                         </div>
@@ -40,7 +40,7 @@
         </draggable>
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">
-                Add
+                {{ addButtonMessage }}
             </button>
             <button class="btn btn-primary" @click="submitFormSet">
                 Submit Edits
@@ -69,7 +69,21 @@
         props: {
             // List of the available fields
             fields: {
-                type: Object
+                type: Object,
+            },
+            allowed: {
+                type: Object,
+            },
+            initial: {
+                type: Array,
+            },
+            addButtonMessage: {
+                type: String,
+                default: 'Add',
+            },
+            showDelete: {
+                type: Boolean,
+                default: true
             },
             orderField: {
                 type: String,
@@ -77,20 +91,10 @@
             },
             showLabels: {
                 type: Boolean,
-                default: true
-            },
-            showDelete: {
-                type: Boolean,
-                default: true
-            },
-            initial: {
-                type: Array,
-            },
-            allowed: {
-                type: Object,
+                default: true,
             },
             errors: {
-                type: Array
+                type: Array,
             },
         },
         data: () => ({
@@ -144,16 +148,12 @@
                 return defaults
             },
             displayChoices: function () {
-                // Display choices fields is an dictionary of true/false values to allow the baseForm component
+                // Display choices fields is a dictionary of true/false values to allow the baseForm component
                 // to determine whether or not to display the choice form field
-                let displayChoices = new Object();
+                let displayChoices = {};
 
                 for (let i = 0; i < this.formsData.length; i++) {
-                    if (this.formsData[i]['type'] === 'enum') {
-                        displayChoices[i] = true
-                    } else {
-                        displayChoices[i] = false
-                    }
+                    displayChoices[i] = this.formsData[i]['type'] === 'enum';
                 }
                 return displayChoices
             }
@@ -234,5 +234,6 @@
 
     .vue-formset-button-group {
         margin-top: 10px;
+        margin-bottom: 20px;
     }
 </style>

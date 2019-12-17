@@ -1082,14 +1082,13 @@ class VueFormView(FormView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
-        context['vue_fields'] = json.dumps(
-            self.get_vue_form_fields(context['form'])
-        )
-
         initial = self.get_vue_initial()
-
         self.strip_fields(initial)
 
-        context['vue_initial'] = json.dumps(initial)
-
+        context.update({
+            'vue_fields': json.dumps(
+                self.get_vue_form_fields(context['form'])
+            ),
+            'vue_initial': json.dumps(initial)
+        })
         return context
