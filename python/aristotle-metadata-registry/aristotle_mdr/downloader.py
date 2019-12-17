@@ -27,7 +27,7 @@ import pypandoc
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
-from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
+from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds, cloud_enabled
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from aristotle_mdr.views.utils import get_lazy_viewable_ids
 
@@ -344,6 +344,7 @@ class HTMLDownloader(Downloader):
             'user': self.user,
             'options': self.options,
             'config': aristotle_settings,
+            'aristotle_cloud_is_active': cloud_enabled(),
             'export_date': now(),
             'viewable_ids': get_lazy_viewable_ids(self.user)
         }

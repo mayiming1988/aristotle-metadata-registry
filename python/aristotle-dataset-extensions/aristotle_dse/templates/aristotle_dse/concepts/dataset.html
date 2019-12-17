@@ -14,22 +14,13 @@
 
 {% endblock %}
 
-{% block asideContent %}
-    <dl>
-        {% if item.custodian %}
-            <dt>Data Custodian</dt>
-            <dd>{{ item.custodian }}</dd>
-        {% endif %}
-    </dl>
-{% endblock %}
-
 {% block objSpecific %}
     {% if item.linkToData %}
-        <strong>Data is available at </strong><a href="{{ item.linkToData }}">{{ item.linkToData }}</a>.
+        <strong>Data is available at </strong><a href="{{ item.landing_page }}">{{ item.landing_page }}</a>.
     {% else %}
         No link to the data is available.
     {% endif %}
-    For more details on how to access this data contact the data custodian listed below.
+    For more details on how to access this data contact the publishing organisation.
 
     <h2>Data source details</h2>
     <dl class="">
@@ -42,34 +33,34 @@
         </dd>
         <dt>Distribution files</dt>
         <dd>
-            {% if item.distribution_set.exists %}
+            {% with distributions=item.distribution_set.all|can_view_iter:user %}
+            {% if distributions %}
                 <ol>
-                    {% if item.distribution_set.exists %}
-                        {% for distribution in item.distribution_set.all|can_view_iter:request.user %}
-                            <li class="well">
-                                <span class="file_type">{{distribution.format_type}}</span>
-                                {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
-                                {% if distribution.origin_URI %}
-                                    <a href='{{distribution.origin_URI}}' class='btn btn-default'>
-                                        <i class='fa fa-download'></i>
-                                        Download
-                                    </a>
-                                {% endif %}
+                    {% for distribution in distributions %}
+                        <li class="well">
+                            <span class="file_type">{{distribution.format_type}}</span>
+                            {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
+                            {% if distribution.origin_URI %}
+                                <a href='{{distribution.download_URL}}' class='btn btn-default'>
+                                    <i class='fa fa-download'></i>
+                                    Download
+                                </a>
+                            {% endif %}
 
-                                <div>
-                                    {{ distribution.definition|bleach }}
-                                </div>
-                                <dl>
-                                    <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
-                                    <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
-                                </dl>
-                            </li>
-                        {% endfor %}
-                    {% endif %}
+                            <div>
+                                {{ distribution.definition|bleach }}
+                            </div>
+                            <dl>
+                                <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
+                                <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
+                            </dl>
+                        </li>
+                    {% endfor %}
                 </ol>
             {% else %}
                 <em>None</em>
             {% endif %}
+            {% endwith %}
         </dd>
     </dl>
     {% if can_edit %}
