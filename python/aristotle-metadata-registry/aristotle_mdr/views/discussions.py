@@ -270,6 +270,7 @@ class CommentMixin(object):
 
 class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, ConfirmDeleteView):
     model_base = MDR.DiscussionComment
+    permission_checks = [perms.can_delete_comment]
     permission_required = "aristotle_mdr.can_delete_comment"
     raise_exception = True
     redirect_unauthenticated_users = True

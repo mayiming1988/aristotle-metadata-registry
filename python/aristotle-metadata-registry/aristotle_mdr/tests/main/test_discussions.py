@@ -285,7 +285,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages, TestCase)
     def can_the_current_logged_in_user_delete_comment(self):
         post = models.DiscussionPost.objects.create(author=self.viewer, workgroup=self.wg1, title="test", body="test")
         comment = models.DiscussionComment.objects.create(author=self.viewer, post=post, body="test")
-        response = self.client.get(reverse('aristotle:discussionsDeleteComment', args=[comment.id]))
+        response = self.client.post(reverse('aristotle:discussionsDeleteComment', args=[post.id, comment.id]))
         self.assertRedirects(response, reverse('aristotle:discussionsPost', args=[post.id]))
         self.assertEqual(models.DiscussionComment.objects.filter(id=comment.id).count(), 0)
 
@@ -306,7 +306,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages, TestCase)
         self.login_editor()
         post = models.DiscussionPost.objects.create(author=self.viewer, workgroup=self.wg1, title="test", body="test")
         comment = models.DiscussionComment.objects.create(author=self.viewer, post=post, body="test")
-        response = self.client.get(reverse('aristotle:discussionsDeleteComment', args=[comment.id]))
+        response = self.client.get(reverse('aristotle:discussionsDeleteComment', args=[post.id, comment.id]))
         self.assertEqual(response.status_code, 403)
         self.assertEqual(models.DiscussionComment.objects.filter(id=comment.id).count(), 1)
 
