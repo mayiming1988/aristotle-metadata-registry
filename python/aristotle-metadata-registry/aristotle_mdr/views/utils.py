@@ -723,14 +723,14 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
                     add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
-            other_users_name = item.submitter.display_name
-            if not hasattr(item.submitter.profile, 'share'):
+            if not hasattr(item.submitter.profile, 'share') or not hasattr(item.submitter, 'display_name'):
                 # You are viewing the item without a share being created, this is something only a superuser could do
                 return [
                     Breadcrumb(f"Sandboxed Item"),
                     add_item_url(item, active=last_active)
                 ]
             else:
+                other_users_name = item.submitter.display_name
                 share = item.submitter.profile.share
                 return [
                     ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
