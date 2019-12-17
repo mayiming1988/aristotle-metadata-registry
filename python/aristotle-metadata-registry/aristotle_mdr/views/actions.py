@@ -12,7 +12,7 @@ from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import UserFormViewMixin
 from aristotle_mdr.models import SupersedeRelationship
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 
 import logging
@@ -151,7 +151,7 @@ class SupersedeItemHistory(SupersedeItemHistoryBase):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
@@ -179,7 +179,7 @@ class ProposedSupersedeItemHistory(SupersedeItemHistoryBase):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
@@ -238,12 +238,12 @@ class AddSupersedeRelationship(SupersedeRelationshipCreateView):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Supersede relationships",
                     'aristotle:supersede',
                     url_args=[self.item.id]
@@ -277,12 +277,12 @@ class AddProposedSupersedeRelationship(SupersedeRelationshipCreateView):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Proposed supersede relationships",
                     'aristotle:proposed_supersede',
                     url_args=[self.item.id]
@@ -348,17 +348,17 @@ class EditSupersedeRelationship(SupersedeRelationshipUpdateView):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Supersede relationships",
                     'aristotle:supersede',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Edit supersede relationship",
                     active=True
                 )
@@ -387,17 +387,17 @@ class EditProposedSupersedeRelationship(SupersedeRelationshipUpdateView):
         context = super().get_context_data(**kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.name,
                     'aristotle:item',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Proposed supersede relationships",
                     'aristotle:proposed_supersede',
                     url_args=[self.item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Edit proposed supersede relationship",
                     active=True
                 ),
@@ -440,17 +440,17 @@ class DeleteSupersedeRelationship(SupersedeRelationshipConfirmDeleteView):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.newer_item.name,
                     'aristotle:item',
                     url_args=[self.item.newer_item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Supersede relationships",
                     "aristotle:supersede",
                     url_args=[self.item.newer_item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Delete supersede relationship",
                     active=False
                 )
@@ -478,17 +478,17 @@ class DeleteProposedSupersedeRelationship(SupersedeRelationshipConfirmDeleteView
         context = super().get_context_data(*args, **kwargs)
         context.update({
             "breadcrumbs": [
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     self.item.newer_item.name,
                     'aristotle:item',
                     url_args=[self.item.newer_item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Proposed supersede relationships",
                     "aristotle:supersede",
                     url_args=[self.item.newer_item.id]
                 ),
-                Breadcrumb(
+                ReversibleBreadcrumb(
                     "Delete proposed supersede relationship",
                     active=False
                 )
