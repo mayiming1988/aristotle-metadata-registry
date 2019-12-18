@@ -4,7 +4,13 @@
 {% block breadcrumbs %}
     <ol class="breadcrumb">
         <li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
-        <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
+        <li>
+            {% if is_registrar %}
+                <a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a>
+            {% else %}
+                Reviews
+            {% endif %}
+        </li>
         <li><a href="{% url 'aristotle_reviews:review_details' item.id %}">Request review details</a></li>
         <li class="active">Edit review</li>
     </ol>
