@@ -56,6 +56,10 @@ input[type='text'].autocomplete {
     font-weight: normal;
 }
 
+.select2-selection.form-control {
+    height: auto;
+}
+
 .aristotle-select2-multiple .select2-search--inline {
     width:100%;
     border: 1px solid gray;
@@ -66,4 +70,20 @@ input[type='text'].autocomplete {
 .aristotle-select2-multiple .select2-search--inline .select2-search__field {
     width:100%;
     float: none !important;
+}
+
+.select.aristotle-select2 + span.select2-container, .aristotle-select2-multiple {
+    /* Because DAL doesn't put the select2-container at the correct depth,
+     * we've got this CSS selector to put this CSS on a span that wraps the
+     * initial entry and the dropdown */
+    min-height: 40px !important;
+    width: 500px;
+    max-width: 500px;
+    padding: unset;
+}
+
+select.aristotle-select2 + span.select2-container, .aristotle-select2 {
+    width: 500px;
+    max-width: 500px;
+    padding: unset;
 }

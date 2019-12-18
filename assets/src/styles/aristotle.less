@@ -12,6 +12,11 @@
 
   an override for the main
 */
+
+body {
+    height: 100%;
+}
+
 @screen-sm-min:599px;
 @screen-sm-max:760px;
 @screen-md-regular:992px;
@@ -22,15 +27,16 @@
     }
 }
 @media (min-width:@screen-md-regular)  {
+    // Make body a column flex container
     body {
         display: -ms-flexbox;
         display: flex;
-        min-height: 100%;
         flex-direction: column;
     }
-     body > #content.container {
-        flex-grow: 10;
-     }
+    // Make the content grow to fill the body flex container
+    body > #content {
+        flex: 1 0 auto;
+    }
 }
 
 @media (min-width:@screen-sm-min)  {
@@ -574,21 +580,6 @@ dl.treble_defintions {
     padding: 5px 10px;
 }
 
-.select.aristotle-select2 + span.select2-container, .aristotle-select2-multiple {
-    // Because DAL doesn't put the select2-container at the correct depth,
-    // we've got this CSS selector to put this CSS on a span that wraps the
-    // initial entry and the dropdown
-    min-width : 200px;
-    min-height: 40px !important;
-    max-width: 500px;
-    padding: unset;
-}
-
-select.aristotle-select2 + span.select2-container, .aristotle-select2 {
-    max-width: 400px;
-    min-width: 150px;
-    padding: unset;
-}
 
 
 .ta-fixed-width {
@@ -634,10 +625,6 @@ div.bleached-content {
         max-width: 100%;
     }
 
-}
-
-.select2-selection.form-control {
-    height: auto;
 }
 
 /* Style the button that is used to open and close the collapsible content */

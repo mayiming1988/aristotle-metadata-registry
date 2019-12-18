@@ -1,19 +1,9 @@
-{% extends "aristotle_mdr/concepts/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 {% load i18n aristotle_tags util_tags %}
-
-{% block asideContent %}
-    <dl>
-        {% if item.custodian %}
-            <dt>Data Custodian</dt>
-            <dd>{{ item.custodian }}</dd>
-        {% endif %}
-    </dl>
-{% endblock %}
-
 
 {% block objSpecific %}
 
-    {% with datasets=item.dataset_set.all|order_by:"name"|can_view_iter:request.user %}
+    {% with datasets=item.dataset_set.all|order_by:"name"|can_view_iter:user %}
     {% if datasets %}
         The following data sets are included in this catalog:
 

@@ -146,6 +146,10 @@
 
             {% block objSpecific %}
             {% endblock %}
+
+            {% if aristotle_cloud_is_active %}
+                {% include "aristotle_cloud/downloads/concepts/helpers/reference_links_display.html" with item=item %}
+            {% endif %}
         </dl>
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
         {% if subitems %}

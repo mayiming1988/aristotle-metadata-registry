@@ -206,13 +206,6 @@ class DatasetViewPage(LoggedInViewConceptPages, TestCase):
         )
         return dataset
 
-    def test_user_without_edit_permission_cannot_see_edit_distributions_button(self):
-        """Test that the edit distribution button is not visible on the Dataset item page"""
-        dataset = self.create_public_dataset()
-        response = self.client.get(dataset.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Edit distributions")
-
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'distribution'
