@@ -715,7 +715,7 @@ def share_link_possible(submitter) -> bool:
     if not submitter:
         return False
     else:
-        if not submitter.profile.share:
+        if not hasattr(submitter.profile, 'share'):
             return False
     return True
 
