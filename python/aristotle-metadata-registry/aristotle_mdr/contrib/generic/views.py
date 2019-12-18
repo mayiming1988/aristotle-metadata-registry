@@ -897,7 +897,11 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
         context['form_delete_button_text'] = self.form_delete_button_text
         context['warning_text'] = self.get_warning_text()
         context['reverse_url'] = self.reverse_url
+        context['breadcrumbs'] = self.get_breadcrumbs()
         return context
+
+    def get_breadcrumbs(self):
+        return []
 
     def get_warning_text(self):
         return self.warning_text
