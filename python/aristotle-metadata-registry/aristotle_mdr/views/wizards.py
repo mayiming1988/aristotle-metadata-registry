@@ -23,7 +23,7 @@ from aristotle_mdr.utils import (
     is_active_module
 )
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
@@ -87,7 +87,7 @@ class PermissionWizard(SessionWizardView):
 
     def get_breadcrumbs(self, model_name):
         return [
-            Breadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
+            ReversibleBreadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
             Breadcrumb(f'Create {model_name}', active=True),
         ]
 
