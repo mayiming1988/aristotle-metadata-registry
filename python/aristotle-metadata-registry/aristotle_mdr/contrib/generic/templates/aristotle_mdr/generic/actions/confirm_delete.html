@@ -7,13 +7,15 @@
 
     <form method="post" action="{{ submit_url }}" >
         <div class="modal-body">
-            {% if breadcrumbs %}
-                {% breadcrumb_list breadcrumbs %}
-            {% else %}
-                <ul class="breadcrumb">
-                    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-                    <li class="active">{{ form_title }}</li>
-                </ul>
+            {% if not request.is_ajax %}
+                {% if breadcrumbs %}
+                    {% breadcrumb_list breadcrumbs %}
+                {% else %}
+                    <ul class="breadcrumb">
+                        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+                        <li class="active">{{ form_title }}</li>
+                    </ul>
+                {% endif %}
             {% endif %}
 
             {% csrf_token %}
@@ -26,7 +28,8 @@
                 {% if request.is_ajax %}
                     {# If it's a modal just dismiss the modal #}
                     <button type="button" class="btn btn-default" data-dismiss="modal">
-                        <i class="fa fa-times"></i>Cancel</button>
+                        <i class="fa fa-times"></i>
+                        Cancel</button>
                 {% else %}
                     <a class="btn btn-default" href="{% url reverse_url item.id %}">
                         <i class="fa fa-times"></i>

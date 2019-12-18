@@ -19,7 +19,7 @@
 <form enctype="multipart/form-data" method='post'>
     {% csrf_token %}
     {% include 'aristotle_mdr/discussions/comment_form.html' with action_name="Edit" %}
-    <button class="btn btn-primary" type='submit' value='Submit'><i class="fa fa-save fa-fw"></i>Save changes</button>
     <a class="btn btn-default" href="{% url 'aristotle:discussionsPost' post.id %}"><i class="fa fa-times fa-fw"></i>Cancel</a>
+    <button class="btn btn-primary" type='submit' value='Submit'><i class="fa fa-save fa-fw"></i>Save changes</button>
 </form>
 {% endblock %}
