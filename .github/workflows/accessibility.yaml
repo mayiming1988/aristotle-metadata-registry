@@ -56,6 +56,11 @@ jobs:
         npm install
         npm run devbuild
 
+    - name: Install postgres dependencies
+      run: |
+        sudo apt-get --allow-releaseinfo-change update || true
+        sudo apt-get install libpq-dev -y
+
     - name: Run accessibility tests
       run: tox -e dj-linux-ally-${{ matrix.ALLY }}-module_amr
       env:
