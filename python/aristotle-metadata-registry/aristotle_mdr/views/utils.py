@@ -710,6 +710,16 @@ def add_item_url(item, active=False) -> Breadcrumb:
     return ReversibleBreadcrumb(item.name, 'aristotle:item', url_args=[item.id])
 
 
+def share_link_possible(submitter) -> bool:
+    """Returns true if a share link can be created to another user's sandbox"""
+    if not submitter:
+        return False
+    else:
+        if not submitter.profile.share:
+            return False
+    return True
+
+
 def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
     """ Return a list of breadcrumbs for a metadata item
         through a process of introspection to determine what kind of breadcrumbs to display
@@ -723,19 +733,27 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
                     add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
-            if not hasattr(item.submitter.profile, 'share') or not hasattr(item.submitter, 'display_name'):
-                # You are viewing the item without a share being created, this is something only a superuser could do
-                return [
-                    Breadcrumb(f"Sandboxed Item"),
-                    add_item_url(item, active=last_active)
-                ]
+            no_link_possible = False
+            if not item.submitter:
+                no_link_possible = True
             else:
+                if not item.submitter.profile.share:
+                    no_link_possible = True
+
+            if share_link_possible(item.submitter):
+                # You are viewing the item without a share being created, this is something only a superuser could do
                 other_users_name = item.submitter.display_name
                 share = item.submitter.profile.share
                 return [
                     ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
                                          'aristotle:sharedSandbox',
                                          url_args=[share.uuid]),
+                    add_item_url(item, active=last_active)
+                ]
+
+            else:
+                return [
+                    Breadcrumb(f"Sandboxed Item"),
                     add_item_url(item, active=last_active)
                 ]
     elif item.stewardship_organisation:
