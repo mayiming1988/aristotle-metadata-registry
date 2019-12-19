@@ -247,7 +247,13 @@ class Framework(MDR.concept):
     def root_dimensions(self):
         return self.frameworkdimension_set.all().filter(
             parent=None
-        )
+        ).order_by("tree_id")
+
+    def top_dimensions(self):
+        return [
+            (top, top.get_descendants(include_self=True))
+            for top in self.frameworkdimension_set.filter(parent=None).all().order_by("tree_id")
+        ]
 
 
 class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):

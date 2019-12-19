@@ -9,54 +9,21 @@
                 Table of contents
             </div>
             <div class="panel-body">
-                <ul class="root">
-                    {% recursetree item.frameworkdimension_set.all %}
-                        <li>
-                            <a href="#dimension_{{node.pk}}">{{ node.name }}</a>
-
-                            {% if not node.is_leaf_node %}
-                                <ul class="children">
-                                    {{ children }}
-                                </ul>
-                            {% endif %}
-                        </li>
-                    {% endrecursetree %}
-                </ul>
+            
+            <ul>
+            {% for top in item.root_dimensions %}
+                    {% include "comet/helpers/dimension_toc_node.html" with node=top %}
+            {% endfor %}
+            </ul>
             </div>
         </div>
+
     {% endif %}
 
     <ul class="root">
-        {% recursetree item.frameworkdimension_set.all %}
-            <li id="dimension_{{node.pk}}">
-                {% if node.level == 0 %}
-                    <h3>{{ node.name }}</h3>
-                {% else %}
-                    <header style="text-decoration:underline; font-size:110%">{{ node.name }}</header>
-                {% endif %}
-                <div>
-                    {{ node.description | bleach }}
-                </div>
-                {% if node.indicators.exists %}
-                    <strong>Indicators linked to this dimension</strong>
-                    <ul>
-                        {% for indicator in node.indicators.all %}
-                            {% if indicator.id in viewable_ids %}
-                                <li>
-                                    {% include "aristotle_mdr/helpers/itemLink.html" with item=indicator showType=False skip_can_view=True %}
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-                {% if not node.is_leaf_node %}
-                    <strong>Sub-dimensions of this dimension</strong>
-                    <ul class="children">
-                        {{ children }}
-                    </ul>
-                {% endif %}
-            </li>
-        {% endrecursetree %}
+        {% for top in item.root_dimensions %}
+            {% include "comet/helpers/dimension_node.html" with node=top %}
+        {% endfor %}
     </ul>
 
 {% endblock %}
