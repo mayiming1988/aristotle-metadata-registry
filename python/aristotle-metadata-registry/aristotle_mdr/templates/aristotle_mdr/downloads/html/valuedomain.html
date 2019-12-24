@@ -29,8 +29,5 @@
             {% endif %}
         {% endwith %}
     </dl>
-    {% if options.include_related %}
-        {% include "aristotle_mdr/downloads/html/helpers/relational_attrs.html" with item=item %}
-    {% endif %}
 
 {% endblock %}
