@@ -642,7 +642,7 @@ class ExtraFormsetMixin:
             else:
                 formset = self.get_order_formset(through, postdata=postdata)
 
-            formset = one_to_many_formset_filters(formset, item)
+            formset = one_to_many_formset_filters(formset, item, clone=clone_item)
 
             extra_formsets.append({
                 'formset': formset,
@@ -667,7 +667,7 @@ class ExtraFormsetMixin:
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
 
-            formset = one_to_many_formset_filters(formset, item)
+            formset = one_to_many_formset_filters(formset, item, clone=clone_item)
 
             if hasattr(weak['model'], 'ordering_field'):
                 order_field = weak['model'].ordering_field
@@ -745,6 +745,11 @@ class ExtraFormsetMixin:
                 for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
                     o.pop(k, None)
                 initial.append(o)
+
+                if 'parent' in o.keys():
+                    # Only needed for FrameworkDimensions
+                    # Blank when cloning
+                    o['parent'] = None
             fsargs['initial'] = initial
             extra = len(initial)
 
