@@ -32,11 +32,18 @@
                 {% endblock %}
                 <div class="pull-right">
                 {% if wizard.steps.prev %}
-                    <button name="wizard_goto_step" class="btn btn-default" type="submit"
-                            value="{{ wizard.steps.prev }}">
-                        <i class="fa fa-angle-double-left"></i>
-                        {% trans "Back" %}
-                    </button>
+                    {% block back_button %}
+                            <button name="wizard_goto_step" class="btn btn-default" type="submit"
+                                    value="{{ wizard.steps.prev }}"
+                                    data-toggle="popover" data-trigger="hover"
+                                    data-html="true"
+                                    title="Warning" data-placement="top"
+                                    data-content="Going back will reset your search and <b>will not save</b> any changes made on this page."
+                                    >
+                                <i class="fa fa-angle-double-left"></i>
+                                {% trans "Back" %}
+                            </button>
+                    {% endblock %}
                 {% endif %}
                 {% block next_button %}
                     <button type="submit" class="btn btn-primary" value="{% trans "submit" %}">
