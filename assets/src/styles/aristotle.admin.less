@@ -1,12 +1,33 @@
+@screen-sm-min:600px;
+@screen-sm-max:760px;
+@screen-max-plus:767px;
+@screen-md-regular:992px;
+
 html,
 body {
     height: 100% !important;
 }
+
 .wrapper {
-    flex: 1 0 auto;
+    display: -ms-flexbox;
     display: flex;
-    flex-direction: row;
+    flex: 1 0 auto;
+    flex-direction: column;
 }
+
+
+@media (min-width:@screen-max-plus)  {
+    // When showing the sidebar make content a row flex container
+    .wrapper {
+        flex-direction: row;
+    }
+}
+@media (max-width:@screen-max-plus)  {
+    .wrapper {
+        flex-direction: column;
+    }
+}
+
 .wrapper #container {
     flex: 1 0 auto;
     width: auto;

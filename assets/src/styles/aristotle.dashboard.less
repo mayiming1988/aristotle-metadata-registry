@@ -1,8 +1,9 @@
 @screen-sm-min:600px;
 @screen-sm-max:760px;
+@screen-max-plus:767px;
 @screen-md-regular:992px;
 
-@media (min-width:@screen-sm-min)  {
+@media (min-width:@screen-max-plus)  {
     // When showing the sidebar make content a row flex container
     body.dashboard #content {
         display: -ms-flexbox;
@@ -54,17 +55,6 @@
         vertical-align: top;
     }
 }
-@media (max-width:@screen-sm-min)  {
-    #django_admin_container #content-related {
-        float:none;
-        position:static;
-        width:100%;
-    }
-    #django_admin_content.colMS {
-        float:none;
-        margin-right:0px;
-    }
-}
 
 body > .main.navbar {
     margin-bottom:0;
@@ -76,31 +66,6 @@ body > .main.navbar {
         padding-bottom:10px;
         border-bottom:1px solid #2e2e2e
     }
-}
-
-
-.dashboard_link {
-    font-size:125%;
-}
-
-.nav > li.dashboard_link > div {
-    display:table;
-    width:100%;
-}
-
-li.dashboard_link div a.main:hover {
-    background-color: #eee;
-}
-
-.nav > li.dashboard_link > div > a {
-    display:table-cell;
-}
-
-.nav > li.dashboard_link  a .fa-inverse {
-    color:#2E2E3E;
-}
-.nav > li.dashboard_link:hover  a .fa-inverse {
-    color:#999;
 }
 
 .admin-wrap header {
