@@ -290,7 +290,6 @@ class StewardURLManager(GroupURLManager):
 
         return Browse.as_view(manager=self, group_class=self.group_class)
 
-
     def managed_item_create_view(self):
         class CreateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
