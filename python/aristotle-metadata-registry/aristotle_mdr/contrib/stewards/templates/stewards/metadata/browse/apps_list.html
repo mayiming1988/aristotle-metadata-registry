@@ -1,0 +1,36 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load aristotle_tags aristotle_help util_tags %}
+
+{% block title %}
+Metadata | {{ group }}
+{% endblock %}
+
+{% block page_title %}
+{{ group }} | Metadata
+{% endblock %}
+
+{% block breadcumbs %}
+    <li class="active">Metadata browser</li>
+{% endblock %}
+
+{% block steward_content %}
+    <ul class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:stewards:group:browse' group.slug %}">Metadata browser</a>
+        </li>
+        {% if app %}
+        <li>
+            <a href="{% url 'aristotle:stewards:group:browse_app_models' group.slug app.label %}">{% firstof app.create_page_name app.verbose_name %}</a>
+        </li>
+        {% endif %}
+        {% if model %}
+        <li>
+            <a href="{% url 'aristotle:stewards:group:browse_app_metadata' group.slug model.meta.app_label model.meta.model_name %}"
+            >{{ model.get_verbose_name_plural }}</a>
+        </li>
+        {% endif %}
+    </ul>
+
+    {% include "aristotle_mdr_browse/helpers/app_list_table.html" %}
+
+{% endblock %}

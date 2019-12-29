@@ -31,8 +31,17 @@ def startswith(string, substr):
 
 
 @register.filter
-def visible_count(ct, user):
-    return ct.model_class().objects.all().visible(user).count()
+def visible_count(ct_or_qs, user):
+    from django.contrib.contenttypes.models import ContentType
+    if type(ct_or_qs) is ContentType:
+        return ct_or_qs.model_class().objects.all().visible(user).count()
+    else:
+        return ct_or_qs.visible(user).count()
+
+
+@register.filter
+def so_filter(qs, steward_org):
+    return qs.filter(stewardship_organisation=steward_org)
 
 
 @register.filter
@@ -127,7 +136,7 @@ def get_custom_values_for_item(item, user):
 
 @register.filter
 def as_str(item):
-    return str(item)
+    return repr(item)
 
 
 @register.simple_tag

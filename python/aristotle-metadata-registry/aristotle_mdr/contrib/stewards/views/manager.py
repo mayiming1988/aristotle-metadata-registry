@@ -14,9 +14,10 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.model_utils import ManagedItem
 from aristotle_mdr.views.workgroups import GenericListWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
+from aristotle_mdr.views.views import get_app_config_list
 
 from . import views
-from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection
+from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection, add_urls_to_config_list
 from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.stewards.views.collections import EditCollectionViewBase
 
@@ -64,7 +65,10 @@ class StewardURLManager(GroupURLManager):
 
     def get_extra_group_urls(self):
         return [
-            url("browse", view=self.browse_view(), name="browse"),
+            url("browse/?$", view=self.browse_all_apps_view(), name="browse"),
+            url("browse/all$", view=self.browse_all_metadata_view(), name="browse_all_metadata"),
+            url("browse/(?P<app>[^/]+)/?$", view=self.browse_apps_view(), name="browse_app_models"),
+            url("browse/(?P<app>[^/]+)/(?P<model>.+)/?$", view=self.browse_metadata_view(), name="browse_app_metadata"),
             url("workgroups/$", view=self.workgroup_list_view(), name="workgroups"),
             url("workgroups/create/$", view=self.workgroup_create_view(), name="workgroups_create"),
 
@@ -192,12 +196,11 @@ class StewardURLManager(GroupURLManager):
 
         return DeleteCollectionView.as_view(manager=self, group_class=self.group_class)
 
-    def browse_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseConcepts
+    def browse_all_metadata_view(self):
+        from aristotle_mdr.contrib.browse.views import BrowseAllMetadataView
 
-        class Browse(StewardGroupMixin, BrowseConcepts):
+        class BrowseAll(StewardGroupMixin, BrowseAllMetadataView):
             current_group_context = "metadata"
-            model = MDR._concept
 
             def get_queryset(self, *args, **kwargs):
                 qs = super().get_queryset(*args, **kwargs)
@@ -205,14 +208,88 @@ class StewardURLManager(GroupURLManager):
 
             def get_context_data(self, *args, **kwargs):
                 # Call the base implementation first to get a context
-                self.kwargs['app'] = "aristotle_mdr"
                 context = super().get_context_data(*args, **kwargs)
+                if self.get_model_name() == '_concept':
+                    context.pop('model')
+                    context.pop('app')
                 return context
 
             def get_template_names(self):
-                return ['stewards/metadata/list.html']
+                return ['stewards/metadata/browse/list.html']
+
+        return BrowseAll.as_view(manager=self, group_class=self.group_class)
+
+    def browse_all_apps_view(self):
+        from aristotle_mdr.contrib.browse.views import BrowseApps
+        group = self
+
+        class BrowseAppsView(StewardGroupMixin, BrowseApps):
+            current_group_context = "metadata"
+
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
+                group = self.get_group()
+                context['apps'] = add_urls_to_config_list(
+                    get_app_config_list(),
+                    self.get_group()
+                )
+                context['browse_all_metadata_url'] = reverse('aristotle:stewards:group:browse_all_metadata', args=[group.slug])
+                return context
+
+            def get_template_names(self):
+                return ['stewards/metadata/browse/apps_list.html']
+
+        return BrowseAppsView.as_view(manager=self, group_class=self.group_class)
+
+    def browse_metadata_view(self):
+        from aristotle_mdr.contrib.browse.views import BrowseConcepts
+
+        class Browse(StewardGroupMixin, BrowseConcepts):
+            current_group_context = "metadata"
+
+            def get_model_name(self):
+                return self.kwargs.get('model', '_concept') or '_concept'
+
+            def get_app_label(self):
+                return self.kwargs.get('app', 'aristotle_mdr') or 'aristotle_mdr'
+
+            def get_queryset(self, *args, **kwargs):
+                qs = super().get_queryset(*args, **kwargs)
+                return qs.filter(stewardship_organisation=self.get_group())
+
+            def get_context_data(self, *args, **kwargs):
+                # Call the base implementation first to get a context
+                context = super().get_context_data(*args, **kwargs)
+                if self.get_model_name() == '_concept':
+                    context.pop('model')
+                    context.pop('app')
+                return context
+
+            def get_template_names(self):
+                return ['stewards/metadata/browse/list.html']
 
         return Browse.as_view(manager=self, group_class=self.group_class)
+
+    def browse_apps_view(self):
+        from aristotle_mdr.contrib.browse.views import BrowseModelsBase
+
+        class Browse(StewardGroupMixin, BrowseModelsBase):
+            current_group_context = "metadata"
+
+            def get_queryset(self):
+                return add_urls_to_config_list(
+                    super().get_queryset(),
+                    self.get_group()
+                )
+
+            def get_app_label(self):
+                return self.kwargs.get('app', 'aristotle_mdr') or 'aristotle_mdr'
+
+            def get_template_names(self):
+                return ['stewards/metadata/browse/app_model_list.html']
+
+        return Browse.as_view(manager=self, group_class=self.group_class)
+
 
     def managed_item_create_view(self):
         class CreateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, CreateView):

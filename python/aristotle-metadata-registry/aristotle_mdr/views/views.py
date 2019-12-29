@@ -446,11 +446,12 @@ def create_list(request):
     )
 
 
-def get_app_config_list():
+def get_app_config_list(apps_list=None):
     out = {}
-    aristotle_apps = fetch_metadata_apps()
+    if not apps_list:
+        apps_list = fetch_metadata_apps()
 
-    for m in get_concepts_for_apps(aristotle_apps):
+    for m in get_concepts_for_apps(apps_list):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
 
@@ -465,7 +466,8 @@ def get_app_config_list():
                 app_models['app'] = app
         app_models['models'].append({
             "content_type": m,
-            "class": m.model_class()
+            "class": m.model_class(),
+            "queryset": m.model_class().objects.all(),
         })
         out[m.app_label] = app_models
 
