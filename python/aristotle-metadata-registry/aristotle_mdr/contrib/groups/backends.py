@@ -27,6 +27,7 @@ from django.views.generic import (
     CreateView,
     RedirectView,
 )
+from django.views.generic.edit import FormMixin
 from organizations.backends.defaults import InvitationBackend
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
@@ -163,7 +164,7 @@ class GroupListAllView(SuperuserRequiredMixin, GroupListView):
     fallback_template_name = "groups/group/list.html"
     superuser_override = True
 
-from django.views.generic.edit import FormMixin
+
 class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, FormMixin, ListView):
     fallback_template_name = "groups/group/members/list.html"
     role_permission = "edit_members"
