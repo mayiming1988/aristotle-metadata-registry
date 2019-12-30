@@ -17,7 +17,7 @@
                 </li>
                 {# TODO: Maybe add item.meta.app_label level at some stage #}
                 <li>
-                    <a href="{% url 'aristotle:stewards:group:browse' item.stewardship_organisation.slug item.meta.app_label item.meta.model_name %}"
+                    <a href="{% url 'aristotle:stewards:group:browse_app_metadata' item.stewardship_organisation.slug item.meta.app_label item.meta.model_name %}"
                     >{{ item.get_verbose_name_plural }}</a>
                 </li>
             {% else %}

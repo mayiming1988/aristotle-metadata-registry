@@ -17,6 +17,20 @@
     {% endif %}
     <a class="btn btn-outline-info" href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add a member</a>
 </div>
+<form class="form-inline" action="#" method="get">
+    <div class="form-group">
+        <label for="id_user_filter">{% trans 'Name or email' %}</label>
+        <input id="id_user_filter" name="user_filter" class="form-control" value="{{ form.id_user_filter }}">
+    </div>
+    <div class="form-group" style="padding-left:10px; padding-right:10px">
+        <label for="id_role_filter">{% trans 'Role' %}</label>
+        {{ form.role_filter }}
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if has_filters %}
+    <button type="submit" name="reset" class="btn btn-default" value="reset">Reset</button>
+    {% endif %}
+</form>
 <table class="table">
     <thead>
         <tr>
