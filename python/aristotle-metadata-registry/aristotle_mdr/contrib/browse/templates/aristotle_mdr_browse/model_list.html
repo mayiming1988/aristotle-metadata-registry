@@ -11,5 +11,5 @@
 {% endblock %}
 
 {% block object_list %}
-    {% include "aristotle_mdr_browse/helpers/app_list_table.html" with apps=object_list hide_app_head=True %}
+    {% include "aristotle_mdr_browse/helpers/app_list_table.html" with apps=object_list hide_app_head=True show_empty=True %}
 {% endblock %}

@@ -40,7 +40,7 @@
         {% endif %}
         {% for model in app.models %}
             {% with count=model.queryset|visible_count:request.user %}
-              {% if count %}
+              {% if count or show_empty %}
                   <tr>
                   <td>
                     <a href="{{model.url}}">
