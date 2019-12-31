@@ -43,9 +43,15 @@
               {% if count or show_empty %}
                   <tr>
                   <td>
-                    <a href="{{model.url}}">
-                          {{ model.class.get_verbose_name }}
-                    </a>
+                      {% if count %}
+                      <a href="{{model.url}}">
+                          {{ model.class.get_verbose_name_plural }}
+                      </a>
+                      {% elif show_empty %}
+                      <span title="There are no {{ model.class.get_verbose_name_plural }} you have permission to browse.">
+                          {{ model.class.get_verbose_name_plural }}
+                      </span>
+                      {% endif %}
                   </td>
                   <td>
                       {{ count }}
