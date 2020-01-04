@@ -175,10 +175,10 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
     has_filters = False
 
     def get_queryset(self):
-        # Get queryset of StewardOrganisationMemberships
+        # Get queryset of Group Memberships
         qs = super().get_queryset()
 
-        # Filter on StewardOrganisationMemberships that are part of the current Stewardship Organisation
+        # Filter on Memberships that are part of the current Group
         qs = qs.filter(group=self.get_group())
         form = self.get_form()
         if form.is_valid() and self.request.GET.get("reset", None) != "reset":

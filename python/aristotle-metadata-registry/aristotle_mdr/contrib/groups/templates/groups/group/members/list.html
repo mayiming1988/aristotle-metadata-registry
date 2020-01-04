@@ -61,7 +61,7 @@
                     </a>                
                 {% else %}
                     <a title='{% trans "View profile" %}' href="{% url 'aristotle-user:view_another_user' member.user.pk %}">
-                        {{ member.user.full_name }}
+                        {{ member.user.display_name }}
                     </a>
                 {% endif %}
             </td>
