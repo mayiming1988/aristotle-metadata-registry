@@ -613,7 +613,7 @@ class DocxDownloader(PandocDownloader):
     file_extension = 'docx'
     label = 'Word'
     # Yep, the proper mime type for docx really is that long
-    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'
+    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     metadata_register = '__all__'
     icon_class = 'fa-file-word-o'
     description = 'Download as word document'
