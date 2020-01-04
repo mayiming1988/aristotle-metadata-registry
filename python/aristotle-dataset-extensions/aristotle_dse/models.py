@@ -61,6 +61,9 @@ class Dataset(aristotle.models.concept):
     """
     template = "aristotle_dse/concepts/dataset.html"
 
+    class Meta:
+        verbose_name = "Data Set"
+
     # Themes = slots with name 'theme'
     # Keywords = slots with name 'keyword'
     issued = models.DateField(
