@@ -1,0 +1,55 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+
+{% load humanize i18n aristotle_tags util_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'workgroup' 'css' %}
+{% endblock %}
+
+{% block workgroupSub %}
+    <ul class="nav nav-pills nav-stacked nav-collapse">
+        <li class="active">
+            <a href="#"><i class="fa fa-home fa-fw"></i> {{ workgroup.name }}</a>
+        </li>
+    </ul>
+{% endblock %}
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with  activeTab='workgroups' %}
+{% endblock %}
+
+{% block page %}
+{% has_group_perm workgroup "edit_group_details" as can_edit_workgroup %}
+{% has_group_perm workgroup "view_members" as can_view_members %}
+    <h1>{% block title %}{{ workgroup.name }}{% endblock %}</h1>
+
+    <ul class="nav nav-tabs">
+        <li role="presentation" {% if active_tab == 'home' or not active_tab %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroup' item.id %}"><i class="fa fa-fw fa-home" aria-hidden="true"></i>Home</a>
+        </li>
+        <li role="presentation" {% if active_tab == 'metadata' %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroupItems' item.id %}"><i
+                    class="fa fa-fw fa-file" aria-hidden="true"></i>Metadata
+                <span class="badge">{{ workgroup.items.count }}</span>
+            </a>
+        </li>
+
+        {% if can_view_members %}
+        <li role="presentation" {% if active_tab == 'members' %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroupMembers' item.id %}"><i
+                class="fa fa-fw fa-user" aria-hidden="true"></i>Members
+                <span class="badge">{{ workgroup.members.count }}</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% if can_edit_workgroup %}
+        <li role="presentation" {% if active_tab == 'settings' %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroup_edit' workgroup.id %}"><i class="fa fa-fw fa-cogs" aria-hidden="true"></i>Settings</a>
+        </li>
+        {% endif %}
+    </ul>
+
+    {% block workgroup_page %}
+    {% endblock %}
+{% endblock %}
