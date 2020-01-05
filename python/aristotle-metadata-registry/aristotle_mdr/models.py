@@ -540,7 +540,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         verbose_name=_('Archived'),
     )
 
-    class Permissions:
+    class Permissions(AbstractGroup.Permissions):
         @classmethod
         def can_view_group(cls, user, group=None):
             return group.state in group.active_states and cls.is_member(user, group)
