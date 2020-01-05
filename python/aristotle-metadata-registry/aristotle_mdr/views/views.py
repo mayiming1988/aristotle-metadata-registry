@@ -318,7 +318,6 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME'],
             'breadcrumbs': get_item_breadcrumbs(self.item, self.request.user, last_active=True)
         })
-
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
         # Since its lazy we can do this every time :)
