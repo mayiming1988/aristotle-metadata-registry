@@ -41,7 +41,6 @@ class UserInvitationForm(FormRequestMixin, forms.Form):
 
 
 class ResendActivationForm(forms.Form):
-
     email = LowerEmailFormField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
 
 
