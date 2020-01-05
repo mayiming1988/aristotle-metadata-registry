@@ -735,10 +735,7 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
             # It's in another user's sandbox
             no_link_possible = False
             if not item.submitter:
-                no_link_possible = True
-            else:
-                if not item.submitter.profile.share:
-                    no_link_possible = True
+                return []
 
             if share_link_possible(item.submitter):
                 # You are viewing the item without a share being created, this is something only a superuser could do
