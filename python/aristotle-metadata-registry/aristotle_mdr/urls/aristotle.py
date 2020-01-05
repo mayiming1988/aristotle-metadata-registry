@@ -143,8 +143,6 @@ urlpatterns = [
     path('account/notifications-all/', views.user_pages.InboxViewAll.as_view(), name='userInboxAll'),
     path('account/notifications/api/mark-all-as-read/', views.notify.MarkAllReadApiView.as_view(), name='api_mark_all_read'),
 
-    re_path(r'^account/django/(.*)?$', views.user_pages.django_admin_wrapper, name='django_admin'),
-
     path('account/registrartools/', views.user_pages.RegistrarTools.as_view(), name='userRegistrarTools'),
 
     path('registrationauthority/create/', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),

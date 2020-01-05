@@ -1,3 +1,6 @@
+import 'src/styles/aristotle.admin.less'
+import 'src/styles/components/sidebar.less'
+
 $( document ).ready( function() {
     $('div.suggest_name_wrapper button').click(function() {
         var fields = $(this).data('suggestFields').split(',');
@@ -24,14 +27,5 @@ $( document ).ready( function() {
         })
         $(this).siblings('input').val(name);
         return false;
-    });
-
-    $('a').click(function() {
-        if ($(this).attr('href')) {
-            var url = $(this).attr('href').replace('django/admin','account/django')
-            var title = $('title').text()
-
-            top.window.history.pushState("", title, url);
-        }
     });
 });

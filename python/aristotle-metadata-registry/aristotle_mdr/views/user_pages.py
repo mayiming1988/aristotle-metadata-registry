@@ -489,11 +489,6 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-@login_required
-def django_admin_wrapper(request, page_url):
-    return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
-
-
 class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
     """Display the user's sandbox items"""
 
