@@ -558,6 +558,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         "view_group": [Permissions.can_view_group],
         "edit_group_details": [roles.manager],
         "edit_members": [roles.manager],
+        "view_members": [Permissions.can_view_group],
         "invite_member": [roles.manager],
     }
     states = Choices(

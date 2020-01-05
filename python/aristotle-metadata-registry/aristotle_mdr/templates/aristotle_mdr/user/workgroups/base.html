@@ -21,7 +21,13 @@
 {% block page %}
 {% has_group_perm workgroup "edit_group_details" as can_edit_workgroup %}
 {% has_group_perm workgroup "view_members" as can_view_members %}
-    <h1>{% block title %}{{ workgroup.name }}{% endblock %}</h1>
+    <h1>{{ workgroup.name }}</h1>
+
+    <ol class="breadcrumb">
+        <li><a href="{{ workgroup.stewardship_organisation.get_absolute_url }}">{{ workgroup.stewardship_organisation.name }}</a></li>
+        <li><a href="{% url 'aristotle_mdr:stewards:group:workgroups' workgroup.stewardship_organisation.slug %}">Workgroups</a></li>
+        <li>{{ workgroup.name }}</li>
+    </ol>
 
     <ul class="nav nav-tabs">
         <li role="presentation" {% if active_tab == 'home' or not active_tab %}class="active"{% endif %}>
