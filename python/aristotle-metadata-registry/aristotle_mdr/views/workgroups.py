@@ -36,6 +36,7 @@ class WorkgroupContextMixin(object):
     model = MDR.Workgroup
     pk_url_kwarg = 'iid'
     slug_url_kwarg = 'name_slug'
+    active_tab = ""
 
     def get_context_data(self, **kwargs):
         # Get context from super-classes, because if may set value for workgroup
@@ -44,6 +45,7 @@ class WorkgroupContextMixin(object):
             'item': self.get_object(),
             'workgroup': self.get_object(),
             'user_is_admin': user_is_workgroup_manager(self.request.user, self.get_object()),
+            "active_tab": self.active_tab,
         })
         return context
 
@@ -77,9 +79,10 @@ class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
 
 
 class ItemsView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, ListView):
-    template_name = "aristotle_mdr/workgroupItems.html"
+    template_name = "aristotle_mdr/user/workgroups/workgroupItems.html"
     sort_by = None
     permission_required = "aristotle_mdr.can_view_workgroup"
+    active_tab = "metadata"
 
     def get_object(self):
         return self.model.objects.get(pk=self.kwargs.get(self.pk_url_kwarg))
@@ -110,6 +113,7 @@ class ItemsView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
 class MembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     template_name = 'aristotle_mdr/user/workgroups/members.html'
     permission_required = "aristotle_mdr.can_view_workgroup"
+    active_tab = "members"
 
 
 class ArchiveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
@@ -194,6 +198,7 @@ class EditWorkgroup(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
     user_form = True
     raise_exception = True
     redirect_unauthenticated_users = True
+    active_tab = "settings"
 
 
 class ChangeUserRoles(SingleRoleChangeView):

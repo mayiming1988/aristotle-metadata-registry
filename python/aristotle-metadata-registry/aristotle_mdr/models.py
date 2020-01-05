@@ -529,7 +529,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     visible, but the workgroup is hidden in lists and new items cannot be
     created in that workgroup.
     """
-    template = "aristotle_mdr/workgroup.html"
+    template = "aristotle_mdr/user/workgroups/workgroup.html"
     can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid", on_delete=models.CASCADE)
@@ -540,7 +540,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         verbose_name=_('Archived'),
     )
 
-    class Permissions:
+    class Permissions(AbstractGroup.Permissions):
         @classmethod
         def can_view_group(cls, user, group=None):
             return group.state in group.active_states and cls.is_member(user, group)
@@ -558,6 +558,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         "view_group": [Permissions.can_view_group],
         "edit_group_details": [roles.manager],
         "edit_members": [roles.manager],
+        "view_members": [Permissions.can_view_group],
         "invite_member": [roles.manager],
     }
     states = Choices(
