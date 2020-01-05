@@ -80,7 +80,7 @@ class Indicator(MDR.concept):
 
             rels.update({
                 "data_sources": {
-                    "all": _("Datasets that are used in this Indicator"),
+                    "all": _("Data Sets that are used in this Indicator"),
                     "qs": datasets
                 },
             })

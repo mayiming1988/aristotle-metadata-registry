@@ -31,14 +31,13 @@
             {% trans "No frequency stated" %}
         {% endif %}
         </dd>
-        <dt>Distribution files</dt>
+        <dt>Distributions</dt>
         <dd>
             {% with distributions=item.distribution_set.all|can_view_iter:user %}
             {% if distributions %}
                 <ol>
                     {% for distribution in distributions %}
                         <li class="well">
-                            <span class="file_type">{{distribution.format_type}}</span>
                             {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
                             {% if distribution.origin_URI %}
                                 <a href='{{distribution.download_URL}}' class='btn btn-default'>
@@ -51,8 +50,13 @@
                                 {{ distribution.definition|bleach }}
                             </div>
                             <dl>
-                                <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
-                                <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
+                                <dt style="float:left; padding-right: 5px">Format type</dt><dd>{% firstof distribution.format_type "Unknown format type" %}</dd>
+                                <dt style="float:left; padding-right: 5px">Licence</dt>
+                                <dd>{% firstof distribution.license "Unknown" %}</dd>
+                            {% if distribution.rights %}
+                                <dt style="float:left; padding-right: 5px">Rights</dt>
+                                <dd>{{ distribution.rights }}</dd>
+                            {% endif %}
                             </dl>
                         </li>
                     {% endfor %}
