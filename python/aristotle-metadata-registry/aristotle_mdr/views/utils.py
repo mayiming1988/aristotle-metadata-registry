@@ -30,7 +30,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 import datetime
 import json
@@ -707,7 +707,17 @@ def add_item_url(item, active=False) -> Breadcrumb:
     """Helper function to add item breadcrumbs """
     if active:
         return Breadcrumb(item.name, active=True)
-    return Breadcrumb(item.name, 'aristotle:item', url_args=item.id)
+    return ReversibleBreadcrumb(item.name, 'aristotle:item', url_args=[item.id])
+
+
+def share_link_possible(submitter) -> bool:
+    """Returns true if a share link can be created to another user's sandbox"""
+    if not submitter:
+        return False
+    else:
+        if not hasattr(submitter.profile, 'share'):
+            return False
+    return True
 
 
 def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
@@ -719,39 +729,45 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
         # It's in a sandbox
         if item.submitter == user:
             # It's in our own sandbox
-            return [Breadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
+            return [ReversibleBreadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
                     add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
-            share = item.submitter.profile.share
-            other_users_name = item.submitter.full_name or item.submitter.short_name or item.submitter.email
-            return [
-                Breadcrumb(f"{other_users_name}'s Sandbox",
-                           'aristotle:sharedSandbox',
-                           url_args=[share.uuid]),
-                add_item_url(item, active=last_active)
-            ]
-    elif item.stewardship_organisation:
-        if item.workgroup:
-            breadcrumbs = [Breadcrumb(item.stewardship_organisation.name,
-                                      item.stewardship_organisation.get_absolute_url())]
-            if item.workgroup.can_view(user):
-                breadcrumbs.append(Breadcrumb(item.workgroup.name,
-                                              item.workgroup.get_absolute_url()))
+            no_link_possible = False
+            if not item.submitter:
+                no_link_possible = True
             else:
-                breadcrumbs.append(Breadcrumb('Metadata',
-                                              'aristotle_mdr:stewards:group:browse',
-                                              url_args=item.stewardship_organisation.slug))
-            breadcrumbs.append(add_item_url(item, active=last_active))
-            return breadcrumbs
-        else:
-            # Item only has the stewardship organisation
-            return [
-                Breadcrumb(item.stewardship_organisation.name,
-                           item.stewardship_organisation.get_absolute_url()),
-                Breadcrumb('Metadata',
-                           'aristotle_mdr:stewards:group:browse',
-                           url_args=item.stewardship_organisation.slug),
-                add_item_url(item, active=last_active)
-            ]
+                if not item.submitter.profile.share:
+                    no_link_possible = True
+
+            if share_link_possible(item.submitter):
+                # You are viewing the item without a share being created, this is something only a superuser could do
+                other_users_name = item.submitter.display_name
+                share = item.submitter.profile.share
+                return [
+                    ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
+                                         'aristotle:sharedSandbox',
+                                         url_args=[share.uuid]),
+                    add_item_url(item, active=last_active)
+                ]
+
+            else:
+                return [
+                    Breadcrumb(f"Sandboxed Item"),
+                    add_item_url(item, active=last_active)
+                ]
+    elif item.stewardship_organisation:
+        # Item has a stewardship organisation
+        return [
+            Breadcrumb(item.stewardship_organisation.name,
+                       item.stewardship_organisation.get_absolute_url()),
+            ReversibleBreadcrumb('Metadata',
+                                 'aristotle_mdr:stewards:group:browse',
+                                 url_args=[item.stewardship_organisation.slug]),
+            ReversibleBreadcrumb(f'{item.item_type_name}',
+                                 'aristotle_mdr:stewards:group:browse',
+                                 url_args=[item.stewardship_organisation.slug],
+                                 query_parameters=[f'content_type={item.item_type.id}']),
+            add_item_url(item, active=last_active)
+        ]
     return []

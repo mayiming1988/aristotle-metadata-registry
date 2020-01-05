@@ -12,64 +12,67 @@ on:
       - develop
 
 jobs:
-  name: 'Accessibility Testing'
-  strategy:
-    matrix:
-      accessibility_test:
-        - 'Metadata Item'
-        - 'Metadata Action'
-        - 'Static'
+  accessibility_tests:
+    runs-on: [ubuntu-latest]
+    name: 'Accessibility Testing'
+    strategy:
+      matrix:
+        accessibility_test:
+          - 'Metadata Item'
+          - 'Metadata Action'
+          - 'Static'
 
-      include:
-        - accessibility_test: 'Metadata Item'
-          ALLY: 'metadata_item'
-        - accessibility_test: 'Metadata Action'
-          ALLY: 'metadata_action'
-        - accessibility_test: 'Static'
-          ALLY: 'static'
-  env:
-    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
-    MODULE: 'aristotle-metadata-registry'
-
-  runs-on: ubuntu-latest
-  steps:
-  - uses: actions/checkout@v1
-
-  - uses: actions/setup-python@v1
-    with:
-      python-version: 3.6
-
-  - uses: actions/setup-node@v1
-    with:
-      node-version: 10.x
-
-  - name: Install Python dependencies
-    run: |
-      pip install codecov coveralls
-      pip install 'tox>=3.0'
-      nvm install 10.13.0
-
-  - name: Install npm dependencies
-    run: |
-      set -ev
-      cd ./assets
-      npm install
-      npm run devbuild
-
-  - name: Run accessibility tests
-    run: tox -e dj-linux-ally-${{ matrix.ALLY }}-module_amr
+        include:
+          - accessibility_test: 'Metadata Item'
+            ALLY: 'metadata_item'
+          - accessibility_test: 'Metadata Action'
+            ALLY: 'metadata_action'
+          - accessibility_test: 'Static'
+            ALLY: 'static'
     env:
-      MODULE: ${{ matrix.MODULE }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
+      MODULE: 'aristotle-metadata-registry'
 
-  services:
-    postgres:
-      image: postgres:10.10
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+
+    - name: Install Python dependencies
+      run: |
+        pip install codecov coveralls
+        pip install 'tox>=3.0'
+
+    - name: Install npm dependencies
+      run: |
+        set -ev
+        cd ./assets
+        npm install
+        npm run devbuild
+
+    - name: Install postgres dependencies
+      run: |
+        sudo apt-get --allow-releaseinfo-change update || true
+        sudo apt-get install libpq-dev -y
+
+    - name: Run accessibility tests
+      run: tox -e dj-linux-ally-${{ matrix.ALLY }}-module_amr
       env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: aristotle_db
-      ports:
-        - 5432:5432
+        MODULE: ${{ matrix.MODULE }}
 
-
+    services:
+      postgres:
+        image: postgres:10.10
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aristotle_db
+        ports:
+          - 5432:5432
 
