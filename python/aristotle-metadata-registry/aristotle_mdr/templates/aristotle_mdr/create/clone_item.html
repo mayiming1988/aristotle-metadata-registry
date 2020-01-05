@@ -25,6 +25,11 @@
             Reusing existing metadata helps users find and compare similar items. Cloning an item should only be done where a similar but clearly different item exists and can be used as a template for quickly creating a new item in the registry.
             {% endblocktrans %}
         </div>
+        {% if item.clone_warning_template %}
+        <div class="alert alert-warning">
+            {% include item.clone_warning_template %}
+        </div>
+        {% endif %}
         <div>
         {% include "aristotle_mdr/create/concept_editor.html" with form=form %}
         </div>

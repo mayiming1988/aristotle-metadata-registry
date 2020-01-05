@@ -238,6 +238,7 @@ class QualityStatement(MDR.concept):
 
 class Framework(MDR.concept):
     template = "comet/framework.html"
+    clone_warning_template = "comet/clone_warning/framework.html"
     # parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
 
     serialize_weak_entities = [
