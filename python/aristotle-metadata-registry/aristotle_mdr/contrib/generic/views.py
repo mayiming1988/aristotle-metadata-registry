@@ -496,7 +496,7 @@ class GenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     model_to_add_field = None
     form_add_another_text = None
     is_ordered = True
-    formset_class = HiddenOrderInlineFormset
+    formset_class: Any = HiddenOrderInlineFormset
 
 
 class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
