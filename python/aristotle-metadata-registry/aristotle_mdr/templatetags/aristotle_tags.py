@@ -582,6 +582,11 @@ def render_difference(context, difference):
             'raw': raw}
 
 
+@register.inclusion_tag('aristotle_mdr/helpers/difference_url.html')
+def transform_difference(difference):
+    return {'difference': difference}
+
+
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
