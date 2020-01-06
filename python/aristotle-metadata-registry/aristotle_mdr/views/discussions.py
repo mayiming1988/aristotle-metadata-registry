@@ -16,7 +16,7 @@ from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from braces.views import LoginRequiredMixin
 from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 
 class All(LoginRequiredMixin, TemplateView):
@@ -217,7 +217,7 @@ class DeletePost(LoginRequiredMixin, ConfirmDeleteView):
 
     def get_breadcrumbs(self):
         return [
-            Breadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.item.pk]),
+            ReversibleBreadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.item.pk]),
             Breadcrumb(name="Delete post", active=True),
         ]
 
@@ -286,7 +286,7 @@ class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Comm
 
     def get_breadcrumbs(self):
         return [
-            Breadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.discussion_post.pk]),
+            ReversibleBreadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.discussion_post.pk]),
             Breadcrumb(name="Delete comment", active=True),
         ]
 

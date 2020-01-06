@@ -183,7 +183,6 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
         form = self.get_form()
         if form.is_valid() and self.request.GET.get("reset", None) != "reset":
             data = form.cleaned_data
-            logger.critical(data)
             user_filter = data['user_filter']
             role_filter = data['role_filter']
             if user_filter:

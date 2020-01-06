@@ -514,9 +514,7 @@ class DataDictionaryDownloadOptionsView(FilterView, DownloadOptionsViewBase):
         self.filterset = self.get_filterset(self.filterset_class)
 
         from aristotle_mdr.utils.cached_querysets import register_queryset, get_queryset_from_uuid
-        logger.critical(self.filterset.qs.count())
         qs_uuid = register_queryset(self.filterset.qs, 60 * 60)
-        logger.critical(qs_uuid)
         get_queryset_from_uuid(qs_uuid)
 
         self.registration_authority = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
