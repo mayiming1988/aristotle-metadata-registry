@@ -266,9 +266,8 @@ def get_status_queryset():
     """
 
     return (
-        MDR.Status.objects.valid()
-            .order_by("registrationAuthority", "-registrationDate", "-created")
-            .select_related('registrationAuthority')
+        MDR.Status.objects.valid().order_by("registrationAuthority", "-registrationDate", "-created")
+                          .select_related('registrationAuthority')
     )
 
 

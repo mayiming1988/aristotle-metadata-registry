@@ -374,7 +374,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     is_ordered = False
     ordering_field = None
-    formset_class: Any = None
+    formset_class = None
     template_name = "aristotle_mdr/generic/actions/alter_one_to_many.html"
     formset_factory = inlineformset_factory
     formset = None
