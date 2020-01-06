@@ -19,6 +19,9 @@
                 <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' item.stewardship_organisation.slug item.meta.model_name %}"
                 >{{ item.get_verbose_name_plural }}</a>
             </li>
+            <li>
+                {{ item.name }}
+            </li>
         </ul>
     {% else %}
         <ul class="breadcrumb">
@@ -27,11 +30,11 @@
                     My Sandbox
                 </a>
             </li>
+            <li>
+                {{ item.name }}
+            </li>
         </ul>
     {% endif %}
-    <li>
-        {{ item.name }}
-    </li>
 {% endspaceless %}
 <div class="col-xs-12">
 
