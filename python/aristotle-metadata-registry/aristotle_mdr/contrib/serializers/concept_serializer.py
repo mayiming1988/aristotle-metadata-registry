@@ -14,8 +14,6 @@ from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.models import (
     RecordRelation,
-    ValueDomain,
-    DataElementConcept,
     SupplementaryValue,
     PermissibleValue,
     ValueMeaning,
@@ -25,11 +23,11 @@ from aristotle_mdr.models import (
 )
 
 from aristotle_mdr.contrib.links.models import RelationRole
+from aristotle_mdr.utils.utils import cloud_enabled
 
 import json as JSON
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -130,7 +128,7 @@ class BaseSerializer(serializers.ModelSerializer):
 #   2. Add to FIELD_SUBSERIALIZER_MAPPING
 
 
-class ConceptSerializerFactory():
+class ConceptSerializerFactory:
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     field_subserializer_mapping = {
         'permissiblevalue_set': PermissibleValueSerializer(many=True),
@@ -174,7 +172,11 @@ class ConceptSerializerFactory():
                 'indicatordisaggregationdefinition_set': IndicatorDisaggregationSerializer(many=True),
                 'indicatorinclusion_set': IndicatorInclusionSerializer(many=True)
             })
-
+        if cloud_enabled():
+            from aristotle_cloud.contrib.serializers.serializers import ReferenceLinkSerializer
+            self.field_subserializer_mapping.update({
+                'metadatareferencelink_set': ReferenceLinkSerializer(many=True)
+            })
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
@@ -228,7 +230,6 @@ class ConceptSerializerFactory():
                     else:
                         # Just a normal field
                         related_fields.append(self.get_field_name(field))
-
         return tuple([field for field in related_fields if field in self.whitelisted_fields])
 
     def _get_class_for_serializer(self, concept):

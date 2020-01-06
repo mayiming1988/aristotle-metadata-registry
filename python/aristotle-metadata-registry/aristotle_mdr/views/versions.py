@@ -236,10 +236,9 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """Get current item from version"""
         return version.object
 
-    def is_this_version_the_most_recent(self):
+    def is_this_version_the_most_recent(self) -> bool:
         """
         Check if the version passed is actually the most recent version for this item.
-        :return: Boolean
         """
         latest_version = reversion.models.Version.objects.filter(
             object_id=self.item.id, content_type=self.version.content_type
@@ -529,8 +528,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                         field_to_diff[field] = {
                             'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
                             'subitem': True,
-                            'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
-                                                                     subitem_model)
+                            'diffs': [self.build_diff_of_item(earlier_value, later_value, subitem_model)]
                         }
                     elif isinstance(earlier_value, list):
                         # It's a list of subitems
@@ -577,7 +575,11 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             differences.append(difference_dict)
         return differences
 
-    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model) -> List[Dict]:
+    def get_subitem_key(self, subitem_model) -> str:
+        return 'id'
+
+    def build_diff_of_item(self, earlier_item, later_item, subitem_model) -> Dict[str, Dict]:
+
         difference_dict = {}
 
         for field, earlier_value in earlier_item.items():
@@ -585,23 +587,26 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 pass
             else:
                 later_value = later_item[field]
+
+                earlier_value = str(earlier_value)
+                later_value = str(later_value)
+
                 if not self.raw:
-                    earlier_value = strip_tags(str(earlier_value))
-                    later_value = strip_tags(str(later_value))
+                    earlier_value = strip_tags(earlier_value)
+                    later_value = strip_tags(later_value)
 
-                if earlier_value is None:
-                    # Can't perform a diff on a null value
-                    earlier_value = 'None'
+                # Custom logic to determine if CustomValue field is HTML
+                is_html = False
+                if subitem_model is CustomValue:
+                    custom_field_id = later_item['field']
+                    if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
+                        is_html = True
+                else:
+                    is_html = self.is_field_html(field, subitem_model)
 
-                if later_value is None:
-                    later_value = 'None'
-
-                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                difference_dict[field] = {'is_html': is_html,
                                           'diff': self.perform_diff_on_field(earlier_value, later_value)}
-        return [difference_dict]
-
-    def get_subitem_key(self, subitem_model) -> str:
-        return 'id'
+        return difference_dict
 
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model) -> List[Dict]:
         """
@@ -643,32 +648,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 earlier_item = earlier_items[id]
                 later_item = later_items[id]
 
-                difference_dict = {}
-
-                for field, earlier_value in earlier_item.items():
-                    if field == 'id':
-                        pass
-                    else:
-                        later_value = later_item[field]
-
-                        earlier_value = str(earlier_value)
-                        later_value = str(later_value)
-
-                        if not self.raw:
-                            earlier_value = strip_tags(earlier_value)
-                            later_value = strip_tags(later_value)
-
-                        # Custom logic to determine if CustomValue field is HTML
-                        is_html = False
-                        if subitem_model is CustomValue:
-                            custom_field_id = later_item['field']
-                            if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
-                                is_html = True
-                        else:
-                            is_html = self.is_field_html(field, subitem_model)
-
-                        difference_dict[field] = {'is_html': is_html,
-                                                  'diff': self.perform_diff_on_field(earlier_value, later_value)}
+                difference_dict = self.build_diff_of_item(earlier_item, later_item, subitem_model)
                 if difference_dict:
                     differences.append(difference_dict)
 
