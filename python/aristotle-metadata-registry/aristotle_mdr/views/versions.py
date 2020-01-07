@@ -485,8 +485,12 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 return item_dict
         return value
 
-    def get_item_name(self, item) -> Optional[str]:
-        return item.title
+    def get_item_name(self, item) -> str:
+        if hasattr(item, 'title'):
+            return item.title
+        elif hasattr(item, 'name'):
+            return item.name
+        return ''
 
     def get_item_url(self, item) -> Optional[str]:
         try:
