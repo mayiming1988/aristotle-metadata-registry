@@ -86,7 +86,6 @@ class CustomValueFormMixin:
                 csvReader = csv.reader(values.split('\n'))
                 # Get a list of lists from csv reader
                 choice_lists = [value for value in csvReader]
-                logger.critical(f'choice list is {choice_lists}')
                 # Flatten into list of values
                 choice_values = list(itertools.chain(*choice_lists))
                 # Make into 2 tuple
