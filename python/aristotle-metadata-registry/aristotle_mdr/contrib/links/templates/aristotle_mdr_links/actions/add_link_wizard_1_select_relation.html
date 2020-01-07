@@ -2,15 +2,18 @@
 {% load i18n %}
 {% load static from staticfiles %}
 
-{% block title %}Add new link - Step 1: Select a relationship{% endblock %}
+{% block title %}Add new link - Step 1: Select a relation{% endblock %}
 
-{% block form_title %}Step 1: Select a relationship{% endblock %}
+{% block form_title %}Step 1: Select a Relation to define this link{% endblock %}
 
 {% block wizard_content %}
 <hr>
-    <p>Select the relationship for this link.</p>
+    <p>A Relation is a template for a link, that defines the behaviour for the saved link, such as the
+        number of metadata items that can be included in the link and the roles these metadata items have
+        for the link.
+    </p>
     <p>
-       Click the blue link icon (<i class="fa fa-external-link-square"></i>) in the drop down to
+       To learn more about a Relation, click the blue icon (<i class="fa fa-external-link-square"></i>) in the drop down to
        view the relation definition in a new window.
     </p>
     <p>

@@ -7,6 +7,10 @@
     {% render_bundle 'itemPage' 'css' %}
 {% endblock %}
 
+{% block webpack_bundle %}
+    {% render_bundle 'itemPage' 'js' %}
+{% endblock %}
+
 {% block title %}{{ form_title }} for {{ item.name }}{% endblock %}
 {% block content %}
 

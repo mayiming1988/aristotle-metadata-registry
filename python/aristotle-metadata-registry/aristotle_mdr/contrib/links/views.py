@@ -18,6 +18,9 @@ from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 from formtools.wizard.views import SessionWizardView
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EditLinkFormView(FormView):
@@ -53,7 +56,9 @@ class EditLinkFormView(FormView):
             {
                 'roles': self.link.relation.relationrole_set.all(),
                 'link': self.link,
-                'breadcrumbs': breadcrumbs
+                'breadcrumbs': breadcrumbs,
+                'relation': self.link.relation,
+                'root_item': self.link.root_item
             }
         )
         return context
@@ -97,16 +102,12 @@ class EditLinkFormView(FormView):
 class AddLinkWizard(SessionWizardView):
     form_list = base_form_list = [
         link_forms.AddLink_SelectRelation_1,
-        link_forms.AddLink_SelectRole_2,
         link_forms.AddLink_SelectConcepts_3,
-        link_forms.AddLink_Confirm_4,
     ]
     base_form_count = len(form_list)
     template_names = [
         "aristotle_mdr_links/actions/add_link_wizard_1_select_relation.html",
-        "aristotle_mdr_links/actions/add_link_wizard_2_select_role.html",
         "aristotle_mdr_links/actions/add_link_wizard_3_select_concepts.html",
-        "aristotle_mdr_links/actions/add_link_wizard_4_confirm.html"
     ]
 
     def dispatch(self, request, *args, **kwargs):
@@ -135,8 +136,6 @@ class AddLinkWizard(SessionWizardView):
         if istep == 0:
             kwargs['user'] = self.request.user
         elif istep == 1:
-            kwargs['roles'] = self.get_roles()
-        elif istep == 2:
             relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs.update({
                 'roles': relation.relationrole_set.all(),
@@ -150,8 +149,8 @@ class AddLinkWizard(SessionWizardView):
         initial = super().get_form_initial(step)
         istep = int(step)
 
-        if istep == 2:
-            role = self.get_cleaned_data_for_step('1')['role']
+        if istep == 1:
+            role = self.get_roles()[0]
             rolekey = 'role_{}'.format(role.pk)
             initial[rolekey] = self.root_item
 
@@ -173,13 +172,8 @@ class AddLinkWizard(SessionWizardView):
         # For steps after 1 pass relation
         if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
-
         if istep == 1:
-            context['roles_exist'] = context['form'].fields['role'].queryset.exists()
-        elif istep == 2:
             context['roles'] = self.get_roles()
-        elif istep == 3:
-            context['role_concepts'] = self.get_role_concepts()
 
         context['root_item'] = self.root_item
         return context

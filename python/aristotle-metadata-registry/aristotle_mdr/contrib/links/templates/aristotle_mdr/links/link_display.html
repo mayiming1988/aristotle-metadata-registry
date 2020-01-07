@@ -8,7 +8,7 @@
                 {% if e.concept.concept != item.concept %}
                     <tr>
                         <td>
-                            <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
+                            <a class="aristotle-concept-link" data-aristotle-concept-id="{{e.link.relation.id}}" href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                         </td>
                         <td title="{{e.role.definition}}">
                             <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
@@ -27,8 +27,7 @@
                 <tr>
                     {% if forloop.first %}
                         <td rowspan="{{ linkend_count }}">
-                            {{ forloop.parentloop.counter }}.
-                            <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
+                            <a class="aristotle-concept-link" data-aristotle-concept-id="{{e.link.relation.id}}" href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                         </td>
                     {% endif %}
                     <td title="{{ e.role.definition }}">

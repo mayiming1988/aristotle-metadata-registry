@@ -11,26 +11,18 @@
 
 {% block webpack_bundle %}
   {% render_bundle 'wizard' 'js' %}
+  {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block content %}
     {% assign link.root_item as item %}
     <form method="post" action="">{% csrf_token %}
         <div class="modal-body">
-            {% if form.errors %}
-                {{ form.errors }}
-            {% endif %}
             {% breadcrumb_list breadcrumbs %}
 
-            <div>
-                You are about to add concepts to the roles for the relation
-                <a target="_blank" href='{{link.relation.get_absolute_url}}'>{{ link.relation }}</a> for this link.
-                {% if link.relation.definition %}
-                    <div class='well'>
-                    {{ link.relation.definition|bleach }}
-                    </div>
-                {% endif %}
-            </div>
+            <h1>Edit link for item {{item.name}}</h1>
+            {% include 'aristotle_mdr_links/actions/helpers/edit_link_relation_help.html' %}
+
             <div>
                 <div>
                     {% include 'aristotle_mdr_links/actions/helpers/link_end_form.html' %}
