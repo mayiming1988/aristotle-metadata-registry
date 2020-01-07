@@ -707,7 +707,7 @@ def add_item_url(item, active=False) -> Breadcrumb:
     """Helper function to add item breadcrumbs """
     if active:
         return Breadcrumb(item.name, active=True)
-    return Breadcrumb(item.name, 'aristotle:item', url_args=item.id)
+    return Breadcrumb(item.name, 'aristotle:item', url_args=[item.id])
 
 
 def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:

@@ -36,9 +36,13 @@
                     </td>
                     <td>
                         {% if e.concept.concept == item.concept %}
+                            {% if link.root_item.concept == e.concept %}<em>{% endif %}
                             <strong class="active_link" title="">{{ e.concept.name }}</strong>
+                            {% if link.root_item.concept == e.concept %}</em>{% endif %}
                         {% else %}
+                            {% if link.root_item.concept == e.concept %}<em>{% endif %}
                             <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
+                            {% if link.root_item.concept == e.concept %}</em>{% endif %}
                         {% endif %}
                     </td>
                     {% if forloop.first %}

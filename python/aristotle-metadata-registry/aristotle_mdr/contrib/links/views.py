@@ -3,10 +3,14 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_edit
+from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.views.utils import get_item_breadcrumbs
+
 from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
@@ -42,10 +46,14 @@ class EditLinkFormView(FormView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        breadcrumbs = get_item_breadcrumbs(item=self.link.root_item.item, user=self.request.user, last_active=False)
+        breadcrumbs.append(Breadcrumb("Edit Link"))
+
         context.update(
             {
                 'roles': self.link.relation.relationrole_set.all(),
-                'link': self.link
+                'link': self.link,
+                'breadcrumbs': breadcrumbs
             }
         )
         return context
@@ -244,10 +252,19 @@ def link_json_for_item(request, iid):
 
 
 class RemoveLinkView(ConfirmDeleteView):
+    confirm_template = "aristotle_mdr_links/actions/confirm_delete.html"
+    template_name = "aristotle_mdr_links/actions/confirm_delete.html"
     model_base = link_models.Link
     form_title = "Delete link"
+    form_delete_button_text = _("Delete link")
     permission_checks = [perms.user_can_change_link]
     item_kwarg = 'linkid'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.link = get_object_or_404(
+            link_models.Link, pk=self.kwargs['linkid']
+        )
+        return super().dispatch(request, *args, **kwargs)
 
     def get_warning_text(self):
         return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
@@ -259,3 +276,16 @@ class RemoveLinkView(ConfirmDeleteView):
 
     def post(self, *args, **kwargs):
         return self.perform_deletion()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        breadcrumbs = get_item_breadcrumbs(item=self.link.root_item.item, user=self.request.user, last_active=False)
+        breadcrumbs.append(Breadcrumb("Edit Link"))
+
+        context.update(
+            {
+                'links': [self.link],
+                'breadcrumbs': breadcrumbs
+            }
+        )
+        return context
