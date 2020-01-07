@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.query import QuerySet
-
+from django.db.models import Count, F
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.links.models import Relation
@@ -79,7 +79,7 @@ class LinkEndEditor(LinkEndEditorBase):
                 )
 
 
-class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
+class AddLink_SelectRelation_0(UserAwareForm, forms.Form):
     relation = forms.ModelChoiceField(
         queryset=Relation.objects.none(),
         widget=widgets.ConceptAutocompleteSelect(model=Relation)
@@ -87,22 +87,12 @@ class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['relation'].queryset = Relation.objects.all().visible(self.user)
+        # Restrict to only relations with roles
+        qs = Relation.objects.all().visible(self.user).annotate(num_roles=Count('relationrole'))
+        self.fields['relation'].queryset = qs.filter(num_roles__gt=0)
 
 
-class AddLink_SelectRole_2(forms.Form):
-
-    def __init__(self, *args, roles=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['role'] = forms.ModelChoiceField(
-            queryset=roles,
-            widget=forms.widgets.RadioSelect,
-            empty_label=None
-        )
-
-
-class AddLink_SelectConcepts_3(LinkEndEditorBase):
-
+class AddLink_SelectConcepts_1(LinkEndEditorBase):
     def __init__(self, *args, **kwargs):
         if 'root_item' in kwargs:
             self.root_item = kwargs.pop('root_item')
@@ -129,7 +119,3 @@ class AddLink_SelectConcepts_3(LinkEndEditorBase):
         if not root_item_present:
             error_msg = '{} Must be one of the attached concepts'.format(self.root_item.name)
             self.add_error(None, error_msg)
-
-
-class AddLink_Confirm_4(forms.Form):
-    pass

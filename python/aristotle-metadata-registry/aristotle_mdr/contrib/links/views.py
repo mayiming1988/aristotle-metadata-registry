@@ -101,13 +101,13 @@ class EditLinkFormView(FormView):
 
 class AddLinkWizard(SessionWizardView):
     form_list = base_form_list = [
-        link_forms.AddLink_SelectRelation_1,
-        link_forms.AddLink_SelectConcepts_3,
+        link_forms.AddLink_SelectRelation_0,
+        link_forms.AddLink_SelectConcepts_1,
     ]
     base_form_count = len(form_list)
     template_names = [
-        "aristotle_mdr_links/actions/add_link_wizard_1_select_relation.html",
-        "aristotle_mdr_links/actions/add_link_wizard_3_select_concepts.html",
+        "aristotle_mdr_links/actions/add_link_wizard_0_select_relation.html",
+        "aristotle_mdr_links/actions/add_link_wizard_1_select_concepts.html",
     ]
 
     def dispatch(self, request, *args, **kwargs):
@@ -165,13 +165,14 @@ class AddLinkWizard(SessionWizardView):
         return role_concepts
 
     def get_context_data(self, *args, **kwargs):
-        # Steps are 0 indexed, but the template is 1 indexed
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
 
         # For steps after 1 pass relation
         if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
+            context['roles_exist'] = context['form'].fields['role'].queryset.exists()
+
         if istep == 1:
             context['roles'] = self.get_roles()
 
