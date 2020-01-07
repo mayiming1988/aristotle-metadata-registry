@@ -3,6 +3,7 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -25,12 +26,11 @@ from django.views.generic import (
 from django.views.generic.detail import BaseDetailView, SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
-
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 import datetime
 import json
@@ -53,9 +53,9 @@ paginate_sort_opts = {
 def paginated_list(request, items, template, extra_context={}):
     if hasattr(items, 'select_subclasses'):
         items = items.select_subclasses()
-    sort_by=request.GET.get('sort', "mod_desc")
+    sort_by = request.GET.get('sort', "mod_desc")
     if sort_by not in paginate_sort_opts.keys():
-        sort_by="mod_desc"
+        sort_by = "mod_desc"
 
     paginator = Paginator(
         items.order_by(*paginate_sort_opts.get(sort_by)),
@@ -75,14 +75,13 @@ def paginated_list(request, items, template, extra_context={}):
         'object_list': items,
         'sort': sort_by,
         'page': paged_items,
-        }
+    }
     context.update(extra_context)
     return render(request, template, context)
 
 
 @login_required
 def paginated_reversion_list(request, items, template, extra_context={}):
-
     paginator = Paginator(
         items,
         request.GET.get('pp', 20)  # per page
@@ -99,7 +98,7 @@ def paginated_reversion_list(request, items, template, extra_context={}):
         items = paginator.page(paginator.num_pages)
     context = {
         'page': items,
-        }
+    }
     context.update(extra_context)
     return render(request, template, context)
 
@@ -113,11 +112,11 @@ paginate_workgroup_sort_opts = {
 
 @login_required
 def paginated_workgroup_list(request, workgroups, template, extra_context={}):
-    sort_by=request.GET.get('sort', "name_desc")
+    sort_by = request.GET.get('sort', "name_desc")
     try:
         sorter, direction = sort_by.split('_')
         if sorter not in paginate_workgroup_sort_opts.keys():
-            sorter="name"
+            sorter = "name"
             sort_by = "name_desc"
         direction = {'asc': '', 'desc': '-'}.get(direction, '')
     except:
@@ -150,7 +149,7 @@ def paginated_workgroup_list(request, workgroups, template, extra_context={}):
     context = {
         'sort': sort_by,
         'page': items,
-        }
+    }
     context.update(extra_context)
     return render(request, template, context)
 
@@ -162,11 +161,11 @@ paginate_registration_authority_sort_opts = {
 
 
 def paginated_registration_authority_list(request, ras, template, extra_context={}):
-    sort_by=request.GET.get('sort', "name_asc")
+    sort_by = request.GET.get('sort', "name_asc")
     try:
         sorter, direction = sort_by.split('_')
         if sorter not in paginate_registration_authority_sort_opts.keys():
-            sorter="name"
+            sorter = "name"
             sort_by = "name_desc"
         direction = {'asc': '', 'desc': '-'}.get(direction, '')
     except:
@@ -200,7 +199,7 @@ def paginated_registration_authority_list(request, ras, template, extra_context=
     context = {
         'sort': sort_by,
         'page': items,
-        }
+    }
 
     context.update(extra_context)
     return render(request, template, context)
@@ -225,7 +224,7 @@ def workgroup_item_statuses(workgroup):
 
 
 def generate_visibility_matrix(user):
-    matrix={}
+    matrix = {}
 
     from aristotle_mdr.models import STATES
 
@@ -267,9 +266,8 @@ def get_status_queryset():
     """
 
     return (
-        MDR.Status.objects.valid()
-        .order_by("registrationAuthority", "-registrationDate", "-created")
-        .select_related('registrationAuthority')
+        MDR.Status.objects.valid().order_by("registrationAuthority", "-registrationDate", "-created")
+                          .select_related('registrationAuthority')
     )
 
 
@@ -372,7 +370,8 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     def get_queryset(self):
         workgroups = self.get_initial_queryset()
         if self.text_filter:
-            workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
+            workgroups = workgroups.filter(
+                Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
         workgroups = self.sort_queryset(workgroups)
 
         return workgroups
@@ -408,7 +407,8 @@ class GroupMemberMixin(object):
         return kwargs
 
 
-class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView, FormView):
+class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView,
+                     FormView):
     raise_exception = True
     redirect_unauthenticated_users = True
 
@@ -431,7 +431,8 @@ class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermission
         return self.get_success_url()
 
 
-class SingleRoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView, FormView):
+class SingleRoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView,
+                           FormView):
     raise_exception = True
     redirect_unauthenticated_users = True
 
@@ -527,7 +528,6 @@ class AjaxFormMixin:
 
 
 class CachePerItemUserMixin:
-
     cache_item_kwarg = 'iid'
     cache_view_name = ''
     cache_ttl = 300
@@ -707,7 +707,17 @@ def add_item_url(item, active=False) -> Breadcrumb:
     """Helper function to add item breadcrumbs """
     if active:
         return Breadcrumb(item.name, active=True)
-    return Breadcrumb(item.name, 'aristotle:item', url_args=[item.id])
+    return ReversibleBreadcrumb(item.name, 'aristotle:item', url_args=[item.id])
+
+
+def share_link_possible(submitter) -> bool:
+    """Returns true if a share link can be created to another user's sandbox"""
+    if not submitter:
+        return False
+    else:
+        if not hasattr(submitter.profile, 'share'):
+            return False
+    return True
 
 
 def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcrumb]:
@@ -719,39 +729,46 @@ def get_item_breadcrumbs(item: _concept, user, last_active=True) -> List[Breadcr
         # It's in a sandbox
         if item.submitter == user:
             # It's in our own sandbox
-            return [Breadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
+            return [ReversibleBreadcrumb('My Sandbox', 'aristotle_mdr:userSandbox'),
                     add_item_url(item, active=last_active)]
         else:
             # It's in another user's sandbox
-            share = item.submitter.profile.share
-            other_users_name = item.submitter.full_name or item.submitter.short_name or item.submitter.email
-            return [
-                Breadcrumb(f"{other_users_name}'s Sandbox",
-                           'aristotle:sharedSandbox',
-                           url_args=[share.uuid]),
-                add_item_url(item, active=last_active)
-            ]
-    elif item.stewardship_organisation:
-        if item.workgroup:
-            breadcrumbs = [Breadcrumb(item.stewardship_organisation.name,
-                                      item.stewardship_organisation.get_absolute_url())]
-            if item.workgroup.can_view(user):
-                breadcrumbs.append(Breadcrumb(item.workgroup.name,
-                                              item.workgroup.get_absolute_url()))
+            no_link_possible = False
+            if not item.submitter:
+                return []
+
+            if share_link_possible(item.submitter):
+                # You are viewing the item without a share being created, this is something only a superuser could do
+                other_users_name = item.submitter.display_name
+                share = item.submitter.profile.share
+                return [
+                    ReversibleBreadcrumb(f"{other_users_name}'s Sandbox",
+                                         'aristotle:sharedSandbox',
+                                         url_args=[share.uuid]),
+                    add_item_url(item, active=last_active)
+                ]
+
             else:
-                breadcrumbs.append(Breadcrumb('Metadata',
-                                              'aristotle_mdr:stewards:group:browse',
-                                              url_args=item.stewardship_organisation.slug))
-            breadcrumbs.append(add_item_url(item, active=last_active))
-            return breadcrumbs
-        else:
-            # Item only has the stewardship organisation
-            return [
-                Breadcrumb(item.stewardship_organisation.name,
-                           item.stewardship_organisation.get_absolute_url()),
-                Breadcrumb('Metadata',
-                           'aristotle_mdr:stewards:group:browse',
-                           url_args=item.stewardship_organisation.slug),
-                add_item_url(item, active=last_active)
-            ]
+                return [
+                    Breadcrumb(f"Sandboxed Item"),
+                    add_item_url(item, active=last_active)
+                ]
+    elif item.stewardship_organisation:
+        # Item has a stewardship organisation
+        content_type = ContentType.objects.get_for_model(type(item))
+        return [
+            Breadcrumb(item.stewardship_organisation.name,
+                       item.stewardship_organisation.get_absolute_url()),
+            ReversibleBreadcrumb('Metadata',
+                                 'aristotle_mdr:stewards:group:browse',
+                                 url_args=[item.stewardship_organisation.slug]),
+
+            ReversibleBreadcrumb(f'{item.item_type_name}',
+                                 'aristotle_mdr:stewards:group:browse_app_metadata',
+                                 url_args=[item.stewardship_organisation.slug,
+                                           content_type.app_label,
+                                           content_type.model]),
+
+            add_item_url(item, active=last_active)
+        ]
     return []
