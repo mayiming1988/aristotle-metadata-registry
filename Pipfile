@@ -22,7 +22,7 @@ djangorestframework = "<3.10"
 django-filter = "~=2.2.0"
 pypandoc = {editable = true,git = "https://github.com/harrywhite4/pypandoc",ref = "master"}
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry",editable = true}
-aristotle-bg-workers = {path = "."}
+aristotle-bg-workers = {path = "./python/aristotle-bg-workers",editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions",editable = true}
 aristotle-glossary = {path = "./python/aristotle-glossary/",editable = true}
 aristotle-mdr-api = {path = "./python/aristotle-mdr-api",editable = true}
