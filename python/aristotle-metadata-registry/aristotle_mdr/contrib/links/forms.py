@@ -72,7 +72,6 @@ class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
 
 
 class AddLink_SelectRole_2(forms.Form):
-
     def __init__(self, *args, roles=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'] = forms.ModelChoiceField(
@@ -83,7 +82,6 @@ class AddLink_SelectRole_2(forms.Form):
 
 
 class AddLink_SelectConcepts_3(LinkEndEditorBase):
-
     def __init__(self, *args, **kwargs):
         if 'root_item' in kwargs:
             self.root_item = kwargs.pop('root_item')
