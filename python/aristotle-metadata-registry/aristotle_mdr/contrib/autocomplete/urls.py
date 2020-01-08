@@ -25,5 +25,5 @@ urlpatterns = [
     url(r'^relation',
         views.RelationAutocomplete.as_view(),
         name='relation'
-    ),
+        ),
 ]
