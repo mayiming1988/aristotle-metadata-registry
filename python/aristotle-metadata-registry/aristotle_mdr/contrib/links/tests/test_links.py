@@ -600,39 +600,6 @@ class TestLinkPages(LinkTestBase, TestCase):
             [self.relation_role1, self.relation_role2],
         )
 
-    def test_no_roles_message_displays(self):
-        self.register_relation(self.blank_relation)
-        self.login_editor()
-
-        wizard_data = [{'relation': str(self.blank_relation.pk)}]
-
-        response = self.post_to_wizard(
-            wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
-            'add_link_wizard'
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertWizardStep(response, 1)
-
-        self.assertFalse(response.context['roles_exist'])
-
-    def test_no_roles_message_doesnt_display(self):
-        self.register_relation()
-        self.login_editor()
-
-        wizard_data = [{'relation': str(self.relation.pk)}]
-
-        response = self.post_to_wizard(
-            wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
-            'add_link_wizard'
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertWizardStep(response, 1)
-
-        self.assertTrue(response.context['roles_exist'])
-        self.assertNotContains(response, 'alert alert-danger')
-
     def test_link_viewable_from_root(self):
         """Test that a link is viewable from the root item"""
 
@@ -684,7 +651,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.login_viewer()
         response = self.client.get(root_object_class.get_absolute_url())
 
-        self.assertContains(response, '<h2>Relationships</h2>')
+        self.assertContains(response, '<h2>Relations and Links</h2>')
         self.assertEqual(len(response.context['links_from']), 1)
 
     def test_link_viewable_from_non_root_under_to_links(self):
@@ -758,7 +725,7 @@ class TestLinkPages(LinkTestBase, TestCase):
 
     def test_not_allowed_item_and_wrong_multiplicity(self):
         # wrong item is removed from cleaned_data before
-        # multiplicity is checked (obnly if >1)
+        # multiplicity is checked (only if >1)
         self.relation_role1.multiplicity = 2
         self.relation_role1.save()
 
@@ -1016,9 +983,3 @@ class TestLinksConceptPages(LinkTestBase, TestCase):
 
         # Confirm that link was not deleted
         self.assertEqual(models.Link.objects.filter(pk=link.pk).count(), 1)
-
-
-
-
-
-

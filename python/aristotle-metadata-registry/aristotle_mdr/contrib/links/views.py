@@ -158,7 +158,7 @@ class AddLinkWizard(SessionWizardView):
 
     def get_role_concepts(self):
         role_concepts = []
-        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('2').values()):
+        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('1').values()):
             if role.multiplicity == 1:
                 concepts = [concepts]
             role_concepts.append((role, concepts))
@@ -171,7 +171,6 @@ class AddLinkWizard(SessionWizardView):
         # For steps after 1 pass relation
         if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
-            context['roles_exist'] = context['form'].fields['role'].queryset.exists()
 
         if istep == 1:
             context['roles'] = self.get_roles()
