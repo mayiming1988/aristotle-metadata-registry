@@ -113,27 +113,18 @@ class RelationAutocomplete(GenericConceptAutocomplete):
         return qs
 
 
-class FrameworkDimensionsAutocomplete(GenericAutocomplete):
+class FrameworkDimensionsAutocomplete(GenericConceptAutocomplete):
     template_name = "autocomplete_light/framework_dimensions.html"
 
-    def get_queryset(self):
+    def __init__(self):
+        super().__init__()
         from comet.models import FrameworkDimension
-        if self.q:
-            qs = FrameworkDimension.objects.filter(
-                name__icontains=self.q
-            ).order_by('name')
-        else:
-            qs = FrameworkDimension.objects.all().order_by('name')
-        return qs
+        self.model = FrameworkDimension
 
 
 class UserAutocomplete(GenericAutocomplete):
-    # model = User
     model = None
     template_name = "aristotle_mdr/actions/autocompleteUser.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         self.model = get_user_model()
