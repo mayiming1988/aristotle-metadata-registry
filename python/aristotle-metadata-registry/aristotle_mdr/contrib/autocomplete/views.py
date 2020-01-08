@@ -113,13 +113,21 @@ class RelationAutocomplete(GenericConceptAutocomplete):
         return qs
 
 
-class FrameworkDimensionsAutocomplete(GenericConceptAutocomplete):
+class FrameworkDimensionsAutocomplete(GenericAutocomplete):
     template_name = "autocomplete_light/framework_dimensions.html"
 
     def __init__(self):
         super().__init__()
         from comet.models import FrameworkDimension
         self.model = FrameworkDimension
+
+    def get_queryset(self):
+        if self.q:
+            qs = self.model.objects.filter(
+                name__icontains=self.q
+            ).order_by('name')
+        else:
+            qs = self.model.objects.all().order_by('name')
 
 
 class UserAutocomplete(GenericAutocomplete):
