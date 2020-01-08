@@ -126,7 +126,6 @@ class FrameworkDimensionsAutocomplete(GenericAutocomplete):
         return qs
 
 
-
 class UserAutocomplete(GenericAutocomplete):
     model = None
     template_name = "aristotle_mdr/actions/autocompleteUser.html"
