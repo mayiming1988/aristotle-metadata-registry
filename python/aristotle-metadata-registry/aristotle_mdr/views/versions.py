@@ -476,6 +476,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         field = self.get_field_or_none(field_name, model)
         if field is not None:
             if (self.is_concept_fk(field) or self.is_reference_doc_fk(field)) and value:
+                if not value.isdigit():
+                    return value
                 item_model = self.get_model_from_foreign_key_field(model, field_name)
                 item = item_model.objects.get(pk=value)
                 item_dict = {
@@ -630,7 +632,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
                 difference = [(difference_code, self.replace_item_id(subitem_model, field, difference))
                               for difference_code, difference in self.diff_field(earlier_value, later_value)]
-                logger.critical(difference)
 
                 difference_dict[field] = {'is_html': is_html, 'diff': difference}
         return difference_dict
