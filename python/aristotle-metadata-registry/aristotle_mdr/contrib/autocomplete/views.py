@@ -114,18 +114,16 @@ class RelationAutocomplete(GenericConceptAutocomplete):
 
 
 class FrameworkDimensionsAutocomplete(GenericAutocomplete):
-    from comet.models import FrameworkDimension
-
     template_name = "autocomplete_light/framework_dimensions.html"
-    model = FrameworkDimension
 
     def get_queryset(self):
+        from comet.models import FrameworkDimension
         if self.q:
-            qs = self.model.objects.filter(
+            qs = FrameworkDimension.objects.filter(
                 name__icontains=self.q
             ).order_by('name')
         else:
-            qs = self.model.objects.all().order_by('name')
+            qs = FrameworkDimension.objects.all().order_by('name')
         return qs
 
 
