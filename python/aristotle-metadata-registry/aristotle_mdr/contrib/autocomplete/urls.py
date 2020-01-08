@@ -22,8 +22,9 @@ urlpatterns = [
         views.FrameworkDimensionsAutocomplete.as_view(),
         name='framework'
     ),
-    url(r'^relation',
-        views.RelationAutocomplete.as_view(),
-        name='relation'
-        ),
+    url(
+        r'^framework/(?:(?P<app_name>[a-z_]+)-(?P<model_name>[a-z_]+))?$',
+        views.FrameworkDimensionsAutocomplete.as_view(),
+        name='framework'
+    )
 ]

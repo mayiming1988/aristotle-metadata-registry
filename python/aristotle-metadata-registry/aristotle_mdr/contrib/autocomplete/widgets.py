@@ -22,7 +22,7 @@ class AristotleSelect2Mixin:
 
     def __init__(self, *args, **kwargs):
         model = kwargs.pop("model", None)
-        url = get_django_url(self.url, model)
+        url = url = get_django_url(self.url, model)
         css_class = 'aristotle-select2'
         if self.type == 'multiple':
             css_class += '-multiple'
