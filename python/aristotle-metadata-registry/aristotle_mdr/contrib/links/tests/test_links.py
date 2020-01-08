@@ -556,29 +556,6 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         self.check_root_item_is_required_as_one_end()
 
-    def test_current_item_prefilled_step3(self):
-        self.register_relation()
-        self.login_editor()
-
-        wizard_data = [
-            {
-                'relation': str(self.relation.pk)
-            },
-            {
-                'role': self.relation_role1.pk
-            }
-        ]
-
-        response = self.post_to_wizard(
-            wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
-            'add_link_wizard'
-        )
-
-        self.assertWizardStep(response, '2')
-        form = response.context['form']
-        self.assertDictEqual(form.initial, {self.role1key: self.item1._concept_ptr})
-
     def test_role_choices_correct(self):
         self.register_relation()
         self.login_editor()
