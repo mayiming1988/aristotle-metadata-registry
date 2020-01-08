@@ -1,7 +1,8 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.query import QuerySet
-from django.db.models import Count, F
+from django.db.models import Count
+
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.links.models import Relation
@@ -82,14 +83,15 @@ class LinkEndEditor(LinkEndEditorBase):
 class AddLink_SelectRelation_0(UserAwareForm, forms.Form):
     relation = forms.ModelChoiceField(
         queryset=Relation.objects.none(),
-        widget=widgets.ConceptAutocompleteSelect(model=Relation)
+        widget=widgets.RelationAutocompleteSelect()
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Restrict to only relations with roles
+        # Restrict to only relations with roles, queryset is used to verify entry
         qs = Relation.objects.all().visible(self.user).annotate(num_roles=Count('relationrole'))
-        self.fields['relation'].queryset = qs.filter(num_roles__gt=0)
+        qs = qs.filter(num_roles__gt=0)
+        self.fields['relation'].queryset = qs
 
 
 class AddLink_SelectConcepts_1(LinkEndEditorBase):

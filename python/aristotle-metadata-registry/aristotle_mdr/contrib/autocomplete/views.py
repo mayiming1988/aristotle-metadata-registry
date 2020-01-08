@@ -4,12 +4,14 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils import six
 
 from aristotle_mdr import models, perms
+from aristotle_mdr.contrib.links.models import Relation
+from comet.models import FrameworkDimension
 from dal import autocomplete
 
 
@@ -67,7 +69,6 @@ class GenericConceptAutocomplete(GenericAutocomplete):
     template_name = "autocomplete_light/concept.html"
 
     def get_queryset(self):
-
         # Get public query parameter
         public = self.request.GET.get('public', '')
         # If we requested public objects, or are not authenticated
@@ -76,6 +77,7 @@ class GenericConceptAutocomplete(GenericAutocomplete):
         else:
             qs = self.model.objects.visible(self.request.user)
 
+        # Filter by query
         if self.q:
             q = Q(name__icontains=self.q)
             q |= Q(uuid__iexact=self.q)
@@ -102,8 +104,19 @@ class GenericConceptAutocomplete(GenericAutocomplete):
         ]
 
 
+class RelationAutocomplete(GenericConceptAutocomplete):
+    model = Relation
+
+    def get_queryset(self):
+        """Filter on only the Relations that have at least one associated role"""
+        qs = super().get_queryset()
+        qs = qs.annotate(num_roles=Count('relationrole')).filter(num_roles__gt=0)
+        return qs
+
+
 class FrameworkDimensionsAutocomplete(GenericAutocomplete):
     template_name = "autocomplete_light/framework_dimensions.html"
+    model = FrameworkDimension
 
     def get_queryset(self):
         if self.q:
