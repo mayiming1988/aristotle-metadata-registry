@@ -54,9 +54,6 @@ class CustomValueFormMixin:
     cleaned_data: dict
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
-        import logging
-        logger = logging.getLogger(__name__)
-
         # This is immediately overridden by __init__ but python type checking demands it
         self.bad_value_custom_fields: Set = set()
         self.initial: Dict
