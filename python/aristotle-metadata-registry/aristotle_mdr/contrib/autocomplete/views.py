@@ -11,7 +11,6 @@ from django.utils import six
 
 from aristotle_mdr import models, perms
 from aristotle_mdr.contrib.links.models import Relation
-from comet.models import FrameworkDimension
 from dal import autocomplete
 
 
@@ -115,6 +114,8 @@ class RelationAutocomplete(GenericConceptAutocomplete):
 
 
 class FrameworkDimensionsAutocomplete(GenericAutocomplete):
+    from comet.models import FrameworkDimension
+
     template_name = "autocomplete_light/framework_dimensions.html"
     model = FrameworkDimension
 
