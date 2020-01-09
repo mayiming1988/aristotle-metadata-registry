@@ -2,7 +2,7 @@ from django.conf.urls import url
 from aristotle_mdr.contrib.autocomplete import views
 
 urlpatterns = [
-   url(r'^relation$',
+    url(r'^relation$',
         views.RelationAutocomplete.as_view(),
         name='relation'),
     url(
