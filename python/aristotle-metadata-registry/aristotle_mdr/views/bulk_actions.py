@@ -14,7 +14,6 @@ from aristotle_mdr.forms.bulk_actions import ChangeStateForm
 
 
 class BulkAction(FormView):
-
     def dispatch(self, *args, **kwargs):
         action = self.get_action()
         if not action:
@@ -162,6 +161,23 @@ class ChangeStatusBulkActionView(LoginRequiredMixin, ReviewChangesView):
 
     condition_dict = {'review_changes': display_review}
     display_review = None
+
+    def user_can_change_status(self, user):
+        if user.is_superuser:
+            return True
+        if user.profile.registrar_count < 1:
+            return False
+        if user.profile.is_registrar:
+            return True
+
+    def dispatch(self, request, *args, **kwargs):
+        """We're doing some basic checking to determine if a user should be able to view the ChangeStatus BulkAction.
+           We can't check if the user has permission to register every item so it should suffice that they're a registrar
+           in at least one RA"""
+        if not self.user_can_change_status(request.user):
+            raise PermissionDenied
+        else:
+            return super().dispatch(request, *args, **kwargs)
 
     def get_items(self):
         return self.get_change_data()['items']

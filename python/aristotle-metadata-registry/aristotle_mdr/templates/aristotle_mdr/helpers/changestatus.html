@@ -42,6 +42,23 @@
         <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
         <div class="col-md-7">
             <ul id="registration-authorities-id" class="registration-authorities-list">
+                {% if not form.registrationAuthorities.field.choices %}
+                  <p>
+                    {% if request.user.is_superuser %}
+                        No registration authorities exist in this registry. A registration authority is <b>required</b>
+                        to change the status of items.
+                    {% else %}
+                      You are not the member of any registration authorities. You must be a member of a registration
+                      authority to change the status of items.
+                    {% endif %}
+                    {% if perms.aristotle_mdr.access_aristotle_dashboard %}
+                        To create a registration authority, click <a href="{% url 'aristotle:registrationauthority_create'%}" target="_blank">here</a>.
+                    {% else %}
+                      Please contact a registry administrator to create a new registration authority or to allow you to join.
+                    {% endif %}
+                  </p>
+                {% else %}
+                    </p>
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
                         <li>
@@ -53,6 +70,7 @@
                         </li>
                     {% endif %}
                 {% endfor %}
+                {% endif %}
             </ul>
         </div>
     </div>
