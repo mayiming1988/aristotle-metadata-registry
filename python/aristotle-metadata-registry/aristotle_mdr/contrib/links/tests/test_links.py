@@ -534,10 +534,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         )
         self.assertWizardStep(response, 1)
 
-        nfe = response.context['form'].non_field_errors()
-
-        self.assertEqual(len(nfe), 1)
-        self.assertTrue(nfe[0].endswith('Must be one of the attached concepts'))
         # Check that the error is actually rendered
         self.assertContains(response, 'Must be one of the attached concepts')
 
