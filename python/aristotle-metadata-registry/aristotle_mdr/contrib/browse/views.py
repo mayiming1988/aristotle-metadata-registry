@@ -1,11 +1,11 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.views.generic import ListView, TemplateView
+from django.db.models.functions import Substr, Upper
 
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
+from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.models import _concept
 from aristotle_mdr.views.views import get_app_config_list
 
@@ -95,6 +95,8 @@ class BrowseConcepts(AppBrowser):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
+        queryset = queryset.annotate(first_letter=Upper(Substr('name', 1, 1)))
+
         return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
     def get_context_data(self, **kwargs):

@@ -169,11 +169,12 @@ class ChangeStatusBulkActionView(LoginRequiredMixin, ReviewChangesView):
             return False
         if user.profile.is_registrar:
             return True
+        return False
 
     def dispatch(self, request, *args, **kwargs):
         """We're doing some basic checking to determine if a user should be able to view the ChangeStatus BulkAction.
-           We can't check if the user has permission to register every item so it should suffice that they're a registrar
-           in at least one RA"""
+           We can't check if the user has permission to register every item (this is done elsewhere)
+           so it should suffice that they're a registrar in at least one RA"""
         if not self.user_can_change_status(request.user):
             raise PermissionDenied
         else:
