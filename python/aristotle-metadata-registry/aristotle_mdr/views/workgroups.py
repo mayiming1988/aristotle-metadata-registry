@@ -225,12 +225,12 @@ class RemoveUser(MemberRemoveFromGroupView):
 
 
 class WorkgroupURLManager(GroupURLManager):
-    # TODO: Acually use this
+    # TODO: Actually use this
     group_context_name = "workgroup"
 
 
 def workgroup_backend_factory(*args, **kwargs):
-    # TODO: Acually use this
+    # TODO: Actually use this
     kwargs.update({
         "group_class": MDR.Workgroup,
         "membership_class": MDR.WorkgroupMembership,

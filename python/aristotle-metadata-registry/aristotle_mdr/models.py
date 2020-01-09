@@ -530,7 +530,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     visible, but the workgroup is hidden in lists and new items cannot be
     created in that workgroup.
     """
-    template = "aristotle_mdr/user/workgroups/workgroup.html"
+    template = "aristotle_mdr/fuser/workgroups/workgroup.html"
     can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid", on_delete=models.CASCADE)
@@ -598,6 +598,12 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     def classedItems(self):
         # Convenience class as we can't call functions in templates
         return self.items.select_subclasses()
+
+    @property
+    def issues(self):
+        """Return all issues for items in this workgroup"""
+        from aristotle_mdr.contrib.issues.models import Issue
+        return Issue.objects.filter(item__in=self.items.all()).order_by('-modified')
 
     def list_roles_for_user(self, user):
         return self.roles_for_user(user)
