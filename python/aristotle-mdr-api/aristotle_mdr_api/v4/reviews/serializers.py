@@ -76,9 +76,6 @@ class ReviewCommentSerializer(ReviewTimelineMixin, serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
 
-    # def create(self, validated_data):
-    #     return super().create(validated_data)
-
 
 class ReviewStatusChangeSerializer(ReviewTimelineMixin, serializers.ModelSerializer):
     """ A comment """
