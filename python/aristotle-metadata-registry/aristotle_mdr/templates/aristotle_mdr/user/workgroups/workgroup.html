@@ -66,10 +66,10 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">Recent issues</div>
                     <div class="panel-body">
-                        Lorem ipsum
+                        {% include 'aristotle_mdr/helpers/issues_list.html' with issues=item.issues.all|slice:":5" %}
                     </div>
                     <div class="panel-footer">
-                        <a href="google.com">View all issues</a>
+                        <a href="{% url 'aristotle:workgroupIssues' item.id %}">View all issues</a>
                     </div>
                 </div>
             </div>

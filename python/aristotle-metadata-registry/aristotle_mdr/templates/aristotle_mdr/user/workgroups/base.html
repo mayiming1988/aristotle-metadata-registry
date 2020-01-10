@@ -34,8 +34,15 @@
         </li>
         <li role="presentation" {% if active_tab == 'metadata' %}class="active"{% endif %}>
             <a href="{% url 'aristotle:workgroupItems' item.id %}"><i
-                    class="fa fa-fw fa-file" aria-hidden="true"></i>Metadata
+                    class="fa fa-fw fa-file-text" aria-hidden="true"></i>Metadata
                 <span class="badge">{{ workgroup.items.count }}</span>
+            </a>
+        </li>
+
+        <li role="presentation" {% if active_tab == 'issues' %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroupIssues' item.id %}"><i
+                    class="fa fa-fw fa-exclamation-circle" aria-hidden="true"></i>Issues
+                <span class="badge">{{ workgroup.issues.count }}</span>
             </a>
         </li>
 

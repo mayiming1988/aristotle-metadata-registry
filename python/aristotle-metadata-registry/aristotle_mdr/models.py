@@ -530,7 +530,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     visible, but the workgroup is hidden in lists and new items cannot be
     created in that workgroup.
     """
-    template = "aristotle_mdr/fuser/workgroups/workgroup.html"
+    template = "aristotle_mdr/user/workgroups/workgroup.html"
     can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid", on_delete=models.CASCADE)
