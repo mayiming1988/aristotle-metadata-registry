@@ -145,7 +145,6 @@ class IssuesView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissio
         return context_data
 
 
-
 class MembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     template_name = 'aristotle_mdr/user/workgroups/members.html'
     permission_required = "aristotle_mdr.can_view_workgroup"
