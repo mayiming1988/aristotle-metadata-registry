@@ -96,7 +96,6 @@ class ReviewUpdateAndCommentSerializer(ReviewSerializer):
     comment = ReviewCommentSerializer(required=False)
     status = StatusField(
         choices=REVIEW_STATES,
-        # style={'base_template': 'radio.html'}
     )
 
     class Meta:
@@ -106,7 +105,7 @@ class ReviewUpdateAndCommentSerializer(ReviewSerializer):
     def update(self, instance, validated_data):
         comment = validated_data.pop('comment', None)
 
-        review = super().update(instance, validated_data) #ReviewRequest.objects.update(**validated_data)
+        review = super().update(instance, validated_data)
         try:
             user = self.context.get("request", {}).user
         except:
@@ -117,4 +116,19 @@ class ReviewUpdateAndCommentSerializer(ReviewSerializer):
         )
         if comment:
             comment = ReviewComment.objects.create(request=review, author=user, **comment)
-        return review
+        else:
+            comment = None
+        return [review, comment]
+
+    def to_representation(self, instance):
+        data = {}
+        for item in instance:
+            if type(item) == ReviewRequest:
+                data.update(super().to_representation(item))
+            else:
+                comment_serializer = ReviewCommentSerializer(item)
+                data.update({'comment': comment_serializer.data})
+        return data
+
+
+
