@@ -125,7 +125,7 @@ class ReviewUpdateAndCommentSerializer(ReviewSerializer):
         for item in instance:
             if type(item) == ReviewRequest:
                 data.update(super().to_representation(item))
-            else:
+            elif type(item) == ReviewComment:
                 comment_serializer = ReviewCommentSerializer(item)
                 data.update({'comment': comment_serializer.data})
         return data
