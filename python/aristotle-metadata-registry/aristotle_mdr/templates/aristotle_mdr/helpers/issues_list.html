@@ -5,13 +5,13 @@
                 {% if issue.isopen %}
                     <i class="text-success fa fa-exclamation-circle"></i>
                 {% else %}
-                    <i class="text-danger fa fa-exclamation-circle"></i>
+                    <i class="text-danger fa fa-times-circle-o"></i>
                 {% endif %}
                 {{ issue.name }} <em>({{issue.item }})</em>
                 <small>
                     <ul class="taggle_inline_list">
                         {% for label in issue.labels.all %}
-                        <li class="taggle">{{ label.label }}</li>
+                            <li class="taggle">{{ label.label }}</li>
                         {% endfor %}
                     </ul>
                 </small>
