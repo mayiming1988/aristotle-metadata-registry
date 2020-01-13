@@ -6,7 +6,6 @@ from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.views.utils import SortedListView
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 

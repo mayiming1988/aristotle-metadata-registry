@@ -353,8 +353,6 @@ class GroupURLManager(InvitationBackend):
     url_path = ""
     template_base_directory = None
 
-    # form_class = forms.AristotleUserRegistrationForm
-
     def group_meta(self):
         return self.group_class._meta
 

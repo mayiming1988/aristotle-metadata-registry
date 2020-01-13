@@ -64,8 +64,14 @@ class ManagedItemViewMixin:
 class StewardURLManager(GroupURLManager):
     group_context_name = "stewardship_organisation"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        urls.append(url(r'^s/browse/$', view=self.browse_view(), name='browse'))
+        return urls
+
     def get_extra_group_urls(self):
         return [
+            # Browse metadata view
             url("browse/?$", view=self.browse_all_apps_view(), name="browse"),
             url("browse/all$", view=self.browse_all_metadata_view(), name="browse_all_metadata"),
             url("browse/(?P<app>[^/]+)/?$", view=self.browse_apps_view(), name="browse_app_models"),
@@ -84,13 +90,14 @@ class StewardURLManager(GroupURLManager):
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
-
         ]
+
+    def browse_view(self, *args, **kwargs):
+        return views.BrowseStewardOrganisationView.as_view()
 
     def list_all_view(self, *args, **kwargs):
         """Override the list_all_view defined in groups"""
         return views.ListAllStewardOrganisationsView.as_view()
-
 
     def list_view(self, *args, **kwargs):
         """Override the list_view defined in groups"""
