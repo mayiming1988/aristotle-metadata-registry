@@ -88,7 +88,13 @@ class StewardURLManager(GroupURLManager):
         ]
 
     def list_all_view(self, *args, **kwargs):
-        return views.ListStewardOrg.as_view(manager=self, model=self.group_class, *args, **kwargs)
+        """Override the list_all_view defined in groups"""
+        return views.ListAllStewardOrganisationsView.as_view()
+
+
+    def list_view(self, *args, **kwargs):
+        """Override the list_view defined in groups"""
+        return views.ListOwnStewardOrganisationsView.as_view()
 
     def workgroup_list_view(self):
 

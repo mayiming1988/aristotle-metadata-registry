@@ -66,7 +66,7 @@ class ListAllStewardOrganisationsView(RegistryAdministratorPermissionsMixin, Ste
         return StewardOrganisation.objects.all()
 
 
-class OwnStewardOrganisationsView(StewardOrganisationListBase, LoginRequiredMixin):
+class ListOwnStewardOrganisationsView(StewardOrganisationListBase, LoginRequiredMixin):
     template_name = 'aristotle_mdr/stewardorganisation_list.html'
 
     def get_initial_queryset(self):
