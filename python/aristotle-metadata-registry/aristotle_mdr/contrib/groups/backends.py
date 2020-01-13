@@ -32,7 +32,9 @@ from organizations.backends.defaults import InvitationBackend
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
 from . import forms as group_forms
+
 from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
+from aristotle_mdr.contrib.stewards.views.views import ListStewardOrg
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -370,7 +372,7 @@ class GroupURLManager(InvitationBackend):
             url(r'^s/?$', view=self.list_view(), name="list"),
             path('', view=RedirectView.as_view(pattern_name=self.namespace + ":list")),
             url(r'^s/create/$', view=self.create_view(), name="create"),
-            url(r'^s/all/$', view=self.list_all_view(), name="list_all"),
+            url(r'^s/all/$', view=ListStewardOrg.as_view(), name="list_all"),
 
             url("^/(?P<group_slug>[-\w]+)/", include([
                 url("^$", view=self.detail_view(), name="detail"),

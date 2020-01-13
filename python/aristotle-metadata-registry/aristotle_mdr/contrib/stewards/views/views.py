@@ -1,19 +1,20 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Count, Q, Model
-from django.views.generic import (
-    CreateView,
-)
+from django.db.models import Count, Q
+from django.views.generic import ListView
+
 from aristotle_mdr.models import StewardOrganisation
-from aristotle_mdr.views.utils import (
-    SortedListView
-)
-from aristotle_mdr.contrib.groups.backends import GroupBase
+from aristotle_mdr.views.utils import SortedListView
+
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, SortedListView):
+class ListStewardshipOrganisationsView(ListView):
+    pass
+
+
+class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, SortedListView):
     template_name = "aristotle_mdr/user/organisations/list_all.html"
     permission_required = "aristotle_mdr.is_registry_administrator"
     raise_exception = True
@@ -26,18 +27,18 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
         return StewardOrganisation.objects.all()
 
     def get_queryset(self):
-        metadata_counts=dict(self.get_initial_queryset().all().values_list('pk').annotate(
+        qs = self.get_initial_queryset()
+        metadata_counts = dict(qs.values_list('pk').annotate(
             num_items=Count('metadata', distinct=True),
         ))
-        member_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
+        member_counts = dict(qs.values_list('pk').annotate(
             num_members=Count('members', distinct=True),
         ))
-        workgroup_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
+        workgroup_counts = dict(qs.values_list('pk').annotate(
             num_members=Count('workgroup', distinct=True),
         ))
-
         # This is very inefficient when member, workgroup and metadata counts grow
-        groups = self.get_initial_queryset().annotate(
+        groups = qs.annotate(
             num_ras=Count('registrationauthority', distinct=True),
         )
 
