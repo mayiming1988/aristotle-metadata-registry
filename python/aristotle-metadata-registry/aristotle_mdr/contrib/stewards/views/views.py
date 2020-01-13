@@ -10,24 +10,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ListStewardshipOrganisationsView(ListView):
-    pass
+class BrowseStewardOrganisationView(ListView):
+    template_name = 'aristotle_mdr/stewards/simple_list.html'
+
+    def get_queryset(self):
+        return StewardOrganisation.objects.visible(self.request.user)
 
 
-class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, SortedListView):
-    template_name = "aristotle_mdr/user/organisations/list_all.html"
+class RegistryAdministratorPermissionsMixin(PermissionRequiredMixin, LoginRequiredMixin):
     permission_required = "aristotle_mdr.is_registry_administrator"
-    raise_exception = True
-    model = StewardOrganisation
     redirect_unauthenticated_users = True
+    raise_exception = True
 
+
+class StewardOrganisationListBase(SortedListView):
     paginate_by = 20
+    model = StewardOrganisation
 
     def get_initial_queryset(self):
-        return StewardOrganisation.objects.all()
+        raise NotImplementedError
 
     def get_queryset(self):
         qs = self.get_initial_queryset()
+
         metadata_counts = dict(qs.values_list('pk').annotate(
             num_items=Count('metadata', distinct=True),
         ))
@@ -52,3 +57,17 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, SortedListView
             group.num_workgroups = workgroup_counts[group.pk]
 
         return groups
+
+
+class ListAllStewardOrganisationsView(RegistryAdministratorPermissionsMixin, StewardOrganisationListBase):
+    template_name = "aristotle_mdr/user/organisations/list_all.html"
+
+    def get_initial_queryset(self):
+        return StewardOrganisation.objects.all()
+
+
+class OwnStewardOrganisationsView(StewardOrganisationListBase, LoginRequiredMixin):
+    template_name = 'aristotle_mdr/stewardorganisation_list.html'
+
+    def get_initial_queryset(self):
+        return StewardOrganisation.objects.group_list_for_user(self.request.user)

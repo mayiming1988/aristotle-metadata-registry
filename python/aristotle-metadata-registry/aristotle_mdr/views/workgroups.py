@@ -223,19 +223,3 @@ class RemoveUser(MemberRemoveFromGroupView):
     def get_success_url(self):
         return redirect(reverse('aristotle:workgroupMembers', args=[self.get_object().id]))
 
-
-class WorkgroupURLManager(GroupURLManager):
-    # TODO: Acually use this
-    group_context_name = "workgroup"
-
-
-def workgroup_backend_factory(*args, **kwargs):
-    # TODO: Acually use this
-    kwargs.update({
-        "group_class": MDR.Workgroup,
-        "membership_class": MDR.WorkgroupMembership,
-        "namespace": "aristotle_mdr:workgroup",
-        "update_fields": ['definition']
-    })
-
-    return WorkgroupURLManager(*args, **kwargs)

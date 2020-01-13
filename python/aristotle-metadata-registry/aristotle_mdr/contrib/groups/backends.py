@@ -34,7 +34,11 @@ from .utils import GroupRegistrationTokenGenerator
 from . import forms as group_forms
 
 from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
-from aristotle_mdr.contrib.stewards.views.views import ListStewardOrg
+from aristotle_mdr.contrib.stewards.views.views import (
+    ListAllStewardOrganisationsView,
+    BrowseStewardOrganisationView,
+    OwnStewardOrganisationsView
+)
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -50,7 +54,7 @@ class ListForObjectMixin(DetailView):
         return self.object
 
 
-class GroupTemplateMixin(object):
+class GroupTemplateMixin:
     fallback_template_name: Optional[str] = None
 
     def get_template_names(self):
@@ -369,11 +373,11 @@ class GroupURLManager(InvitationBackend):
     def get_urls(self):
 
         return [
-            url(r'^s/?$', view=self.list_view(), name="list"),
+            url(r'^s/?$', view=OwnStewardOrganisationsView.as_view(), name="list"),
             path('', view=RedirectView.as_view(pattern_name=self.namespace + ":list")),
             url(r'^s/create/$', view=self.create_view(), name="create"),
-            url(r'^s/all/$', view=ListStewardOrg.as_view(), name="list_all"),
-
+            url(r'^s/all/$', view=ListAllStewardOrganisationsView.as_view(), name="list_all"),
+            url(r'^s/browse/$', view=BrowseStewardOrganisationView.as_view(), name='browse'),
             url("^/(?P<group_slug>[-\w]+)/", include([
                 url("^$", view=self.detail_view(), name="detail"),
                 url("settings", view=self.update_view(), name="settings"),
