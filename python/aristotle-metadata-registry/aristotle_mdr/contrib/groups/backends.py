@@ -32,13 +32,7 @@ from organizations.backends.defaults import InvitationBackend
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
 from . import forms as group_forms
-
 from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
-from aristotle_mdr.contrib.stewards.views.views import (
-    ListAllStewardOrganisationsView,
-    BrowseStewardOrganisationView,
-    OwnStewardOrganisationsView
-)
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -54,7 +48,7 @@ class ListForObjectMixin(DetailView):
         return self.object
 
 
-class GroupTemplateMixin:
+class GroupTemplateMixin(object):
     fallback_template_name: Optional[str] = None
 
     def get_template_names(self):
@@ -373,11 +367,11 @@ class GroupURLManager(InvitationBackend):
     def get_urls(self):
 
         return [
-            url(r'^s/?$', view=OwnStewardOrganisationsView.as_view(), name="list"),
+            url(r'^s/?$', view=self.list_view(), name="list"),
             path('', view=RedirectView.as_view(pattern_name=self.namespace + ":list")),
             url(r'^s/create/$', view=self.create_view(), name="create"),
-            url(r'^s/all/$', view=ListAllStewardOrganisationsView.as_view(), name="list_all"),
-            url(r'^s/browse/$', view=BrowseStewardOrganisationView.as_view(), name='browse'),
+            url(r'^s/all/$', view=self.list_all_view(), name="list_all"),
+
             url("^/(?P<group_slug>[-\w]+)/", include([
                 url("^$", view=self.detail_view(), name="detail"),
                 url("settings", view=self.update_view(), name="settings"),
@@ -568,7 +562,6 @@ class GroupURLManager(InvitationBackend):
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
         extend this method as it only checks the `email` attribute for Users.
-
         """
         users = []
         for email in emails:
@@ -591,7 +584,6 @@ class GroupURLManager(InvitationBackend):
     def email_message(self, user, subject_template, body_template, message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
-
         This can be easily overridden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
         and attach the additional component.
@@ -631,7 +623,6 @@ class GroupURLManager(InvitationBackend):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
-
         We're currently not sending emails to users already part of the registry
          because we're using a different View to add users
         to Stewardship Organisations for the time being.
