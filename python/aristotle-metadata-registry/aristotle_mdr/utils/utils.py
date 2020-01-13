@@ -432,7 +432,7 @@ def get_content_type_to_concept_name() -> Dict[str, str]:
         e.g.: {'datacatalog': 'Data Catalog', 'dataset': 'Dataset', 'qualitystatement': 'Quality Statement', ... }
 
     """
-    return {str(content_type).replace(" ", ""): content_type.name.title()
+    return {str(content_type).replace(" ", "").lower(): content_type.name.title()
             for content_type in get_concept_content_types().values()}
 
 
