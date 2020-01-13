@@ -15,6 +15,7 @@ from aristotle_mdr.utils.model_utils import ManagedItem
 from aristotle_mdr.views.workgroups import GenericListWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
 from aristotle_mdr.views.views import get_app_config_list
+from aristotle_mdr.utils import fetch_metadata_apps
 
 from . import views
 from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection, add_urls_to_config_list
@@ -220,10 +221,10 @@ class StewardURLManager(GroupURLManager):
         return BrowseAll.as_view(manager=self, group_class=self.group_class)
 
     def browse_all_apps_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseApps
+        from aristotle_mdr.contrib.browse.views import BrowseAppsView
         group = self
 
-        class BrowseAppsView(StewardGroupMixin, BrowseApps):
+        class BrowseAppsView(StewardGroupMixin, BrowseAppsView):
             current_group_context = "metadata"
 
             def get_context_data(self, **kwargs):
@@ -242,9 +243,9 @@ class StewardURLManager(GroupURLManager):
         return BrowseAppsView.as_view(manager=self, group_class=self.group_class)
 
     def browse_metadata_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseConcepts
+        from aristotle_mdr.contrib.browse.views import BrowseConceptsView
 
-        class Browse(StewardGroupMixin, BrowseConcepts):
+        class Browse(StewardGroupMixin, BrowseConceptsView):
             current_group_context = "metadata"
 
             def get_model_name(self):
@@ -271,22 +272,25 @@ class StewardURLManager(GroupURLManager):
         return Browse.as_view(manager=self, group_class=self.group_class)
 
     def browse_apps_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseModelsBase
+        from aristotle_mdr.contrib.browse.views import BrowseModelsView
 
-        class Browse(StewardGroupMixin, BrowseModelsBase):
+        class Browse(StewardGroupMixin, BrowseModelsView):
             current_group_context = "metadata"
-
-            def get_queryset(self):
-                return add_urls_to_config_list(
-                    super().get_queryset(),
-                    self.get_group()
-                )
+            template_name = 'stewards/metadata/browse/app_model_list.html'
 
             def get_app_label(self):
                 return self.kwargs.get('app', 'aristotle_mdr') or 'aristotle_mdr'
 
-            def get_template_names(self):
-                return ['stewards/metadata/browse/app_model_list.html']
+            def get_queryset(self):
+                app = self.get_app_label()
+                if app not in fetch_metadata_apps():
+                    raise Http404
+                app_config = get_app_config_list([app])
+
+                return add_urls_to_config_list(
+                    app_config,
+                    self.get_group()
+                )
 
         return Browse.as_view(manager=self, group_class=self.group_class)
 

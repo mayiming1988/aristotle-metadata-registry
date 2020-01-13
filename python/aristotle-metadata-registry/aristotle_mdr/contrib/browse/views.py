@@ -1,11 +1,10 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.views.generic import ListView, TemplateView
 
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
+from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.models import _concept
 from aristotle_mdr.views.views import get_app_config_list
 
@@ -14,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_urls_to_config_list(config_list):
+    """Util function to add URLs to the *config_list* queryset"""
     for app in config_list:
         for model in app['models']:
             model['url'] = reverse('browse_concepts',
@@ -22,7 +22,16 @@ def add_urls_to_config_list(config_list):
     return config_list
 
 
-class BrowseApps(TemplateView):
+class BrowseStartView(ListView):
+    """A starting view for Browse that serves as a central jumping off point for the other views"""
+    template_name = 'aristotle_mdr_browse/main.html'
+
+    def get_queryset(self):
+        pass
+
+
+class BrowseAppsView(TemplateView):
+    """Main browse page listing all the apps to browse"""
     template_name = "aristotle_mdr_browse/apps_list.html"
     ordering = 'app_label'
 
@@ -50,8 +59,7 @@ class AppBrowser(ListView):
         return context
 
 
-class BrowseModelsBase(AppBrowser):
-    """Show a list of models"""
+class BrowseModelsView(AppBrowser):
     template_name = "aristotle_mdr_browse/model_list.html"
     context_object_name = "model_list"
     paginate_by = 25
@@ -60,15 +68,12 @@ class BrowseModelsBase(AppBrowser):
         app = self.get_app_label()
         if app not in fetch_metadata_apps():
             raise Http404
-        return get_app_config_list([app])
+        app_config = get_app_config_list([app])
+
+        return add_urls_to_config_list(app_config)
 
 
-class BrowseModels(BrowseModelsBase):
-    def get_queryset(self):
-        return add_urls_to_config_list(super().get_queryset())
-
-
-class BrowseConcepts(AppBrowser):
+class BrowseConceptsView(AppBrowser):
     """Show a list of items of a particular model"""
     _model = None
     paginate_by = 25
@@ -119,7 +124,7 @@ class BrowseConcepts(AppBrowser):
         return paginate_sort_opts.get(self.order)
 
 
-class BrowseAllMetadataView(BrowseConcepts):
+class BrowseAllMetadataView(BrowseConceptsView):
     def get_model_name(self):
         return '_concept'
 

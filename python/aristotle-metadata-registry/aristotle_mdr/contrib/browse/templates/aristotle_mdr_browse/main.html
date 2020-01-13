@@ -1,0 +1,56 @@
+{% extends "aristotle_mdr/base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Browse{% endblock %}
+
+{% block content %}
+<ul class="breadcrumb">
+    <li><a href="{% url 'aristotle_mdr:home' %}">Home</a></li>
+    <li class="active">Metadata browser</li>
+</ul>
+<h1>Browse</h1>
+<hr>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="{% url 'browse_apps' %}">Metadata</a></h3>
+        </div>
+        <div class="panel-body">
+            Metadata is information about how data are defined, structured and represented.
+            It makes data files meaningful by describing the information captured in data, and
+            how it is measured and represented.
+        </div>
+        <div class="panel-footer">
+            <a href="{% url 'browse_apps' %}">Browse</a>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Registration Authorities</h3>
+        </div>
+        <div class="panel-body">
+            Registration authorities are groups of people that have some authority to state registration status levels
+            for metadata. These may be committees or agencies with particular governance arrangements or business
+            with specific domain knowledge.
+        </div>
+        <div class="panel-footer">
+            <a href="google.com">Browse</a>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Stewardship Organisations</h3>
+        </div>
+        <div class="panel-body">
+            A stewardship organisation is a group responsible for maintaining the accuracy and currency of metadata under
+            their care.
+        </div>
+        <div class="panel-footer">
+            <a href="google.com">Browse</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
