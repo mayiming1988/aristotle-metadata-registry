@@ -2,6 +2,7 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView, CreateView, UpdateView, DetailView, DeleteView
 )
@@ -19,7 +20,8 @@ from aristotle_mdr.views.views import get_app_config_list
 from . import views
 from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection, add_urls_to_config_list
 from aristotle_mdr.contrib.stewards.models import Collection
-from aristotle_mdr.contrib.stewards.views.collections import EditCollectionViewBase
+from aristotle_mdr.contrib.stewards.views.collections import CollectionMixin
+from aristotle_mdr.contrib.stewards.forms.collections import CreateCollectionForm
 
 import logging
 
@@ -80,6 +82,7 @@ class StewardURLManager(GroupURLManager):
 
             url("collections/$", view=self.collection_list_view(), name="collections"),
             url("collections/create$", view=self.collection_create_view(), name="collections_create"),
+            url("collections/(?P<pk>\d+)/create$", view=self.collection_create_view(), name="sub_collections_create"),
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
@@ -166,25 +169,46 @@ class StewardURLManager(GroupURLManager):
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_create_view(self):
-        class CreateCollectionView(EditCollectionViewBase, CreateView):
+        class CreateCollectionView(CollectionMixin, CreateView):
+            """Create collections under other collections or at base level"""
             template_name = "aristotle_mdr/collections/add.html"
+            form_class = CreateCollectionForm
 
-            def get_initial(self):
-                initial = super().get_initial()
-                initial['stewardship_organisation'] = self.get_group()
-                return initial
+            def dispatch(self, *args, **kwargs):
+                # Get parent collection
+                self.parent_collection = None
+
+                # Since this view is used on 2 urls (for creating top level and sub collections)
+                # we need to check this
+                if 'pk' in self.kwargs:
+                    visible_collections = Collection.objects.visible(user=self.request.user)
+                    try:
+                        self.parent_collection = visible_collections.get(id=self.kwargs['pk'])
+                    except Collection.DoesNotExist:
+                        raise Http404
+
+                return super().dispatch(*args, **kwargs)
+
+            def set_fields(self, obj):
+                super().set_fields(obj)
+                obj.parent_collection = self.parent_collection
+
+            def get_context_data(self, *args, **kwargs):
+                context = super().get_context_data(*args, **kwargs)
+                context['parent_collection'] = self.parent_collection
+                return context
 
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_edit_view(self):
-        class UpdateCollectionView(EditCollectionViewBase, UpdateView):
+        class UpdateCollectionView(CollectionMixin, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
         return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_delete_view(self):
 
-        class DeleteCollectionView(EditCollectionViewBase, DeleteView):
+        class DeleteCollectionView(CollectionMixin, DeleteView):
             template_name = "aristotle_mdr/collections/delete.html"
 
             def get_success_url(self):

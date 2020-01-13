@@ -12,8 +12,15 @@
     </h2>
 
     <section>
-    {% include "aristotle_mdr/collections/helpers/actionbar.html" %}
-    {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=item show_no_publication=True %}
+
+    <div class="row">
+        <div class="col-md-8">
+            {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=item show_no_publication=True %}
+        </div>
+        <div class="col-md-4">
+            {% include "aristotle_mdr/collections/helpers/actionbar.html" %}
+        </div>
+    </div>
 
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>

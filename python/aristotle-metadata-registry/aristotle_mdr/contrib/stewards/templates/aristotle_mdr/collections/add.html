@@ -31,22 +31,14 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-sm-6">
-                <div class="form-group {% if form.parent_collection.errors %}has-error{% endif %}">
-                    {{ form.parent_collection.label_tag }}<br>
-                    {{form.parent_collection}}
-                    {% if form.parent_collection.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.parent_collection.errors }}
-                        </div>
-                    {% endif %}
-                    <p class="help-block">
-                         {{ form.parent_collection.help_text }}
-                    </p>
-                </div>
+        {% if parent_collection %}
+            <label>Parent Collection</label>
+            <div class="form-group">
+                <a href="{% url 'aristotle:item' parent_collection.id %}">
+                  {{ parent_collection.name }}
+                </a>
             </div>
-        </div>
+        {% endif %}
 
         <div class="form-group {% if form.description.errors %}has-error{% endif %}">
             {{ form.description.label_tag }}
