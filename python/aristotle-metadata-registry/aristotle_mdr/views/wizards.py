@@ -23,7 +23,7 @@ from aristotle_mdr.utils import (
     is_active_module
 )
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
@@ -87,7 +87,7 @@ class PermissionWizard(SessionWizardView):
 
     def get_breadcrumbs(self, model_name):
         return [
-            Breadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
+            ReversibleBreadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
             Breadcrumb(f'Create {model_name}', active=True),
         ]
 
@@ -561,7 +561,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
     templates = {
         "component_search": "aristotle_mdr/create/dec_1_initial_search.html",
         "component_results": "aristotle_mdr/create/dec_2_search_results.html",
-        "make_oc": "aristotle_mdr/create/concept_wizard_2_results.html",
+        "make_oc": "aristotle_mdr/create/dec_2_5_make_oc.html",
         "make_p": "aristotle_mdr/create/concept_wizard_2_results.html",
         "find_dec_results": "aristotle_mdr/create/dec_3_dec_search_results.html",
         "completed": "aristotle_mdr/create/dec_4_complete.html",
@@ -715,7 +715,7 @@ class DataElementWizard(MultiStepAristotleWizard):
     templates = {
         "component_search": "aristotle_mdr/create/de_1_initial_search.html",
         "component_results": "aristotle_mdr/create/de_2_search_results.html",
-        "make_oc": "aristotle_mdr/create/concept_wizard_2_results.html",
+        "make_oc": "aristotle_mdr/create/de_2_5_make_oc.html",
         "make_p": "aristotle_mdr/create/concept_wizard_2_results.html",
         "find_de_from_comp": "aristotle_mdr/create/de_3_de_search_results_from_components.html",
         "find_dec_results": "aristotle_mdr/create/de_3_dec_search_results.html",

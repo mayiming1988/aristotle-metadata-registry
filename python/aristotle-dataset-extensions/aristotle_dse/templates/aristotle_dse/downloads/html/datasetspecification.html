@@ -4,7 +4,8 @@
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
     {% if item.collection_method or item.statistical_unit %}
-        <h2>Collection and usage information</h2>
+    <dl>
+        <dt>Collection and usage information</dt>
         <dd>
             {% if item.statistical_unit %}
                 <strong>Statistical Unit</strong>
@@ -18,29 +19,32 @@
                 <div>{{ item.collection_method | bleach }}</div>
             {% endif %}
         </dd>
+    </dl>
     {% endif %}
 
+<table>
+    <tr><td>A cell</td></tr>
+    <tr><td>A cell</td></tr>
+    <tr><td>A cell</td></tr>
+</table>
+
     {% if item.data_elements.exists or item.clusters.exists %}
-            <header>Metadata items in this Data Set Specification</header>
-        <table class="justified">
-          <thead>
+        <h2>Metadata items in this Data Set Specification</h2>
+        <table>
             <tr>
-              <th class="dss_inclusion_ref">Ref</th>
-              <th>Metadata item</th>
-              <th>Inclusion</th>
-              <th>#</th>
+              <td class="dss_inclusion_ref">Ref</td>
+              <td>Metadata item</td>
+              <td></td>
+              <td>Inclusion</td>
+              <td>#</td>
             </tr>
-          </thead>
-          <tbody>
           {% for node, depth in tree_values %}
           {% if depth > 0 %}
             <tr>
-              <td class="ref padding-{{ depth|add:"-1" }}"  colspan=2>
-                <div style="display:table-row">
-                <div style="display:table-cell; min-width:15px">{{ node.relation_data.reference|default:"-" }}</div>
-                <div style="display:table-cell; padding-left:10px">{{ node.data.name }}</div>
-                </div>
+              <td class="ref padding-{{ depth|add:"-1" }}">
+                {{ node.relation_data.reference|default:"-" }}
               </td>
+                <td>{{ node.data.name }}</td>
               {% comment %}
               <td>
                 <dl>
@@ -60,15 +64,13 @@
             </tr>
           {% endif %}
           {% endfor %}
-          </tbody>
-          <tfoot>
             <tr>
-              <th class="dss_inclusion_ref">Ref</th>
-              <th>Metadata item</th>
-              <th>Inclusion</th>
-              <th>#</th>
+              <td class="dss_inclusion_ref">Ref</td>
+              <td>Metadata item</td>
+              <td></td>
+              <td>Inclusion</td>
+              <td>#</td>
             </tr>
-          </tfoot>
         </table>
     {% endif %}
 {% endblock %}

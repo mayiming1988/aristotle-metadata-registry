@@ -132,17 +132,38 @@ class Tree:
 
 class Breadcrumb:
     """Object representing a single breadcrumb"""
+    length: int = 9  # The number of words to display in the title
 
-    def __init__(self, name: str, url_name='', url_args=[], active=False):
+    def __init__(self, name, url='', query_parameters=[], active=False):
+        if url:
+            self.url = url + self.add_query_parameters(query_parameters)
         self._name = name
         self.active = active
 
-        if url_name:
-            self.url = reverse(url_name, args=url_args)
-        else:
-            self.url = ''
+    def add_query_parameters(self, query_parameters) -> str:
+        parameters = ''
+        if query_parameters:
+            parameters = '?'
+            for index, parameter in enumerate(query_parameters):
+                parameters = parameters + parameter
+                if not index == len(query_parameters) - 1:
+                    # If it's the end of the list, don't append an ampersand
+                    parameters = parameters + '&'
+        return parameters
 
     @property
     def name(self):
         """Display name for breadcrumb"""
-        return truncate_words(self._name, 10)
+        return truncate_words(self._name, self.length)
+
+
+class ReversibleBreadcrumb(Breadcrumb):
+    """Object representing a single reversible breadcrumb"""
+
+    def __init__(self, name: str, url_name='', url_args=[], query_parameters=[], active=False):
+        """Query parameters expects a list of strings containing parameters
+           e.g. ['status=5', 'letter=z']"""
+
+        if url_name:
+            self.url = reverse(url_name, args=url_args)
+        super().__init__(name, self.url, query_parameters, active)

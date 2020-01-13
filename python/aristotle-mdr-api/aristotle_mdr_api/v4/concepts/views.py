@@ -103,15 +103,15 @@ class GeneralGraphicalConceptView(ObjectAPIView):
     permission_key = 'metadata'
 
     def get(self, request, pk, format=None):
-        item = self.get_object()
+        relational_attr = self.get_object()
 
         seen_items_ids = set()
-        # queue = collections.deque([item])
+        # queue = collections.deque([relational_attr])
         nodes = []
         edges = []
 
-        source_item = ConceptSerializer(item).data
-        source_item["type"] = self.camel_case_split(item.__class__.__name__)
+        source_item = ConceptSerializer(relational_attr).data
+        source_item["type"] = self.split_camel_case(relational_attr.__class__.__name__)
         source_item["node_options"] = {
             "shape": "ellipse",
             "borderWidth": 2, "margin": 3,
@@ -119,53 +119,54 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         }
         nodes.append(source_item)
 
-        if hasattr(item, 'relational_attributes'):
-            for d in item.relational_attributes.values():
-                for rel_attr in d['qs']:
-                    if perms.user_can_view(self.request.user, rel_attr):
-                        serialised_rel_attr = ConceptSerializer(rel_attr).data
-                        serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
-                        if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
+        if hasattr(relational_attr, 'relational_attributes'):
 
-                            nodes.append(serialised_rel_attr)
+            for queryset in relational_attr.relational_attributes.values():
+                for related_concept in queryset['qs']:
+                    related_item = related_concept.item
+                    if perms.user_can_view(self.request.user, related_item):
+                        serialized_item = ConceptSerializer(related_item).data
+                        serialized_item["type"] = self.split_camel_case(related_item.__class__.__name__)
+                        if serialized_item["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
+                            nodes.append(serialized_item)
 
                             if is_active_extension("comet"):
                                 from comet.models import Indicator, IndicatorSet
                                 # Change the direction of arrows from Indicator to Indicator Set:
-                                if isinstance(rel_attr, IndicatorSet) and isinstance(item, Indicator):
-                                    edges.append(({"from": item.id, "to": serialised_rel_attr["id"]}))
+                                if isinstance(relational_attr, IndicatorSet) and isinstance(relational_attr, Indicator):
+                                    edges.append(({"from": relational_attr.id, "to": serialized_item["id"]}))
                                 else:
-                                    edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                                    edges.append(({"from": serialized_item["id"], "to": relational_attr.id}))
                             else:
-                                edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                                edges.append(({"from": serialized_item["id"], "to": relational_attr.id}))
 
-                            seen_items_ids.add(serialised_rel_attr["id"])
+                            seen_items_ids.add(serialized_item["id"])
 
-        for field in item._meta.get_fields():
+        for field in relational_attr._meta.get_fields():
             if field.is_relation and field.many_to_one and issubclass(field.related_model, concept):
-                related_concept_instance = getattr(item, field.name)
+                related_concept_instance = getattr(relational_attr, field.name).item
                 if related_concept_instance is not None:
                     if perms.user_can_view(self.request.user, related_concept_instance):
                         serialised_concept = ConceptSerializer(related_concept_instance).data
-                        serialised_concept["type"] = self.camel_case_split(related_concept_instance.__class__.__name__)
+                        serialised_concept["type"] = self.split_camel_case(str(type(related_concept_instance)))
                         if serialised_concept["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
                             nodes.append(serialised_concept)
-                            edges.append({"from": item.id, "to": serialised_concept["id"]})
+                            edges.append({"from": relational_attr.id, "to": serialised_concept["id"]})
                             seen_items_ids.add(serialised_concept["id"])
 
             if field.is_relation and field.one_to_many and issubclass(field.related_model, aristotleComponent):
                 for aris_comp_field in field.related_model._meta.get_fields():
                     if aris_comp_field.is_relation and aris_comp_field.many_to_one and\
-                            issubclass(aris_comp_field.related_model, concept) and aris_comp_field.related_model != type(item):
-                        queryset = getattr(item, field.get_accessor_name()).all()
+                            issubclass(aris_comp_field.related_model, concept) and aris_comp_field.related_model != type(relational_attr):
+                        queryset = getattr(relational_attr, field.get_accessor_name()).all()
                         for component in queryset:
                             component_instance = getattr(component, aris_comp_field.name)
                             if component_instance is not None:
                                 serialised_concept_instance = ConceptSerializer(component_instance).data
-                                serialised_concept_instance["type"] = self.camel_case_split(component_instance.__class__.__name__)
+                                serialised_concept_instance["type"] = self.split_camel_case(component_instance.__class__.__name__)
                                 if serialised_concept_instance["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS:
                                     nodes.append(serialised_concept_instance)
-                                    edges.append({"from": serialised_concept_instance["id"], "to": item.id})
+                                    edges.append({"from": serialised_concept_instance["id"], "to": relational_attr.id})
                                     seen_items_ids.add(serialised_concept_instance["id"])
 
         json_response = {'nodes': nodes, 'edges': edges}
@@ -176,7 +177,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         )
 
     @staticmethod
-    def camel_case_split(identifier):
+    def split_camel_case(identifier):
         matches = finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
         return ' '.join([m.group(0) for m in matches])
 

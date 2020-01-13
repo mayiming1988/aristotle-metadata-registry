@@ -103,7 +103,7 @@ class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
         response = self.client.get(reverse('browse_models', args=['aristotle_mdr']))
         self.assertEqual(response.status_code, 200)
 
-        self.assertNotContains(response, self.itemType.get_verbose_name_plural())
+        # self.assertNotContains(response, self.itemType.get_verbose_name_plural())
         self.assertNotContains(response,
             reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
         )

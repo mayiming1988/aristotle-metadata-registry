@@ -374,7 +374,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     is_ordered = False
     ordering_field = None
-    formset_class: Any = None
+    formset_class = None
     template_name = "aristotle_mdr/generic/actions/alter_one_to_many.html"
     formset_factory = inlineformset_factory
     formset = None
@@ -496,7 +496,7 @@ class GenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     model_to_add_field = None
     form_add_another_text = None
     is_ordered = True
-    formset_class = HiddenOrderInlineFormset
+    formset_class: Any = HiddenOrderInlineFormset
 
 
 class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
@@ -642,7 +642,7 @@ class ExtraFormsetMixin:
             else:
                 formset = self.get_order_formset(through, postdata=postdata)
 
-            formset = one_to_many_formset_filters(formset, item)
+            formset = one_to_many_formset_filters(formset, item, clone=clone_item)
 
             extra_formsets.append({
                 'formset': formset,
@@ -667,7 +667,7 @@ class ExtraFormsetMixin:
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
 
-            formset = one_to_many_formset_filters(formset, item)
+            formset = one_to_many_formset_filters(formset, item, clone=clone_item)
 
             if hasattr(weak['model'], 'ordering_field'):
                 order_field = weak['model'].ordering_field
@@ -745,6 +745,11 @@ class ExtraFormsetMixin:
                 for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
                     o.pop(k, None)
                 initial.append(o)
+
+                if 'parent' in o.keys():
+                    # Only needed for FrameworkDimensions
+                    # Blank when cloning
+                    o['parent'] = None
             fsargs['initial'] = initial
             extra = len(initial)
 
@@ -897,7 +902,11 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
         context['form_delete_button_text'] = self.form_delete_button_text
         context['warning_text'] = self.get_warning_text()
         context['reverse_url'] = self.reverse_url
+        context['breadcrumbs'] = self.get_breadcrumbs()
         return context
+
+    def get_breadcrumbs(self):
+        return []
 
     def get_warning_text(self):
         return self.warning_text

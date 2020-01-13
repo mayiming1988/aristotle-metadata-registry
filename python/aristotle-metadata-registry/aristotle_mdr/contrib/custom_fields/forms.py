@@ -96,22 +96,18 @@ class CustomValueFormMixin:
                 # Parse lines with csv reader
                 csvReader = csv.reader(values.split('\n'))
                 # Get a list of lists from csv reader
-                choice_lists = [v for v in csvReader]
+                choice_lists = [value for value in csvReader]
                 # Flatten into list of values
-                choice_values = itertools.chain(*choice_lists)
+                choice_values = list(itertools.chain(*choice_lists))
                 # Make into 2 tuple
                 choices = [('', '------')]
                 for val in choice_values:
                     choices.append((val, val))
 
-                import logging
-
-                logger = logging.getLogger(__name__)
-
                 if custom_fname in self.initial:
                     value = self.initial[custom_fname]
                     if value and value not in choice_values:
-                        # If there is an initial value that isnt in the option list
+                        # If there is an initial value that isn't in the option list
                         # Add it as the last option
                         choices.append((value, value + ' (Old Value)'))
                         self.bad_value_custom_fields.add(custom_fname)
