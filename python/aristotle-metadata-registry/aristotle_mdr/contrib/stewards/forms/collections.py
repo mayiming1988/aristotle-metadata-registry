@@ -16,12 +16,18 @@ class CollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['metadata'].queryset = MDR._concept.objects.visible(self.user)
+        current_collection = kwargs.pop('current_collection', None)
 
+        super().__init__(*args, **kwargs)
+
+        self.fields['metadata'].queryset = MDR._concept.objects.visible(self.user)
         if 'parent_collection' in self.fields:
-            # TODO exclude current collection from qs
+            # Get visible collections
             collection_qs = Collection.objects.visible(self.user)
+            # Exclude current collection if provided
+            if current_collection:
+                collection_qs = collection_qs.exclude(id=current_collection.id)
+
             self.fields['parent_collection'].queryset = collection_qs
 
     class Meta:

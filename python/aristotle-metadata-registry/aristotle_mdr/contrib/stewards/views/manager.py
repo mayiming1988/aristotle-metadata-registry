@@ -204,6 +204,11 @@ class StewardURLManager(GroupURLManager):
         class UpdateCollectionView(CollectionMixin, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
+            def get_form_kwargs(self):
+                kwargs = super().get_form_kwargs()
+                kwargs['current_collection'] = self.object
+                return kwargs
+
         return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_delete_view(self):
