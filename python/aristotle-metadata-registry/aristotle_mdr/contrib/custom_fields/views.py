@@ -82,7 +82,7 @@ class CustomFieldListCreateView(IsSuperUserMixin, ListView):
         metadata_types = {'all': 'All'}
         metadata_types.update(get_content_type_to_concept_name())
 
-        return list(metadata_types.items())
+        return list(sorted(metadata_types.items()))
 
 
 class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
