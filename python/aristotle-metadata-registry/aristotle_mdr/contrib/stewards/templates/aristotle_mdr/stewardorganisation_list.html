@@ -6,8 +6,9 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Stewardship Organisations{% endblock %}</h1>
-
+<h1><i class="fa fa-sitemap"></i> {% block title %}Stewardship Organisations{% endblock %}</h1>
+This is a list of all Stewardship Organisations you are a member of.
+<hr>
     <section id="workgroups">
         {% include "aristotle_mdr/helpers/paginated_organisation_list.html" with page=object_list show_all=True show_stewardship_organisations=True %}
 </section>
