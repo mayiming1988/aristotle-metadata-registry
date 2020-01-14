@@ -2,6 +2,11 @@
 {% block title %}Browse Stewardship Organisations {% endblock %}
 
 {% block content %}
+<ul class="breadcrumb">
+    <li><a href="{% url 'aristotle_mdr:home' %}">Home</a></li>
+    <li><a href="{% url 'browse' %}">Main browser</a></li>
+    <li class="active">Stewardship organisations</li>
+</ul>
 <h1><i class="fa fa-sitemap"></i> Browse Stewardship Organisations</h1>
 Below is a listing of all the steward organisations you have permission to view.
 <div class="margin-above">

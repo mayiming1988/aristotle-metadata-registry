@@ -3,6 +3,11 @@
 
 {% block title %}All registration authorities{% endblock %}
 {% block content %}
+<ul class="breadcrumb">
+    <li><a href="{% url 'aristotle_mdr:home' %}">Home</a></li>
+    <li><a href="{% url 'browse' %}">Main browser</a></li>
+    <li class="active">Registration authorities</li>
+</ul>
 <header class="row">
     <h1 id="objectTitle" class="pull-left ">
         <i class="fa fa fa-university "></i>
