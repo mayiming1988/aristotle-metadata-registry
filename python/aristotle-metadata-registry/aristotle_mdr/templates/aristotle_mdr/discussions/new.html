@@ -3,9 +3,12 @@
 {% block title %}New post{% endblock %}
 
 {% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'aristotle:discussions' %}">All Discussions</a></li>
     <li>
         New Post
     </li>
+</ol>
 {% endblock %}
 
 {% block discussions_header %}New Post{% endblock %}
