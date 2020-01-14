@@ -56,6 +56,7 @@ class Workgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Template
             'workgroup': self.workgroup,
             'discussions': self.workgroup.discussions.all()
             })
+        return context_data
 
 
 class New(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):

@@ -2,17 +2,16 @@ import logging
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.contrib.groups.backends import GroupURLManager
 from aristotle_mdr.perms import user_is_workgroup_manager
 from aristotle_mdr.views.utils import (
     paginate_sort_opts,
-    workgroup_item_statuses,
     ObjectLevelPermissionRequiredMixin,
     SingleRoleChangeView,
     MemberRemoveFromGroupView,
     GenericListWorkgroup,
     UserFormViewMixin
 )
+from aristotle_mdr.views.discussions import Workgroup as DiscussionView
 from aristotle_mdr.models import Workgroup
 
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
@@ -28,7 +27,7 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-class WorkgroupContextMixin(object):
+class WorkgroupContextMixin:
     # workgroup = None
     raise_exception = True
     redirect_unauthenticated_users = True
@@ -48,6 +47,15 @@ class WorkgroupContextMixin(object):
             "active_tab": self.active_tab,
         })
         return context
+
+
+class WorkgroupDiscussionView(WorkgroupContextMixin, DiscussionView):
+    pk_url_kwarg = 'wgid'
+    template_name = 'aristotle_mdr/user/workgroups/discussions.html'
+    active_tab = 'discussions'
+
+    def get_object(self):
+        return self.model.objects.get(pk=self.kwargs.get(self.pk_url_kwarg))
 
 
 class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):

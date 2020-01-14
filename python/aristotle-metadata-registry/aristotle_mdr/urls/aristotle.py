@@ -57,6 +57,7 @@ urlpatterns = [
     path('workgroup/<int:iid>/remove/<int:user_pk>/', views.workgroups.RemoveUser.as_view(), name='workgroup_member_remove'),
     path('workgroup/<int:iid>/archive/', views.workgroups.ArchiveView.as_view(), name='archive_workgroup'),
     path('workgroup/<int:iid>/edit', views.workgroups.EditWorkgroup.as_view(), name='workgroup_edit'),
+    path('workgroup/<int:wgid>/discussions/', views.workgroups.WorkgroupDiscussionView.as_view(), name='workgroup_discussions'),
     path('workgroups/create/', views.workgroups.CreateWorkgroup.as_view(), name='workgroup_create'),
     path('workgroups/all/', views.workgroups.ListWorkgroup.as_view(), name='workgroup_list'),
 
