@@ -8,7 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
-from aristotle_mdr.contrib.generic.views import CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.slots.models import Slot
 
@@ -117,7 +116,6 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
     def get_vue_initial(self) -> List[Dict[str, str]]:
         fields = self.get_custom_field_objects()
         serializer = CustomFieldSerializer(fields, many=True)
-
         return serializer.data
 
     def get_custom_field_objects(self) -> Iterable[models.CustomField]:
@@ -126,8 +124,6 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         :return: Queryset
         """
         content_type_mapping = get_concept_name_to_content_type()
-
-        # self.metadata_type = self.kwargs['metadata_type']
 
         if self.metadata_type in content_type_mapping:
             content_type = content_type_mapping[self.metadata_type]
@@ -152,7 +148,7 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         return 'All Models'
 
 
-class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
+class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
     model = models.CustomField
     form_class = CustomFieldDeleteForm
     template_name = 'aristotle_mdr/custom_fields/delete.html'
@@ -191,4 +187,14 @@ class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin,
             return self.migrate()
 
     def get_success_url(self) -> str:
-        return reverse('aristotle_custom_fields:list')
+        if self.object.allowed_model:
+            return reverse('aristotle_custom_fields:list', args=[self.object.allowed_model.model])
+        else:
+            return reverse('aristotle_custom_fields:list', args=["all"])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "cancel_url": reverse('aristotle_custom_fields:edit')
+        })
+        return context

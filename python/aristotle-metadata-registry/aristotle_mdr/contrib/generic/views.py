@@ -1005,53 +1005,56 @@ class BootTableListView(ListView):
         return context
 
 
-class CancelUrlMixin:
-    cancel_url_name = ''
-
-    def get_context_data(self):
-        context = {}
-        if self.cancel_url_name:
-            logger.critical("THIS IS THE CANCEL")
-            logger.critical(self.cancel_url_name)
-            context['cancel_url'] = reverse(self.cancel_url_name)
-        return context
-
-
 class VueFormView(FormView):
     """
     A view for returning a serialized json representation of a django form
     for use with vue components. Does not permit the POST method as that
-    should be handled by the api
+    should be handled by the API.
     """
 
-    # Mapping of widgets to extra fields data
+    # Mapping of widgets to extra fields data.
     widget_mapping: Dict[str, Dict] = {
         'Textarea': {'tag': 'textarea'},
         'Select': {'tag': 'select'},
     }
 
-    # Attributes to pull from field as rules
+    # Attributes to pull from field as rules.
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
 
-    # Base field data
-    default_tag = 'input'
-
-    # Fields to strip from initial
-    non_write_fields: List = []
-    # Whether to capitalize option names
-    capitalize_options: bool = True
+    default_tag = 'input'  # Base field data.
+    non_write_fields: List = []  # Fields to strip from initial.
+    capitalize_options: bool = True  # Whether to capitalize option names.
 
     def get_vue_initial(self):
-        # To be overwritten
-        return {}
+        """
+        To be overwritten.
+        Must return a list of dictionaries containing the serialised fields data.
+        """
+        return []
 
-    def strip_fields(self, data: List[Dict]):
-        for fname in self.non_write_fields:
-            if fname in data:
-                del data[fname]
+    def post(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        initial = self.get_vue_initial()
+        self.strip_fields(initial)
+
+        context.update({
+            'vue_fields': json.dumps(
+                self.get_vue_form_fields(context['form'])
+            ),
+            'vue_initial': json.dumps(initial)
+        })
+
+        logger.critical("THIS IS VUE FIELDS:")
+        logger.critical(context["vue_fields"])
+        logger.critical("THIS IS VUE INITIAL")
+        logger.critical(context["vue_initial"])
+        return context
 
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
-        vuefields = {}
+        vue_fields = {}
         for fname, field in form.fields.items():
             widget_name = type(field.widget).__name__
 
@@ -1082,22 +1085,11 @@ class VueFormView(FormView):
                     if attrdata:
                         field_data['rules'][attr] = attrdata
 
-            vuefields[fname] = field_data
+            vue_fields[fname] = field_data
 
-        return vuefields
+        return vue_fields
 
-    def post(self, request, *args, **kwargs):
-        return self.http_method_not_allowed(request, *args, **kwargs)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-        initial = self.get_vue_initial()
-        self.strip_fields(initial)
-
-        context.update({
-            'vue_fields': json.dumps(
-                self.get_vue_form_fields(context['form'])
-            ),
-            'vue_initial': json.dumps(initial)
-        })
-        return context
+    def strip_fields(self, data: List[Dict]):
+        for fname in self.non_write_fields:
+            if fname in data:
+                del data[fname]
