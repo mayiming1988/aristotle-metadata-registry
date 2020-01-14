@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 
@@ -6,6 +7,7 @@ from aristotle_mdr import models as mdr_models
 from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.contrib.stewards.tests.test_perms import BaseStewardOrgsTestCase
 from aristotle_mdr.contrib.stewards.models import Collection
+from aristotle_mdr.contrib.publishing.models import PublicationRecord
 
 User = get_user_model()
 
@@ -74,11 +76,16 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         super().setUp()
 
         self.collection = Collection.objects.create(
-            stewardship_organisation=self.steward_org_2,
+            stewardship_organisation=self.steward_org_1,
             name='My Base Collection',
         )
+        PublicationRecord.objects.create(
+            content_type=ContentType.objects.get_for_model(Collection),
+            object_id=self.collection.id,
+            publisher=self.org_manager,
+        )
 
-        # Create second SO with member
+        # Create third SO with member
         self.new_org = StewardOrganisation.objects.create(
             name='New org',
             description='Brand new',
@@ -100,6 +107,11 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             stewardship_organisation=self.new_org,
             name='New orgs collection'
         )
+        PublicationRecord.objects.create(
+            content_type=ContentType.objects.get_for_model(Collection),
+            object_id=self.new_org_collection.id,
+            publisher=self.new_org_member,
+        )
 
     def test_load_create_collections(self):
         """Test loading the create collection page when a memeber of the SO"""
@@ -107,6 +119,18 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
 
         response = self.client.get(
             reverse('aristotle:stewards:group:collections_create', args=[self.steward_org_1.slug])
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_load_create_sub_collection(self):
+        """Test loading the create sub collection page"""
+        self.login_oscar()
+        response = self.client.get(
+            reverse(
+                'aristotle:stewards:group:sub_collections_create',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
         )
 
         self.assertEqual(response.status_code, 200)
@@ -119,11 +143,13 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         data = {
             'name': collection_name,
             'description': 'A very new collection',
-            'parent_collection': self.collection.id
         }
 
         response = self.client.post(
-            reverse('aristotle:stewards:group:collections_create', args=[self.steward_org_1.slug]),
+            reverse(
+                'aristotle:stewards:group:sub_collections_create',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
             data
         )
 
@@ -132,7 +158,7 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         new_collection = Collection.objects.get(name=collection_name)
         self.assertEqual(new_collection.parent_collection, self.collection)
 
-    def test_create_collection_with_invalid_parent(self):
+    def test_create_collection_with_other_so_parent(self):
         """Test creating a collection with a parent in another stewardship org"""
         self.login_oscar()
 
@@ -144,11 +170,14 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         }
 
         response = self.client.post(
-            reverse('aristotle:stewards:group:collections_create', args=[self.steward_org_1.slug]),
+            reverse(
+                'aristotle:stewards:group:sub_collections_create',
+                args=[self.steward_org_1.slug, self.new_org_collection.id]
+            ),
             data
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             Collection.objects.filter(name=collection_name).count(),
             0
