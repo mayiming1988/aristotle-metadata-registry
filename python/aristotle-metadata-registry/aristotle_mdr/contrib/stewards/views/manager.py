@@ -35,7 +35,6 @@ class ListCollectionsBase(ListView):
 
 
 class ManagedItemViewMixin:
-
     def get_model_class(self, request):
         model_name = self.kwargs.get("model_name").lower()
         self.model = ContentType.objects.get(model=model_name).model_class()
