@@ -38,7 +38,7 @@ class WorkgroupContextMixin:
     active_tab = ""
 
     def get_context_data(self, **kwargs):
-        # Get context from super-classes, because if may set value for workgroup
+        # Get context from super-classes, because it may set value for workgroup
         context = super().get_context_data(**kwargs)
         context.update({
             'item': self.get_object(),
@@ -49,7 +49,7 @@ class WorkgroupContextMixin:
         return context
 
 
-class WorkgroupDiscussionView(DiscussionView, WorkgroupContextMixin):
+class WorkgroupDiscussionView(WorkgroupContextMixin, DiscussionView):
     pk_url_kwarg = 'wgid'
     template_name = 'aristotle_mdr/user/workgroups/discussions.html'
     active_tab = 'discussions'
