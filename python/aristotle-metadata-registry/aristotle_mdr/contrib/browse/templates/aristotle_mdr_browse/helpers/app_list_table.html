@@ -39,7 +39,7 @@
         </tr>
         {% endif %}
         {% for model in app.models %}
-            {% with count=model.queryset|visible_count:request.user %}
+            {% with count=model.class|visible_count:request.user %}
               {% if count or show_empty %}
                   <tr>
                   <td>

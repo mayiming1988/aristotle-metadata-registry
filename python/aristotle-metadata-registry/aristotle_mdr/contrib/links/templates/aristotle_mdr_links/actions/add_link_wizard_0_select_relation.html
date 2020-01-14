@@ -1,0 +1,34 @@
+{% extends 'aristotle_mdr_links/actions/add_link_wizard_0_base.html' %}
+{% load i18n %}
+{% load static from staticfiles %}
+
+{% block title %}Add new link - Step 1: Select a relation{% endblock %}
+
+{% block form_title %}Step 1: Select a Relation to define this link{% endblock %}
+
+{% block wizard_content %}
+<hr>
+    <p>A Relation is a template for a link, that defines the behaviour for the saved link, such as the
+        number of metadata items that can be included in the link and the roles these metadata items have
+        for the link.
+    </p>
+    <p>
+       To learn more about a Relation, click the blue icon (<i class="fa fa-external-link-square"></i>) in the drop down to
+       view the relation definition in a new window.
+    </p>
+    <p>
+        To get help on relations, click
+        <a target="_blank"
+          href="{% url 'aristotle_help:concept_help' app='aristotle_mdr_links' model='relation' %}">
+            here.
+        </a>
+    </p>
+    <p>
+        <em>Links can be only created with relations that have at least one role.</em>
+    </p>
+    <div>
+        <table class="table">
+          {{ form.as_table }}
+        </table>
+    </div>
+{% endblock %}
