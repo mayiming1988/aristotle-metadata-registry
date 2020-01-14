@@ -222,4 +222,3 @@ class RemoveUser(MemberRemoveFromGroupView):
 
     def get_success_url(self):
         return redirect(reverse('aristotle:workgroupMembers', args=[self.get_object().id]))
-
