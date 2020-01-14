@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView, CreateView, UpdateView, DetailView, DeleteView
 )
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 
 from aristotle_mdr.contrib.groups.backends import (
@@ -21,7 +22,7 @@ from . import views
 from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection, add_urls_to_config_list
 from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.stewards.views.collections import CollectionMixin
-from aristotle_mdr.contrib.stewards.forms.collections import CreateCollectionForm
+from aristotle_mdr.contrib.stewards.forms.collections import MoveCollectionForm
 
 import logging
 
@@ -85,6 +86,7 @@ class StewardURLManager(GroupURLManager):
             url("collections/(?P<pk>\d+)/create$", view=self.collection_create_view(), name="sub_collections_create"),
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
+            url("collection/(?P<pk>\d+)/move$", view=self.collection_move_view(), name="collection_move_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
 
         ]
@@ -154,8 +156,8 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self):
                 return self.get_group().collection_set.visible(self.request.user).all()
 
-            def get_context_data(self, *args, **kwargs):
-                context = super().get_context_data(*args, **kwargs)
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
 
                 context['sub_collections'] = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
 
@@ -172,20 +174,25 @@ class StewardURLManager(GroupURLManager):
         class CreateCollectionView(CollectionMixin, CreateView):
             """Create collections under other collections or at base level"""
             template_name = "aristotle_mdr/collections/add.html"
-            form_class = CreateCollectionForm
 
             def dispatch(self, *args, **kwargs):
+                # Get group
+                self.group = self.get_group()
                 # Get parent collection
                 self.parent_collection = None
 
                 # Since this view is used on 2 urls (for creating top level and sub collections)
                 # we need to check this
                 if 'pk' in self.kwargs:
-                    visible_collections = Collection.objects.visible(user=self.request.user)
+                    # Get parent collection
                     try:
-                        self.parent_collection = visible_collections.get(id=self.kwargs['pk'])
+                        self.parent_collection = Collection.objects.get(id=self.kwargs['pk'])
                     except Collection.DoesNotExist:
                         raise Http404
+
+                    # Make sure parent is in same SO
+                    if self.parent_collection.stewardship_organisation_id != self.group.uuid:
+                        raise PermissionDenied
 
                 return super().dispatch(*args, **kwargs)
 
@@ -193,8 +200,8 @@ class StewardURLManager(GroupURLManager):
                 super().set_fields(obj)
                 obj.parent_collection = self.parent_collection
 
-            def get_context_data(self, *args, **kwargs):
-                context = super().get_context_data(*args, **kwargs)
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
                 context['parent_collection'] = self.parent_collection
                 return context
 
@@ -204,12 +211,19 @@ class StewardURLManager(GroupURLManager):
         class UpdateCollectionView(CollectionMixin, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
+        return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
+
+    def collection_move_view(self):
+        class MoveCollectionView(CollectionMixin, UpdateView):
+            template_name = "aristotle_mdr/collections/edit.html"
+            form_class = MoveCollectionForm
+
             def get_form_kwargs(self):
                 kwargs = super().get_form_kwargs()
                 kwargs['current_collection'] = self.object
                 return kwargs
 
-        return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
+        return MoveCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_delete_view(self):
 
@@ -235,9 +249,9 @@ class StewardURLManager(GroupURLManager):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
 
-            def get_context_data(self, *args, **kwargs):
+            def get_context_data(self, **kwargs):
                 # Call the base implementation first to get a context
-                context = super().get_context_data(*args, **kwargs)
+                context = super().get_context_data(**kwargs)
                 if self.get_model_name() == '_concept':
                     context.pop('model')
                     context.pop('app')
@@ -286,9 +300,9 @@ class StewardURLManager(GroupURLManager):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
 
-            def get_context_data(self, *args, **kwargs):
+            def get_context_data(self, **kwargs):
                 # Call the base implementation first to get a context
-                context = super().get_context_data(*args, **kwargs)
+                context = super().get_context_data(**kwargs)
                 if self.get_model_name() == '_concept':
                     context.pop('model')
                     context.pop('app')

@@ -19,6 +19,11 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'aristotle:stewards:group:collection_move_view' group.slug item.pk %}">
+                    <i class="fa fa-fw fa-share"></i> {% trans 'Move collection'%}
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'aristotle:stewards:group:collection_delete' group.slug item.pk %}">
                     <i class="fa fa-fw fa-trash"></i> Delete Collection
                 </a>

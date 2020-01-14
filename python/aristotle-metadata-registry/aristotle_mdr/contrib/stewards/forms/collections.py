@@ -16,14 +16,29 @@ class CollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['metadata'].queryset = MDR._concept.objects.visible(self.user)
+
+    class Meta:
+        model = Collection
+        fields = ['name', 'description', 'metadata']
+
+
+class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
+    """Form for moving a collection into a new collection
+    i.e. changing the parent collection"""
+
+    def __init__(self, *args, **kwargs):
         current_collection = kwargs.pop('current_collection', None)
 
         super().__init__(*args, **kwargs)
 
-        self.fields['metadata'].queryset = MDR._concept.objects.visible(self.user)
         if 'parent_collection' in self.fields:
-            # Get visible collections
-            collection_qs = Collection.objects.visible(self.user)
+            # Get collections in the same SO
+            collection_qs = Collection.objects.filter(
+                stewardship_organisation=current_collection.stewardship_organisation
+            )
             # Exclude current collection if provided
             if current_collection:
                 collection_qs = collection_qs.exclude(id=current_collection.id)
@@ -32,14 +47,4 @@ class CollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
 
     class Meta:
         model = Collection
-        fields = ['name', 'parent_collection', 'description', 'metadata']
-
-
-class CreateCollectionForm(CollectionForm):
-    """Form for creating collections
-    Does not have field for parent_collection
-    since this comes from which create button is used"""
-
-    class Meta:
-        model = Collection
-        fields = ['name', 'description', 'metadata']
+        fields = ['parent_collection']

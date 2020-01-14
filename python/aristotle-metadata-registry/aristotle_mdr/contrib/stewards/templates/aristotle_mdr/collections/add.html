@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/stewards/base.html" %}
-{% load i18n %}
+{% load i18n bootstrap3 %}
 
 
 {% block title %}New Collection | {{ stewardship_organisation }}{% endblock %}
@@ -7,64 +7,22 @@
 
 {% block steward_content %}
     <h2>
-    New Metadata Collection
+      New Metadata Collection
     </h2>
     <form action="" method="POST">
         {% csrf_token %}
         
-        {{ form.errors}}
-
-        <div class="row">
-            <div class="col-sm-6">
-                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
-                    {{ form.name.label_tag }}<br>
-                    <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
-                    {% if form.name.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.name.errors }}
-                        </div>
-                    {% endif %}
-                    <p class="help-block">
-                         {{ form.name.help_text }}
-                    </p>
-                </div>
-            </div>
-        </div>
-
         {% if parent_collection %}
             <label>Parent Collection</label>
             <div class="form-group">
-                <a href="{% url 'aristotle:item' parent_collection.id %}">
+                <a href="{% url 'aristotle:stewards:group:collection_detail_view' stewardship_organisation.slug parent_collection.id %}" target="_blank">
                   {{ parent_collection.name }}
                 </a>
             </div>
         {% endif %}
-
-        <div class="form-group {% if form.description.errors %}has-error{% endif %}">
-            {{ form.description.label_tag }}
-            {% if form.description.errors %}
-                <div class="alert alert-danger">
-                    {{ form.description.errors }}
-                </div>
-            {% endif %}
-            <p class="help-block">
-                {{ form.description.help_text }}
-            </p>
-            {{ form.description }}
-        </div>
-
-        <div class="form-group {% if form.description.errors %}has-error{% endif %}">
-            {{ form.metadata.label_tag }}
-            {% if form.metadata.errors %}
-                <div class="alert alert-danger">
-                    {{ form.metadata.errors }}
-                </div>
-            {% endif %}
-            <p class="help-block">
-                {{ form.metadata.help_text }}
-            </p>
-            {{ form.metadata }}
-        </div>
+        
+        {% bootstrap_form_errors form %}
+        {% bootstrap_form form %}
 
         <a class="btn btn-default" href="{{group.get_absolute_url}}">Back</a>
         <button type="Submit" class="btn btn-primary">Create new Collection</button>
