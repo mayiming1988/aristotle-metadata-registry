@@ -50,6 +50,7 @@
             Use your favourites and tags to keep track of important items to know when they change.
             <strong><a href="?help=help">Get help on using your favourites.</a></strong>
         </p>
+        <hr>
         {% if page_obj %}
             {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=True %}
         {% else %}
