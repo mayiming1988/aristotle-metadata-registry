@@ -49,7 +49,7 @@ class WorkgroupContextMixin:
         return context
 
 
-class WorkgroupDiscussionView(WorkgroupContextMixin, DiscussionView):
+class WorkgroupDiscussionView(DiscussionView, WorkgroupContextMixin):
     pk_url_kwarg = 'wgid'
     template_name = 'aristotle_mdr/user/workgroups/discussions.html'
     active_tab = 'discussions'
