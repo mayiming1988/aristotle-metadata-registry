@@ -14,7 +14,7 @@ from aristotle_mdr import perms
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 
 from braces.views import LoginRequiredMixin
-from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
+from django.views.generic import TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
@@ -31,23 +31,11 @@ class All(LoginRequiredMixin, TemplateView):
 
 
 class Workgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, TemplateView):
-    # Show all discussions for a workgroups
+    """ Show all discussions for a particular workgroup """
     template_name = "aristotle_mdr/discussions/workgroup.html"
     permission_required = "aristotle_mdr.can_view_discussions_in_workgroup"
     raise_exception = True
     redirect_unauthenticated_users = True
-
-    def get(self, request, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        wg = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
-
-        if not perms.user_in_workgroup(request.user, wg):
-            raise PermissionDenied
-
-        context['workgroup'] = wg
-        context['discussions'] = wg.discussions.all()
-
-        return render(request, self.template_name, context)
 
     def check_permissions(self, request):
         """
@@ -55,6 +43,19 @@ class Workgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Template
         """
         wg = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
         return request.user.has_perm(self.get_permission_required(request), wg)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.workgroup = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
+        if not perms.user_in_workgroup(request.user, self.workgroup):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update({
+            'workgroup': self.workgroup,
+            'discussions': self.workgroup.discussions.all()
+            })
 
 
 class New(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):
