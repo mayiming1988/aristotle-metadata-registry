@@ -1,0 +1,20 @@
+{% extends 'aristotle_mdr_links/actions/add_link_wizard_0_base.html' %}
+{% load i18n util_tags %}
+{% load static from staticfiles %}
+
+{% block title %}Add new link - Step 2: Add metadata to link{% endblock %}
+
+{% block form_title %}Step 2: Assign metadata to roles for this link{% endblock %}
+
+{% block wizard_content %}
+    <div>
+        <hr>
+            {% include 'aristotle_mdr_links/actions/helpers/edit_link_relation_help.html' with show_definition=True %}
+
+        <div>
+            {% include 'aristotle_mdr_links/actions/helpers/link_end_form.html' %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block form_save_text %}Save Link{% endblock %}

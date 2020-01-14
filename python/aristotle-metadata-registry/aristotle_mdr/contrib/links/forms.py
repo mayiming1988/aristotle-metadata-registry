@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.query import QuerySet
+from django.db.models import Count
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
@@ -35,13 +36,32 @@ class LinkEndEditorBase(UserAwareForm, forms.Form):
             field_name = 'role_' + str(role.pk)
             d = cleaned_data.get(field_name)
             if role.multiplicity is not None and d is not None and 1 < role.multiplicity < len(d):
-                msg = _("Only %s concepts are valid for this link" % role.multiplicity)
+                msg = _("Only %s  metadata items are valid for the role '%s'" % (role.multiplicity, role.name))
                 self.add_error(field_name, msg)
+
+        root_item_present = False
+        for field, data in cleaned_data.items():
+            if field.startswith('role_'):
+                if isinstance(data, QuerySet):
+                    # If data is queryset (non 1 multiplicity)
+                    if self.root_item in data:
+                        root_item_present = True
+                        break
+                else:
+                    # If data is a model
+                    if data == self.root_item:
+                        root_item_present = True
+                        break
+
+        if not root_item_present:
+            error_msg = "The metadata item '{}' must be one be included in at least one role in this link".format(self.root_item.name)
+            self.add_error(None, error_msg)
 
 
 class LinkEndEditor(LinkEndEditorBase):
     def __init__(self, link, roles, *args, **kwargs):
         super().__init__(roles, *args, **kwargs)
+        self.root_item = link.root_item
         for role in self.roles:
             if role.multiplicity == 1:
                 try:
@@ -60,30 +80,21 @@ class LinkEndEditor(LinkEndEditorBase):
                 )
 
 
-class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
+class AddLink_SelectRelation_0(UserAwareForm, forms.Form):
     relation = forms.ModelChoiceField(
         queryset=Relation.objects.none(),
-        widget=widgets.ConceptAutocompleteSelect(model=Relation)
+        widget=widgets.RelationAutocompleteSelect()
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['relation'].queryset = Relation.objects.all().visible(self.user)
+        # Restrict to only relations with roles, queryset is used to verify entry
+        qs = Relation.objects.all().visible(self.user).annotate(num_roles=Count('relationrole'))
+        qs = qs.filter(num_roles__gt=0)
+        self.fields['relation'].queryset = qs
 
 
-class AddLink_SelectRole_2(forms.Form):
-
-    def __init__(self, *args, roles=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['role'] = forms.ModelChoiceField(
-            queryset=roles,
-            widget=forms.widgets.RadioSelect,
-            empty_label=None
-        )
-
-
-class AddLink_SelectConcepts_3(LinkEndEditorBase):
-
+class AddLink_SelectConcepts_1(LinkEndEditorBase):
     def __init__(self, *args, **kwargs):
         if 'root_item' in kwargs:
             self.root_item = kwargs.pop('root_item')
@@ -110,7 +121,3 @@ class AddLink_SelectConcepts_3(LinkEndEditorBase):
         if not root_item_present:
             error_msg = '{} Must be one of the attached concepts'.format(self.root_item.name)
             self.add_error(None, error_msg)
-
-
-class AddLink_Confirm_4(forms.Form):
-    pass

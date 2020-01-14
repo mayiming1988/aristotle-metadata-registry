@@ -46,6 +46,10 @@ class ConceptAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:concept'
 
 
+class RelationAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
+    url = 'aristotle-autocomplete:relation'
+
+
 class UserAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:user'
 
