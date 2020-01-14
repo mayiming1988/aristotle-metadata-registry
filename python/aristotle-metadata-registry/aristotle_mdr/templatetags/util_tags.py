@@ -31,8 +31,8 @@ def startswith(string, substr):
 
 
 @register.filter
-def visible_count(ct, user):
-    return ct.model_class().objects.all().visible(user).count()
+def visible_count(model, user):
+    return type(model).objects.all().visible(user).count()
 
 
 @register.filter
@@ -178,3 +178,8 @@ def dict_lookup_or(mapping, key, default):
 @register.inclusion_tag('aristotle_mdr/helpers/breadcrumbs.html')
 def breadcrumb_list(crumbs: List[Breadcrumb]):
     return {'breadcrumbs': crumbs}
+
+
+@register.simple_tag()
+def assign(string):
+    return string

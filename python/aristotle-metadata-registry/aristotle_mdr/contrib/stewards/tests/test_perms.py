@@ -23,11 +23,20 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         self.org_manager = User.objects.create_user(
             email="oscar@aristotle.example.com",
             short_name="Oscar",
-            password="naughty_kitten"
+            password="naughty_cat"
         )
         self.steward_org_1.grant_role(
             role=StewardOrganisation.roles.admin,
             user=self.org_manager,
+        )
+        self.org_member_2 = User.objects.create_user(
+            email="frankie@aristotle.example.com",
+            short_name="Frankie",
+            password="naughty_kitten"
+        )
+        self.steward_org_1.grant_role(
+            role=StewardOrganisation.roles.member,
+            user=self.org_member_2,
         )
         self.org_steward = User.objects.create(
             email="steve@aristotle.example.com",
@@ -69,7 +78,7 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         self.logout()
         response = self.client.post(
             reverse('friendly_login'),
-            {'username': 'oscar@aristotle.example.com', 'password': 'naughty_kitten'}
+            {'username': 'oscar@aristotle.example.com', 'password': 'naughty_cat'}
         )
         self.assertEqual(response.status_code, 302)
         return response

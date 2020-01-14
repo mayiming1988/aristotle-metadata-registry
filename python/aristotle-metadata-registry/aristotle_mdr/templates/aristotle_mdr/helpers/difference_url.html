@@ -1,0 +1,11 @@
+{% if difference.url and difference.name %}
+    <a href="{{ difference.url }}">{{ difference.name }}</a>
+{% elif difference.name %}
+    {{ difference.name }}
+{% elif difference.url %}
+    <a href="{{ difference.url }}">Click here for more details</a>
+{% else %}
+    {{ difference.url }}
+    {{ difference.name }}
+    {{ difference }}
+{% endif %}

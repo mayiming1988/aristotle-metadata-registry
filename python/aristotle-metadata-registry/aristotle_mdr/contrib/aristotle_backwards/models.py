@@ -12,6 +12,7 @@ class ClassificationScheme(concept):
     """
 
     classificationStructure = RichTextField(
+        verbose_name="Classification Structure",
         blank=True
     )
 

@@ -1,27 +1,30 @@
-{% extends "aristotle_mdr/workgroup.html" %}
+{% extends "aristotle_mdr/user/workgroups/base.html" %}
 {% load aristotle_tags i18n %}
 {% url 'aristotle:item' item.id %}
-{% block title %}{{ workgroup.name }} {% trans 'members' %}{% endblock %}
-{% block page %}
-    <h1>{{ workgroup.name }} members</h1>
 
-    <ol class="breadcrumb">
-        <li><a href="{% url 'aristotle:workgroup' item.id %}">{{ item.name }}</a></li>
-        <li>{{ workgroup.name }} members</li>
-    </ol>
+{% block title %}{{ workgroup.name }} {% trans 'members' %}{% endblock %}
+
+{% block workgroup_page %}
+{% has_group_perm workgroup "edit_members" as can_edit_members %}
+{% has_group_perm workgroup "view_members" as can_view_members %}
+
+    <div>
+    </div>
 
     <div class="panel panel-default">
         <div class="panel-heading">
             <div class="row">
 
-                <div class="col-md-1 col-md-offset-11 col-xs-4 col-xs-offset-8 ">
                     <div class="btn-group pull-right" role="group">
-                        {% if perms.aristotle_mdr.change_workgroup %}
+                        {% if user in workgroup.member_list %}
+                            <a href="{% url 'aristotle:workgroup_leave' workgroup.id %}" class="btn btn-warning"><i
+                                    class="fa fa-user-times"></i> {% trans 'Leave Workgroup'%}</a>
+                        {% endif %}
+                        {% if can_edit_members %}
                             <a class="btn btn-default" href="{% url 'aristotle:addWorkgroupMembers' item.pk %}"
                                data-toggle="modal" data-target="#wg_page_modal">Add a user</a>
                         {% endif %}
                     </div>
-                </div>
 
             </div>
         </div>
@@ -31,7 +34,9 @@
             <tr>
                 <th>Member</th>
                 <th>Roles</th>
+                {% if can_edit_members %}
                 <th>Manage</th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
@@ -44,6 +49,7 @@
                     <td>
                         {{ member.role }}
                     </td>
+                    {% if can_edit_members %}
                     <td>
                         <div class="btn-group">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
@@ -65,6 +71,7 @@
                             </ul>
                         </div>
                     </td>
+                    {% endif %}
                 </tr>
             {% empty %}
                 <tr>

@@ -4,6 +4,7 @@ import { initMoveable } from 'src/lib/moveable.js'
 
 import settings from 'src/settings.json'
 import 'src/styles/aristotle.wizard.less'
+import 'bootstrap/js/tooltip.js'
 
 init()
 initMoveable()
@@ -45,3 +46,8 @@ if (settings.wizard_leave_prompt) {
         })
     }
 }
+
+$(document).ready(function() {
+  $('[data-toggle="popover"]').popover()
+})
+

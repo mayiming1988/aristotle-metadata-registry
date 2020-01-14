@@ -80,7 +80,7 @@ class Indicator(MDR.concept):
 
             rels.update({
                 "data_sources": {
-                    "all": _("Datasets that are used in this Indicator"),
+                    "all": _("Data Sets that are used in this Indicator"),
                     "qs": datasets
                 },
             })
@@ -146,7 +146,7 @@ class IndicatorDataElementBase(aristotleComponent):
     inline_field_layout = 'list'
 
     parent_field_name = 'indicator'
-    
+
     # Provide a specific field ordering for the advanced metadata editor.
     inline_field_order: List[str] = [
         "data_element",
@@ -156,6 +156,18 @@ class IndicatorDataElementBase(aristotleComponent):
         "guide_for_use",
         "order",
     ]
+
+    @property
+    def inline_editor_description(self):
+        fields = []
+        if self.data_element:
+            fields.append(f'Data element: {self.data_element.name}')
+        if self.data_set_specification:
+            fields.append(f'Data set specification: {self.data_set_specification}')
+        if self.data_set:
+            fields.append(f'Data set: {self.data_set}')
+
+        return fields
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
@@ -226,6 +238,7 @@ class QualityStatement(MDR.concept):
 
 class Framework(MDR.concept):
     template = "comet/framework.html"
+    clone_warning_template = "comet/clone_warning/framework.html"
     # parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
 
     serialize_weak_entities = [

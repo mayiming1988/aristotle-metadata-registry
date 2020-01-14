@@ -38,6 +38,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr.utils.text import truncate_words
 from aristotle_mdr.constants import visibility_permission_choices
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 from jsonfield import JSONField
 from .fields import (
@@ -529,7 +530,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     visible, but the workgroup is hidden in lists and new items cannot be
     created in that workgroup.
     """
-    template = "aristotle_mdr/workgroup.html"
+    template = "aristotle_mdr/user/workgroups/workgroup.html"
     can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid", on_delete=models.CASCADE)
@@ -540,7 +541,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         verbose_name=_('Archived'),
     )
 
-    class Permissions:
+    class Permissions(AbstractGroup.Permissions):
         @classmethod
         def can_view_group(cls, user, group=None):
             return group.state in group.active_states and cls.is_member(user, group)
@@ -558,6 +559,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         "view_group": [Permissions.can_view_group],
         "edit_group_details": [roles.manager],
         "edit_members": [roles.manager],
+        "view_members": [Permissions.can_view_group],
         "invite_member": [roles.manager],
     }
     states = Choices(
@@ -1061,11 +1063,11 @@ class _concept(baseAristotleObject):
             3. has not been added to a workgroup
             4. or a stewardship organisation"""
         not_registered = not self.statuses.all()
-        no_review_or_revoked = (not self.rr_review_requests.all() or
-                                self.rr_review_requests.objects.filter(~Q(status=REVIEW_STATES.revoked)) == 0)
+        not_reviewed = self.rr_review_requests.filter(~Q(status=REVIEW_STATES.revoked)).count() == 0
         no_workgroup = self.workgroup is None
         no_stewardship_org = self.stewardship_organisation is None
-        return not_registered and no_review_or_revoked and no_workgroup and no_stewardship_org
+
+        return not_registered and not_reviewed and no_workgroup and no_stewardship_org
 
 
 class concept(_concept):
@@ -1143,14 +1145,6 @@ class RecordRelation(TimeStampedModel):
         choices=TYPE_CHOICES,
         max_length=1,
     )
-
-
-REVIEW_STATES = Choices(
-    (0, 'submitted', _('Submitted')),
-    (5, 'cancelled', _('Cancelled')),
-    (10, 'accepted', _('Accepted')),
-    (15, 'rejected', _('Rejected')),
-)
 
 
 class Status(TimeStampedModel):
@@ -1486,6 +1480,7 @@ class ValueDomain(concept):
         help_text=('Description or specification of a rule, reference, or '
                    'range for a set of all values for a Value Domain.')
     )
+
     @property
     def permissibleValues(self):
         return self.permissiblevalue_set.all()
@@ -1839,7 +1834,6 @@ class PossumProfile(models.Model):
             3. That is not under review or is for a review that has been revoked
             4. That has not been added to a workgroup
             5. That has not been put into a stewardship organisation """
-        from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(submitter=self.user, statuses__isnull=True) &
             Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)) &

@@ -90,7 +90,7 @@ def one_to_many_formset_excludes(item, model_to_add):
     return extra_excludes
 
 
-def one_to_many_formset_filters(formset, item):
+def one_to_many_formset_filters(formset, item, clone=False):
 
     my_forms = [f for f in formset]
     my_forms.append(formset.empty_form)
@@ -126,7 +126,10 @@ def one_to_many_formset_filters(formset, item):
 
             for form in my_forms:
                 if issubclass(form._meta.model, FrameworkDimension):
-                    form.fields['parent'].queryset = fd_queryset
+                    if clone:
+                        form.fields['parent'].queryset = FrameworkDimension.objects.none()
+                    else:
+                        form.fields['parent'].queryset = fd_queryset
 
     formset.filtered_empty_form = my_forms.pop()
 

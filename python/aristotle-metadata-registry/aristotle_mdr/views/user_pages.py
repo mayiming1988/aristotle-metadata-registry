@@ -14,7 +14,7 @@ from aristotle_mdr.views.utils import (paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
 from aristotle_mdr.views.views import ConceptRenderView
-from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.views.utils import get_item_breadcrumbs
 
 from django.apps import apps
 from django.conf import settings
@@ -489,11 +489,6 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-@login_required
-def django_admin_wrapper(request, page_url):
-    return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
-
-
 class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
     """Display the user's sandbox items"""
 
@@ -672,14 +667,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
 
         share_user = self.share.profile.user
         user_display_name = share_user.full_name or share_user.short_name or share_user.email
-        context['breadcrumbs'] = [
-            Breadcrumb(
-                '{}\'s Sandbox'.format(user_display_name),
-                'aristotle:sharedSandbox',
-                url_args=[self.share.uuid]
-            ),
-            Breadcrumb(self.item.name, active=True)
-        ]
+        context['breadcrumbs'] = get_item_breadcrumbs(self.item, self.request.user)
         # Set these in order to display links to other sandbox content  correctly
         context['shared_ids'] = self.sandbox_ids
         context['share_uuid'] = self.share.uuid
