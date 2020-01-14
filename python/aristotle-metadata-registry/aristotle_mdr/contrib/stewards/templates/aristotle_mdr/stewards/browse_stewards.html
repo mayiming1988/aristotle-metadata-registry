@@ -1,0 +1,16 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% block title %}Browse Stewardship Organisations {% endblock %}
+
+{% block content %}
+<h1><i class="fa fa-sitemap"></i> Browse Stewardship Organisations</h1>
+Below is a listing of all the steward organisations you have permission to view.
+<div class="margin-above">
+    {% if object_list %}
+        {% include 'aristotle_mdr/helpers/simple_list.html' with items=object_list %}
+    {% else %}
+        <div class="well well-sm">
+            There are no stewardship organisations in this registry
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,41 +3,50 @@
 
 {% block title %}All registration authorities{% endblock %}
 {% block content %}
-    <header class="row">
-        <h1 id="objectTitle"  class="pull-left">
-            <i class="fa fa fa-university "></i>
-            <a href="#">Current registration authorities</a>
-        </h1>
-    </header>
-    <section class="row">
-
-        {% if registrationAuthorities.count > 0 %}
-            <p>
-                Below is a complete listing of the <a href="{% url 'aristotle_help:help_page' 'registration-authorities' %}">registration authorities</a>
-                partcipating in the registry mainitained by this site.
-            </p>
-            <ul>
-                {% for ra in registrationAuthorities %}
-                    <li>
-                        <a
-                                {% if not ra.is_active %}class="text-muted"{% endif %}
+<header class="row">
+    <h1 id="objectTitle" class="pull-left ">
+        <i class="fa fa fa-university "></i>
+        <a href="#">Current registration authorities</a>
+    </h1>
+</header>
+<section class="row">
+        {% if registrationAuthorities.count %}
+        <p>
+            Below is a complete listing of the <a href="{% url 'aristotle_help:help_page' 'registration-authorities' %}">registration
+            authorities</a>
+            participating in the registry maintained by this site.
+        </p>
+        <div class="margin-above">
+        <table class="table table-striped">
+            <thead>
+            <th>Registration Authority</th>
+            <th>Details</th>
+            </thead>
+            <tbody>
+            {% for ra in registrationAuthorities %}
+                <tr>
+                    <td class="col-md-2">
+                        <a {% if not ra.is_active %}class="text-muted" {% endif %}
                                 href="{% url 'aristotle:registrationAuthority' ra.id '' %}">
                             {{ ra.name }}
                             {% if not ra.is_active %}
-                                (inactive)
+                            (inactive)
                             {% endif %}
                         </a>
-                        <div>
-                            {{ ra.short_definition | safe }}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <strong>
-                <em>This registry has no registration authorities!</em>
-            </strong>
-        {% endif %}
-
-    </section>
+                    </td>
+                    <td class="col-md-8">
+                        {{ ra.short_definition | safe }}
+                    </td>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <strong>
+            <em>This registry has no registration authorities!</em>
+        </strong>
+    {% endif %}
+        </div>
+</section>
 {% endblock %}
