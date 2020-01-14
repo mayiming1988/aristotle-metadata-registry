@@ -3,20 +3,34 @@
 {% load aristotle_tags %}
 
 {% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='myreviewrequests' %}
+{% include "aristotle_mdr/user/userSideBar.html" with activeTab='myreviewrequests' %}
+{% endblock %}
+
+{% block title %}
+My Review Requests
 {% endblock %}
 
 {% block page %}
-    <h1>
-        {% block title %}{% trans "Review List" %}{% endblock %}
-    </h1>
-    <a class="btn btn-primary" href="{% url 'aristotle_reviews:review_create' %}">
-        <i class="fa fa-plus-square"></i> Create New Review
-    </a>
+    <div class="row">
+        <div class="col-md-10">
+            <h1>
+                <i class="fa fa-flag"></i> {% trans "My Review Requests" %}
+            </h1>
+        </div>
+        <div class="col-md-2">
+            <a class="margin-above btn btn-primary"
+               href="{% url 'aristotle_reviews:review_create' %}">
+
+                <i class="fa fa-plus-square"></i> Create New Review
+            </a>
+        </div>
+        </h1>
+    </div>
     <p>
         The following are collections of items that have been requested for review.
         Once reviewed, if accepted, they may become visible.
     </p>
+    <hr>
     {% if page %}
         <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
             {% csrf_token %}
@@ -25,6 +39,5 @@
     {% else %}
         <strong>You currently have no reviews outstanding.</strong>
     {% endif %}
-
     {% bootstrap_modal "review_box" %}
 {% endblock %}
