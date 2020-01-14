@@ -141,6 +141,8 @@ class HasRoleMixin(PermissionRequiredMixin):
 
 
 class HasRolePermissionMixin(PermissionRequiredMixin):
+    """Check for a groups role permission
+    The inherited PermissionRequiredMixin overwrites dispatch"""
     role_permission: Optional[str] = None
     raise_exception = True
     redirect_unauthenticated_users = True

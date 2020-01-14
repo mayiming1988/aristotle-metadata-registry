@@ -91,7 +91,6 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             description='Brand new',
             state=StewardOrganisation.states.active
         )
-
         self.new_org_member = User.objects.create_user(
             email='neworguser@example.com',
             short_name='NewUser',
@@ -252,3 +251,21 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         self.collection.refresh_from_db()
         self.assertEqual(self.collection.name, new_name)
         self.assertEqual(self.collection.description, new_description)
+
+    def test_edit_collection_without_perm(self):
+        """Test that editing fails if not a steward or admin of the Stewardship Organisation"""
+        self.login_frankie()
+
+        data = {
+            'name': 'Bad',
+            'description': 'Bad'
+        }
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:collection_edit_view',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
+            data
+        )
+
+        self.assertEqual(response.status_code, 403)
