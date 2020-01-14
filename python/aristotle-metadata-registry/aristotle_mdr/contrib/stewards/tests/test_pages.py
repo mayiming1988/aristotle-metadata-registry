@@ -166,7 +166,6 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         data = {
             'name': collection_name,
             'description': 'Not legit',
-            'parent_collection': self.new_org_collection.id
         }
 
         response = self.client.post(
@@ -182,3 +181,74 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             Collection.objects.filter(name=collection_name).count(),
             0
         )
+
+    def test_move_collection(self):
+        """Test changing the parent of a collection"""
+        self.login_oscar()
+
+        parent = Collection.objects.create(
+            stewardship_organisation=self.steward_org_1,
+            name='Parent Collection',
+        )
+
+        self.assertIsNone(self.collection.parent_collection)
+
+        data = {
+            'parent_collection': parent.id
+        }
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:collection_move_view',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
+            data
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.parent_collection, parent)
+
+    def test_move_collection_into_itself(self):
+        """Test that making a collection a child of itself is not allowed"""
+        self.login_oscar()
+
+        self.assertIsNone(self.collection.parent_collection)
+
+        data = {
+            'parent_collection': self.collection.id
+        }
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:collection_move_view',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
+            data
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('parent_collection' in response.context['form'].errors)
+
+    def test_edit_collection(self):
+        """Test editing an existing collection"""
+        self.login_oscar()
+
+        new_name = 'Very Edited Name'
+        new_description = 'Very Edited Description'
+        data = {
+            'name': new_name,
+            'description': new_description
+        }
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:collection_edit_view',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
+            data
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.name, new_name)
+        self.assertEqual(self.collection.description, new_description)
