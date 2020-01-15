@@ -46,9 +46,11 @@
     </aside>
 
 
+    <h3>Description</h3>
     {% if item.description %}
-        <h3>Description</h3>
         <p>{{ item.description|bleach }}</p>
+    {% else %}
+        <em>This collection has no description</em>
     {% endif %}
 
     {% if type_counts %}
