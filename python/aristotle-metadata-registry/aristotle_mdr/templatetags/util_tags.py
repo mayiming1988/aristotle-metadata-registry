@@ -216,6 +216,16 @@ def breadcrumb_list(crumbs: List[Breadcrumb]):
 def pluralize_model(count: int, model: Model):
     """Return verbose name or plural verbose name, depending on a count"""
     if count > 1:
-        return model.get_verbose_name_plural()
+        return model._meta.verbose_name_plural.title()
 
-    return model.get_verbose_name()
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name(model):
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name_plural(model):
+    return model._meta.verbose_name_plural.title()
