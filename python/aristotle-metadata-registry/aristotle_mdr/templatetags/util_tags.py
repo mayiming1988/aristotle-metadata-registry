@@ -4,6 +4,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
+from django.db.models import Model
 
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.structs import Breadcrumb
@@ -209,3 +210,12 @@ def dict_lookup_or(mapping, key, default):
 @register.inclusion_tag('aristotle_mdr/helpers/breadcrumbs.html')
 def breadcrumb_list(crumbs: List[Breadcrumb]):
     return {'breadcrumbs': crumbs}
+
+
+@register.filter
+def pluralize_model(count: int, model: Model):
+    """Return verbose name or plural verbose name, depending on a count"""
+    if count > 1:
+        return model.get_verbose_name_plural()
+
+    return model.get_verbose_name()
