@@ -68,6 +68,11 @@ class BrowseModels(BrowseModelsBase):
         return add_urls_to_config_list(super().get_queryset())
 
 
+def annotate_with_first_letter(qs):
+    """A function to annotate the queryset with the first letter of the concept's name. (Currently unused)"""
+    return qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
+
+
 class BrowseConcepts(AppBrowser):
     """Show a list of items of a particular model"""
     _model = None
@@ -95,8 +100,6 @@ class BrowseConcepts(AppBrowser):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
-        queryset = queryset.annotate(first_letter=Upper(Substr('name', 1, 1)))
-
         return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
     def get_context_data(self, **kwargs):
