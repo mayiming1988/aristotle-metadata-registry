@@ -47,6 +47,68 @@
                         {% include "aristotle_mdr/infobox_statuses.html" with statuses=statuses %}
                     {% endif %}
 
+                    {% if not hide_item_supersedes %}
+                        <dt class="large">{% trans 'Supersedes'%}</dt>
+                        <dd class="large">
+                            <ul>
+                                {% for suprel in item|visible_supersedes_items:request.user %}
+                                    <li>
+                                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                                            {{ suprel.older_item.name }}
+                                        </a>
+                                        <ul>
+                                            {% for rel in suprel.rels %}
+                                                <li>
+                              <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                {{ rel.registration_authority.name }}
+                              </span>
+                                {% if rel.date_effective %}
+                                    ,
+                                    <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                {% endif %}
+                                -
+                                                    {{ rel.message }}
+                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% empty %}
+                                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                        <dt class="large">{% trans 'Superseded by' %}</dt>
+                        <dd class="large">
+                            <ul>
+                                {% for suprel in item|visible_superseded_by_items:request.user %}
+                                    <li>
+                                        <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                                            {{ suprel.newer_item.name }}
+                                        </a>
+                                        <ul>
+                                            {% for rel in suprel.rels %}
+                                                <li>
+                                                    <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                                        {{ rel.registration_authority.name }}
+                                                    </span>
+                                                    {% if rel.date_effective %}
+                                                        ,
+                                                        <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                                    {% endif %}
+                                                    {% if rel.message %} - {{ rel.message }} {% endif %}
+                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% empty %}
+                                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                    {% endif %}
+
                     {% if item.concept.publication_details.exists %}
                         {% include "aristotle_mdr/publish/infobox/publication_details.html" with item=item.concept %}
                     {% endif %}
@@ -87,67 +149,6 @@
 
                     {% block asideContent %}{% endblock %}
 
-                    {% if not hide_item_supersedes %}
-                        <dt class="large">{% trans 'Supersedes'%}</dt>
-                        <dd class="large">
-                            <ul>
-                                {% for suprel in item|visible_supersedes_items:request.user %}
-                                    <li>
-                                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
-                                            {{ suprel.older_item.name }}
-                                        </a>
-                                        <ul>
-                                            {% for rel in suprel.rels %}
-                                                <li>
-                              <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                {{ rel.registration_authority.name }}
-                              </span>
-                                {% if rel.date_effective %}
-                                    , 
-                                    <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
-                                {% endif %}
-                                -
-                                                    {{ rel.message }}
-                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                {% empty %}
-                                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
-                                {% endfor %}
-                            </ul>
-                        </dd>
-                        <dt class="large">{% trans 'Superseded by' %}</dt>
-                        <dd class="large">
-                            <ul>
-                                {% for suprel in item|visible_superseded_by_items:request.user %}
-                                    <li>
-                                        <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
-                                            {{ suprel.newer_item.name }}
-                                        </a>
-                                        <ul>
-                                            {% for rel in suprel.rels %}
-                                                <li>
-                                                    <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                                        {{ rel.registration_authority.name }}
-                                                    </span>
-                                                    {% if rel.date_effective %}
-                                                        , 
-                                                        <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
-                                                    {% endif %}
-                                                    {% if rel.message %} - {{ rel.message }} {% endif %}
-                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                {% empty %}
-                                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
-                                {% endfor %}
-                            </ul>
-                        </dd>
-                    {% endif %}
                     <dt class="large">{% trans 'Collections' %}</dt>
                     <ul>
                         {% for collection in item.collection_set.all|can_view_iter:request.user %}
