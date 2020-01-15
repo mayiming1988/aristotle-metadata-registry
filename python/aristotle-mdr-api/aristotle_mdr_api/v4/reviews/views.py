@@ -15,24 +15,24 @@ from . import serializers
 
 class ReviewCommentCreateView(generics.CreateAPIView):
     """Create a comment against a review"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.ReviewCommentSerializer
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.ReviewCommentSerializer
 
 
 class ReviewCommentRetrieveView(generics.RetrieveAPIView):
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.ReviewCommentSerializer
-    queryset=ReviewComment.objects.all()
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.ReviewCommentSerializer
+    queryset = ReviewComment.objects.all()
 
 
 class ReviewUpdateAndCommentView(generics.UpdateAPIView):
     """Open or close a review, with optional comment"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.ReviewUpdateAndCommentSerializer
-    pk_url_kwarg='pk'
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.ReviewUpdateAndCommentSerializer
+    pk_url_kwarg = 'pk'
 
     http_method_names = ['patch']
 
@@ -76,5 +76,3 @@ class PromoteImpactedItemToReviewItemsView(AlterItemInReviewView):
 
 class RemoveItemFromReviewItemsView(AlterItemInReviewView):
     operation_flag = 'remove'
-
-

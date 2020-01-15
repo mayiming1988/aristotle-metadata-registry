@@ -38,9 +38,6 @@
         <div class="modal-footer">
           <a class="btn btn-default" href="{% url 'aristotle:item' root_item.id %}">Cancel</a>
           <div class="btn-group" role="group" aria-label="Next & previous button group">
-              {% if wizard.steps.prev %}
-                <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
-              {% endif %}
               <input type="submit" class="btn btn-primary" value="{% block form_save_text %}Next{% endblock %}" />
           </div>
         </div>
