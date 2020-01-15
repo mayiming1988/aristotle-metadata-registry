@@ -139,13 +139,35 @@ def as_str(item):
     return repr(item)
 
 
+def format_time(dt, html_format):
+    """Format html with dates inserted
+    Helper function used by timetag and timefromtag"""
+    # ISO format to be parsed by js
+    isotime = iso_time(dt)
+    # Format to use when js replacement fails
+    if dt:
+        nicetime = dt.strftime('%d %B %Y')
+    else:
+        nicetime = '-'
+
+    return format_html(
+        html_format,
+        isotime=isotime,
+        time=nicetime
+    )
+
+
 @register.simple_tag
 def timetag(dt: Union[datetime, date, None]):
-    isotime = iso_time(dt)
-    return format_html(
-        '<time datetime="{isotime}">{isotime}</time>',
-        isotime=isotime
-    )
+    """Render time element for use with js local time replacement"""
+    return format_time(dt, '<time datetime="{isotime}">{time}</time>')
+
+
+@register.simple_tag
+def timefromtag(dt: Union[datetime, date, None]):
+    """Same as timetag above, but will show time from now
+    e.g. 4 Days Ago"""
+    return format_time(dt, '<time datetime="{isotime}" data-time-from="true">{time}</time>')
 
 
 @register.simple_tag(name='lookup')
