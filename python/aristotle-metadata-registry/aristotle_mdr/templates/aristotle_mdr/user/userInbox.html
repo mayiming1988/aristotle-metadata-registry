@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page %}
-    <h1>{% block title %}Notifications {% if folder %}- {{ folder }}{% endif %}{% endblock %}</h1>
+    <h1><i class="fa fa-bell"></i> {% block title %}Notifications {% if folder %}- {{ folder }}{% endif %}{% endblock %}</h1>
     <a class="btn btn-default" href="{% url 'notifications:mark_all_as_read' %}"><i class="fa fa-bell-slash-o"></i> Mark all as read</a>
 
     <br>

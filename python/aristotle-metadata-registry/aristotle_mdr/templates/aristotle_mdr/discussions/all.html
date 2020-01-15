@@ -4,8 +4,8 @@
 {% endblock %}
 
 {% block discussion_content %}
-
-    <h1>Showing all discussions</h1>
+    <p>This is a list of all discussions which you can participate in.</p>
+    <hr>
     <a class="btn btn-default pull-right" href="{% url 'aristotle:discussionsNew' %}">New discussion</a>
     {% include 'aristotle_mdr/discussions/discussion_list.html' with discussions=discussions showWorkgroups=True %}
 

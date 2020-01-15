@@ -38,6 +38,12 @@
                 <span class="badge">{{ workgroup.items.count }}</span>
             </a>
         </li>
+        <li role="presentation" {% if active_tab == 'discussions'%}class="active"{% endif %}>
+                   <a href="{% url 'aristotle:workgroup_discussions' item.id %}"><i
+                    class="fa fa-fw fa-comments" aria-hidden="true"></i>Discussions
+                <span class="badge">{{ workgroup.discussions.count }}</span>
+            </a>
+        </li>
 
         <li role="presentation" {% if active_tab == 'issues' %}class="active"{% endif %}>
             <a href="{% url 'aristotle:workgroupIssues' item.id %}"><i

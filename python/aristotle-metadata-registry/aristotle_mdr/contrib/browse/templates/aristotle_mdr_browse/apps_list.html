@@ -1,11 +1,14 @@
 {% extends "aristotle_mdr_browse/base.html" %}
 {% load aristotle_tags aristotle_help util_tags %}
 
-{% block title %}Concept browser{% endblock %}
-
 {% block breadcumbs %}
+    <ul class="breadcrumb">
+    <li><a href="{% url 'aristotle_mdr:home' %}">Home</a></li>
+    <li><a href="{% url 'browse' %}">Main browser</a></li>
     <li class="active">Metadata browser</li>
+</ul>
 {% endblock %}
+{% block title %}Concept browser{% endblock %}
 
 {% block object_list %}
     {% include "aristotle_mdr_browse/helpers/app_list_table.html" %}

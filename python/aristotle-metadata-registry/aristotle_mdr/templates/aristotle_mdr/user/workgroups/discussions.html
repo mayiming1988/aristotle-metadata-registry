@@ -1,0 +1,11 @@
+{% extends "aristotle_mdr/user/workgroups/base.html" %}
+{% load aristotle_tags i18n %}
+
+
+{% block title %}{{ workgroup.name }} {% trans 'Discussions' %}{% endblock %}
+{% block workgroup_page %}
+<p class="margin-above">A list of discussions in this workgroup</p>
+<hr>
+    <a class="btn btn-default pull-right" href="{% url 'aristotle:discussionsNew' %}?workgroup={{ workgroup.id }}">New discussion</a>
+    {% include 'aristotle_mdr/discussions/discussion_list.html' with discussions=discussions %}
+{% endblock %}

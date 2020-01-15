@@ -353,8 +353,6 @@ class GroupURLManager(InvitationBackend):
     url_path = ""
     template_base_directory = None
 
-    # form_class = forms.AristotleUserRegistrationForm
-
     def group_meta(self):
         return self.group_class._meta
 
@@ -562,7 +560,6 @@ class GroupURLManager(InvitationBackend):
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
         extend this method as it only checks the `email` attribute for Users.
-
         """
         users = []
         for email in emails:
@@ -585,7 +582,6 @@ class GroupURLManager(InvitationBackend):
     def email_message(self, user, subject_template, body_template, message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
-
         This can be easily overridden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
         and attach the additional component.
@@ -625,7 +621,6 @@ class GroupURLManager(InvitationBackend):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
-
         We're currently not sending emails to users already part of the registry
          because we're using a different View to add users
         to Stewardship Organisations for the time being.
