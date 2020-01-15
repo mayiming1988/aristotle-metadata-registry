@@ -9,6 +9,14 @@
     <h2>
       New Metadata Collection
     </h2>
+
+    {% if not creating_subcollection %}
+    <p>
+      You are creating a base level collection.
+      If you want to create a sub collection, navigate to the parent and create from there
+    </p>
+    {% endif %}
+
     <form action="" method="POST">
         {% csrf_token %}
         

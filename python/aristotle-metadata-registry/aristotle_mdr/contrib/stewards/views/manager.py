@@ -203,6 +203,7 @@ class StewardURLManager(GroupURLManager):
             def get_context_data(self, **kwargs):
                 context = super().get_context_data(**kwargs)
                 context['parent_collection'] = self.parent_collection
+                context['creating_subcollection'] = self.parent_collection is not None
                 return context
 
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
