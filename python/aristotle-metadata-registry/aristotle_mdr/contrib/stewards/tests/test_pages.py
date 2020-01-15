@@ -112,6 +112,17 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             publisher=self.new_org_member,
         )
 
+    def test_view_collection(self):
+        """Test viewing a collection"""
+        self.login_oscar()
+
+        view_args = [self.steward_org_1.slug, self.collection.id]
+        response = self.client.get(
+            reverse('aristotle:stewards:group:collection_detail_view', args=view_args)
+        )
+
+        self.assertEqual(response.status_code, 200)
+
     def test_load_create_collections(self):
         """Test loading the create collection page when a memeber of the SO"""
         self.login_oscar()
