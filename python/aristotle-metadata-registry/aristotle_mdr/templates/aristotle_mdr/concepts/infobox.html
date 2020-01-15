@@ -55,20 +55,14 @@
                     <dd>
                         {% if request.user.is_authenticated %}
                             {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
-                                </time>
+                              {% timefromtag last_edit.revision.date_created %}
                             {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
-                                </time>
+                              {% timefromtag last_edit.revision.date_created %}
                             {% else %}
-                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
-                                    {{ last_edit.revision.date_created|naturaltime }}
-                                </time>
+                              {% timetag last_edit.revision.date_created %}
                             {% endif %}
                         {% else %}
-                            <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
-                                {{ last_edit.revision.date_created|naturaltime }}
-                            </time>
+                            {% timetag last_edit.revision.date_created %}
                         {% endif %}
                         {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
                             <span style="display:inline-block">
@@ -83,7 +77,9 @@
                         {% endif %}
                     </dd>
                     <dt>{% trans 'Created'%}</dt>
-                    <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|isotime }}">{{ item.created|date:'o-m-d' }}</time></dd>
+                    <dd>
+                      {% timetag item.created %}
+                    </dd>
 
                     {% block asideContent %}{% endblock %}
 
@@ -103,8 +99,8 @@
                                 {{ rel.registration_authority.name }}
                               </span>
                                 {% if rel.date_effective %}
-                                    , 
-                                    <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                  ,
+                                  {% timetag rel.date_effective %} 
                                 {% endif %}
                                 -
                                                     {{ rel.message }}
@@ -134,7 +130,7 @@
                                                     </span>
                                                     {% if rel.date_effective %}
                                                         , 
-                                                        <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                                        {% timetag rel.date_effective %}
                                                     {% endif %}
                                                     {% if rel.message %} - {{ rel.message }} {% endif %}
                                                     {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
