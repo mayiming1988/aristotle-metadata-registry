@@ -71,7 +71,6 @@ class BrowseModelsView(AppBrowser):
         return add_urls_to_config_list(app_config)
 
 
-
 def annotate_with_first_letter(qs):
     """A function to annotate the queryset with the first letter of the concept's name. (Currently unused)"""
     return qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
