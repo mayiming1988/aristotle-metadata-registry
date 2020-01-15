@@ -3,10 +3,10 @@ import logging
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.groups.backends import GroupURLManager
+from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr.perms import user_is_workgroup_manager
 from aristotle_mdr.views.utils import (
     paginate_sort_opts,
-    workgroup_item_statuses,
     ObjectLevelPermissionRequiredMixin,
     SingleRoleChangeView,
     MemberRemoveFromGroupView,
@@ -23,6 +23,8 @@ from django.urls import reverse
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, FormView
 )
+
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -108,6 +110,39 @@ class ItemsView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
         # self.check_user_permission()
         return MDR._concept.objects.filter(workgroup=iid).select_subclasses().order_by(
             *paginate_sort_opts.get(self.sort_by))
+
+
+class IssuesView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, ListView):
+    """View to display issues for items that are in the workgroup"""
+    template_name = "aristotle_mdr/user/workgroups/issues.html"
+    permission_required = 'aristotle_mdr.can_view_workgroup'
+    active_tab = 'issues'
+
+    def get_object(self):
+        # Required for permission checking
+        return Workgroup.objects.get(pk=self.kwargs.get(self.pk_url_kwarg))
+
+    def get_queryset(self) -> Dict[MDR._concept, List[Issue]]:
+        workgroup = self.get_object()
+        issues = workgroup.issues.all().prefetch_related('item')
+
+        # Map item to issues
+        item_to_issues: Dict = {}
+        for issue in issues:
+            item = issue.item
+            item_issues = item_to_issues.get(item, None)
+            if item_issues is None:
+                item_to_issues[item] = [issue]
+            else:
+                item_to_issues[item].append(issue)
+        return item_to_issues
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update({
+            'num_issues': len(list(zip(*context_data['object_list'].values())))
+        })
+        return context_data
 
 
 class MembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
@@ -225,12 +260,12 @@ class RemoveUser(MemberRemoveFromGroupView):
 
 
 class WorkgroupURLManager(GroupURLManager):
-    # TODO: Acually use this
+    # TODO: Actually use this
     group_context_name = "workgroup"
 
 
 def workgroup_backend_factory(*args, **kwargs):
-    # TODO: Acually use this
+    # TODO: Actually use this
     kwargs.update({
         "group_class": MDR.Workgroup,
         "membership_class": MDR.WorkgroupMembership,

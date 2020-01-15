@@ -144,8 +144,9 @@ class GeneralGraphicalConceptView(ObjectAPIView):
 
         for field in relational_attr._meta.get_fields():
             if field.is_relation and field.many_to_one and issubclass(field.related_model, concept):
-                related_concept_instance = getattr(relational_attr, field.name).item
+                related_concept_instance = getattr(relational_attr, field.name)
                 if related_concept_instance is not None:
+                    related_concept_instance = related_concept_instance.item
                     if perms.user_can_view(self.request.user, related_concept_instance):
                         serialised_concept = ConceptSerializer(related_concept_instance).data
                         serialised_concept["type"] = self.split_camel_case(str(type(related_concept_instance)))
