@@ -8,10 +8,10 @@ from django.db.models import Model
 
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.structs import Breadcrumb
+from dateutil.parser import parse
 
 import bleach
 import json
-import dateutil
 from datetime import datetime, date
 
 register = template.Library()
@@ -233,5 +233,5 @@ def assign(string):
 @register.filter
 def parse_date(date: str) -> datetime:
     """Parse iso 8601 date string into datetime object"""
-    # Can be replace with .fromisoformat in python 3.7
-    return dateutil.parser.parse(date)
+    # Can be replaced with .fromisoformat in python 3.7
+    return parse(date)
