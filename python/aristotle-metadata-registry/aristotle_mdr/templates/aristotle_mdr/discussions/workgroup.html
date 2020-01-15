@@ -1,9 +1,12 @@
 {% extends "aristotle_mdr/discussions/base.html" %}
 
 {% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'aristotle:discussions' %}">All Discussions</a></li>
     <li>
         <a href="#">{{ workgroup.name }}</a>
     </li>
+</ol>
 {% endblock %}
 {% block title %}Discussions for {{ workgroup.name }}{% endblock %}
 {% block discussions_header %}Showing discussions for <a href="{% url 'aristotle:workgroup' workgroup.id %}">{{ workgroup }}</a>{% endblock %}

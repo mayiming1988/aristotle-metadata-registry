@@ -483,7 +483,7 @@ class RegistrarTools(LoginRequiredMixin, View):
             self.template_name,
             {
                 'hide_add_button': True,
-                'title_text': 'Your Registration Authorities',
+                'title_text': 'My Registration Authorities',
                 'activeTab': 'registrarTools'
             }
         )

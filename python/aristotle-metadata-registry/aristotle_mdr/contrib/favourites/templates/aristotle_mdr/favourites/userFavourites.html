@@ -44,12 +44,13 @@
         </div>
         <p>
             Below is a list of all your favourited or tagged items. You will receive notifications
-            when any of these items are edited, if their registration status changes or if they are made public.
+            when any of these items are edited, if their registration status changes, or if they are made public.
         </p>
         <p>
             Use your favourites and tags to keep track of important items to know when they change.
             <strong><a href="?help=help">Get help on using your favourites.</a></strong>
         </p>
+        <hr>
         {% if page_obj %}
             {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=True %}
         {% else %}
