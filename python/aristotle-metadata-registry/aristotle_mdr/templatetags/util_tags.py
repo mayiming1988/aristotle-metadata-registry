@@ -100,9 +100,7 @@ def iso_time(dt: Union[datetime, date, None]):
         return '-'
 
     dtype = type(dt)
-    if dtype == datetime:
-        return dt.isoformat()
-    elif dtype == date:
+    if dtype in (datetime, date):
         return dt.isoformat()
     else:
         # If we got a non datetime or date object don't do anything
@@ -134,19 +132,23 @@ def as_str(item):
 def format_time(dt, html_format):
     """Format html with dates inserted
     Helper function used by timetag and timefromtag"""
-    # ISO format to be parsed by js
-    isotime = iso_time(dt)
-    # Format to use when js replacement fails
-    if dt:
-        nicetime = dt.strftime('%d %B %Y')
-    else:
-        nicetime = '-'
+    if dt is None:
+        return '-'
 
-    return format_html(
-        html_format,
-        isotime=isotime,
-        time=nicetime
-    )
+    elif type(dt) in (datetime, date):
+        # ISO format to be parsed by js
+        isotime = dt.isoformat()
+        # Format to use when js replacement fails
+        nicetime = dt.strftime('%d %B %Y')
+
+        return format_html(
+            html_format,
+            isotime=isotime,
+            time=nicetime
+        )
+
+    # If we got an invalid type return initial value
+    return dt
 
 
 @register.simple_tag
