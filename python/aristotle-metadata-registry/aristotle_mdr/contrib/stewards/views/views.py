@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class BrowseStewardOrganisationView(ListView):
+    """This is a simple list of steward organisations used in the browse"""
     template_name = 'aristotle_mdr/stewards/browse_stewards.html'
 
     def get_queryset(self):

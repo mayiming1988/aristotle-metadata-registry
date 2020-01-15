@@ -22,12 +22,9 @@ def add_urls_to_config_list(config_list):
     return config_list
 
 
-class BrowseStartView(ListView):
+class BrowseStartView(TemplateView):
     """A starting view for Browse that serves as a central jumping off point for the other views"""
     template_name = 'aristotle_mdr_browse/main.html'
-
-    def get_queryset(self):
-        pass
 
 
 class BrowseAppsView(TemplateView):
