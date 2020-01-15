@@ -2,7 +2,7 @@
 {% has_group_perm group "manage_collections" as can_manage_collections %}
 
 {% if can_manage_collections %}
-    <div class="btn-group pull-right">
+    <div class="btn-group pull-right margin-above clear">
         <a class="btn btn-success" 
            href="{% url 'aristotle:stewards:group:sub_collections_create' group.slug item.id %}">
           Create Sub Collection
