@@ -125,6 +125,9 @@ setup(
         # Bulk updates
         'django-bulk-update',
         'django-mptt'
+
+        # Date parsing
+        'python-dateutil'
     ],
 
 )

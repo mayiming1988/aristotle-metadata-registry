@@ -11,6 +11,7 @@ from aristotle_mdr.structs import Breadcrumb
 
 import bleach
 import json
+import dateutil
 from datetime import datetime, date
 
 register = template.Library()
@@ -227,3 +228,10 @@ def model_verbose_name_plural(model):
 @register.simple_tag()
 def assign(string):
     return string
+
+
+@register.filter
+def parse_date(date: str) -> datetime:
+    """Parse iso 8601 date string into datetime object"""
+    # Can be replace with .fromisoformat in python 3.7
+    return dateutil.parser.parse(date)
