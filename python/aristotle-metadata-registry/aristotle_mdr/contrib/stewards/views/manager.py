@@ -159,12 +159,17 @@ class StewardURLManager(GroupURLManager):
             def get_context_data(self, **kwargs):
                 context = super().get_context_data(**kwargs)
 
-                context['sub_collections'] = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
+                sub_collections = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
 
                 metadata = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
 
                 context['metadata'] = metadata
-                context['type_counts'] = get_aggregate_count_of_collection(metadata)
+                context['type_counts'] = get_aggregate_count_of_collection(
+                    metadata,
+                    len(sub_collections)  # Using len here since it will be evaluated anyway
+                )
+
+                context['sub_collections'] = sub_collections
 
                 return context
 

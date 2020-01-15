@@ -1,22 +1,33 @@
+from typing import Dict, Optional
 from django.urls import reverse
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.query import QuerySet
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.groups.backends import GroupMixin
-from collections import Counter
+from collections import defaultdict
+
+from aristotle_mdr.contrib.stewards.models import Collection
 
 
 class StewardGroupMixin(GroupMixin):
     group_class = MDR.StewardOrganisation
 
 
-def get_aggregate_count_of_collection(queryset):
-    """ Return a dict with the count of each item type in a queryset of concepts """
-    types = []
+def get_aggregate_count_of_collection(queryset: QuerySet,
+                                      sub_collection_count: int = None) -> Dict[ContentType, int]:
+    """Return a dict with the count of each item type in a queryset of concepts"""
 
+    counts: Dict[ContentType, int] = defaultdict(int)
     for item in queryset:
-        types.append(item.item_type)
+        counts[item.item_type] += 1
 
-    return dict(Counter(types))
+    if sub_collection_count is not None:
+        counts[ContentType.objects.get_for_model(Collection)] = sub_collection_count
+
+    # We want to convert back to dict here
+    # since you can't access .items of a defaultdict in templates
+    return dict(counts)
 
 
 def add_urls_to_config_list(config_list, group):
