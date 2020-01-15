@@ -21,13 +21,12 @@
 {% block page %}
 {% has_group_perm workgroup "edit_group_details" as can_edit_workgroup %}
 {% has_group_perm workgroup "view_members" as can_view_members %}
-    <h1>{{ workgroup.name }}</h1>
-
     <ol class="breadcrumb">
         <li><a href="{{ workgroup.stewardship_organisation.get_absolute_url }}">{{ workgroup.stewardship_organisation.name }}</a></li>
         <li><a href="{% url 'aristotle_mdr:stewards:group:workgroups' workgroup.stewardship_organisation.slug %}">Workgroups</a></li>
         <li>{{ workgroup.name }}</li>
     </ol>
+    <h2>{{ workgroup.name }}</h2>
 
     <ul class="nav nav-tabs">
         <li role="presentation" {% if active_tab == 'home' or not active_tab %}class="active"{% endif %}>
@@ -35,7 +34,7 @@
         </li>
         <li role="presentation" {% if active_tab == 'metadata' %}class="active"{% endif %}>
             <a href="{% url 'aristotle:workgroupItems' item.id %}"><i
-                    class="fa fa-fw fa-file" aria-hidden="true"></i>Metadata
+                    class="fa fa-fw fa-file-text" aria-hidden="true"></i>Metadata
                 <span class="badge">{{ workgroup.items.count }}</span>
             </a>
         </li>
@@ -43,6 +42,13 @@
                    <a href="{% url 'aristotle:workgroup_discussions' item.id %}"><i
                     class="fa fa-fw fa-comments" aria-hidden="true"></i>Discussions
                 <span class="badge">{{ workgroup.discussions.count }}</span>
+            </a>
+        </li>
+
+        <li role="presentation" {% if active_tab == 'issues' %}class="active"{% endif %}>
+            <a href="{% url 'aristotle:workgroupIssues' item.id %}"><i
+                    class="fa fa-fw fa-exclamation-circle" aria-hidden="true"></i>Issues
+                <span class="badge">{{ workgroup.issues.count }}</span>
             </a>
         </li>
 

@@ -33,7 +33,6 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
 class IssueCommentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = IssueComment
         fields = ('body', 'author', 'issue', 'created')

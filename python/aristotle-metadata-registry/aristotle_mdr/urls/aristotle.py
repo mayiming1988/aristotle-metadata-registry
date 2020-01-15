@@ -50,6 +50,7 @@ urlpatterns = [
     re_path(r'^workgroup/(?P<iid>\d+)(?:-(?P<name_slug>[A-Za-z0-9\-_]+))?/?$', views.workgroups.WorkgroupView.as_view(), name='workgroup'),
     path('workgroup/<int:iid>/members/', views.workgroups.MembersView.as_view(), name='workgroupMembers'),
     path('workgroup/<int:iid>/items/', views.workgroups.ItemsView.as_view(), name='workgroupItems'),
+    path('workgroup/<int:iid>/issues/', views.workgroups.IssuesView.as_view(), name='workgroupIssues'),
     path('workgroup/<int:iid>/leave/', views.workgroups.LeaveView.as_view(), name='workgroup_leave'),
     path('workgroup/<int:iid>/add_member', views.workgroups.AddMembersView.as_view(), name='addWorkgroupMembers'),
     path('workgroup/<int:iid>/change_roles/<int:user_pk>/', views.workgroups.ChangeUserRoles.as_view(), name='workgroup_member_change_role'),

@@ -130,7 +130,7 @@ class IssueComment(TimeStampedModel):
 
 class IssueLabel(models.Model):
     class Meta:
-        ordering=["label"]
+        ordering = ["label"]
 
     label = models.CharField(max_length=200)
     stewardship_organisation = models.ForeignKey(

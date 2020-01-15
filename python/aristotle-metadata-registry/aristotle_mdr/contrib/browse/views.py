@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.urls import reverse
 from django.views.generic import ListView, TemplateView
+from django.db.models.functions import Substr, Upper
 
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.models import _concept
@@ -68,6 +69,12 @@ class BrowseModelsView(AppBrowser):
         app_config = get_app_config_list([app])
 
         return add_urls_to_config_list(app_config)
+
+
+
+def annotate_with_first_letter(qs):
+    """A function to annotate the queryset with the first letter of the concept's name. (Currently unused)"""
+    return qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
 
 
 class BrowseConceptsView(AppBrowser):
