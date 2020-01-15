@@ -24,6 +24,7 @@ from django.urls import reverse
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, FormView
 )
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
