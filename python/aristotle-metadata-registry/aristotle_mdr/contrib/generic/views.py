@@ -1047,10 +1047,6 @@ class VueFormView(FormView):
             'vue_initial': json.dumps(initial)
         })
 
-        logger.critical("THIS IS VUE FIELDS:")
-        logger.critical(context["vue_fields"])
-        logger.critical("THIS IS VUE INITIAL")
-        logger.critical(context["vue_initial"])
         return context
 
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:

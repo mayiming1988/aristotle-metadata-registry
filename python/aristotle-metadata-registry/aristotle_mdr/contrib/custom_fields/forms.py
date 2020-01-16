@@ -21,15 +21,6 @@ class CustomFieldForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.content_type = kwargs.pop('content_type')
         super().__init__(*args, **kwargs)
-        if 'allowed_model' in self.fields:
-            self.fields['allowed_model'].queryset = self.get_concept_qs()
-            self.fields['allowed_model'].empty_label = 'All'
-        self.fields['allowed_model'].widget = HiddenInput()
-
-    def get_concept_qs(self):
-        mapping = get_concept_content_types()
-        ids = [ct.id for ct in mapping.values()]
-        return ContentType.objects.filter(id__in=ids).order_by('model')
 
     def save(self, commit=True):
         obj = super(CustomFieldForm, self).save(commit=False)
@@ -40,7 +31,7 @@ class CustomFieldForm(forms.ModelForm):
 
     class Meta:
         model = CustomField
-        exclude = ['order']
+        exclude = ['order', 'allowed_model']
 
         help_texts = {
             'choices': "Enter a comma separated list of options."

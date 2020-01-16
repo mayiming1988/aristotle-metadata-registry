@@ -100,9 +100,21 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         context = super().get_context_data()
         self.content_type = self.get_name_of_edited_model(self.metadata_type)
         context.update({
-            'edited_model': self.content_type,
+            'vue_edited_model': self.content_type,
             'vue_allowed_models': json.dumps(self.get_allowed_models()),
             'vue_formset_add_button_message': "Add Custom Field for {}".format(self.content_type),
+        })
+
+        my_vue_initial = json.loads(context["vue_initial"])
+
+        # Add delete button urls for vue delete button component:
+        for serialised_custom_field in my_vue_initial:
+            serialised_custom_field.update({
+                "delete_button_url": reverse('aristotle_custom_fields:delete', args=[serialised_custom_field["id"]])
+            })
+
+        context.update({
+            "vue_initial": json.dumps(my_vue_initial)
         })
         return context
 

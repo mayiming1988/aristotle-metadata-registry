@@ -1,13 +1,13 @@
 <template>
     <div class="vue-formset">
         <draggable :list="formsData" :options="sortableConfig">
-            <div class="row container" v-for="(item, index) in formsData" v-bind:key="index">
+            <div class="row container" v-for="(item, index) in formsData" :key="index">
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
                             <h4 class="panel-title">
                                 <i class="fa fa-lg fa-bars grabber" />
-                                {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}
+                                {{ item.name }}: {{ relatedModel }}
                             </h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
@@ -21,7 +21,6 @@
                                         :errors="getError(item.vid)"
                                         :fe_errors="getIndexValidationErrors('formsData', index)"
                                         :showSubmit="false"
-                                        :showLabels="true"
                                         :showChoiceField="displayChoiceField(item.vid)"
                                 >
                                     <template v-if="showDeleteItem(item.new)" slot="after">
@@ -29,6 +28,13 @@
                                             <button class="btn btn-danger" @click="deleteRow(index)">
                                                 Delete
                                             </button>
+                                        </div>
+                                    </template>
+                                    <template v-else slot="after">
+                                        <div class="col-md-1">
+                                            <a class="btn btn-danger" :href="item.delete_button_url">
+                                                Delete
+                                            </a>
                                         </div>
                                     </template>
                                 </baseForm>
@@ -77,6 +83,10 @@
             initial: {
                 type: Array,
             },
+            relatedModel: {
+                type: String,
+                default: "All"
+            },
             addButtonMessage: {
                 type: String,
                 default: 'Add',
@@ -114,12 +124,9 @@
                 this.nextVid = this.formsData.length
             }
             for (let i = 0; i < this.formsData.length; i++) {
-                // Add a vue id to each item as unique key
-                this.formsData[i]['vid'] = i
+                this.formsData[i]['vid'] = i  // Add a vue id to each item as unique key
                 this.formsData[i]['new'] = false
-
-                // Populate the showAccordion list
-                this.showAccordion.push(false)
+                this.showAccordion.push(false)  // Populate the showAccordion list
             }
         },
         validations: function () {
@@ -138,7 +145,11 @@
         },
         computed: {
             default: function () {
-                let defaults = {vid: this.nextVid, new: true}
+                let defaults = {
+                    vid: this.nextVid,
+                    new: true,
+                    allowed_model: this.getAllowedModelIdFromName(this.relatedModel)
+                }
                 for (let fname in this.fields) {
                     let field = this.fields[fname]
                     if (field.default != null) {
@@ -167,6 +178,9 @@
                     return this.allowed[id.toString()]
                 }
             },
+            getAllowedModelIdFromName: function (name) {
+                return Object.keys(this.allowed).find(key => this.allowed[key] === name);
+            },
             displayChoiceField: function (vid) {
                 return this.displayChoices[vid]
             },
@@ -183,7 +197,7 @@
                 this.formsData.splice(index, 1)
             },
             postProcess: function () {
-                let fdata = []
+                let formsetData = []
                 for (let i = 0; i < this.formsData.length; i++) {
                     // Get shallow clone of item
                     let item = Object.assign({}, this.formsData[i])
@@ -193,9 +207,9 @@
                     }
                     // Reorder
                     item['order'] = i + 1
-                    fdata.push(item)
+                    formsetData.push(item)
                 }
-                return fdata
+                return formsetData
             },
             submitFormSet: function () {
                 if (this.isDataValid('formsData')) {

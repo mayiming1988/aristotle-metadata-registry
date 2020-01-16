@@ -18,24 +18,20 @@
         <li class="active">
             <a href="{% url 'aristotle_custom_fields:edit' %}">Manage Custom Fields</a>
         </li>
-        <li class="active">Edit Custom Fields for {{ edited_model }}</li>
+        <li class="active">Edit Custom Fields for {{ vue_edited_model }}</li>
     </ol>
 
-    <h1>Edit Custom Fields for {{ edited_model }}</h1>
-    <div class="alert alert-warning">
-        If you are adding a Custom Field for a particular model, you must select the correct allowed model.
-    </div>
-    <hr>
+    <h1>Edit Custom Fields for {{ vue_edited_model }}</h1>
     <div id="vue-container">
         <formSet
                 data-fields="{{ vue_fields }}"
                 data-allowed="{{ vue_allowed_models }}"
                 data-initial="{{ vue_initial }}"
-{#                data-related-model="{{ edited_model }}"#}
+                data-related-model="{{ vue_edited_model }}"
                 data-add-button-message="{{ vue_formset_add_button_message }}"
                 data-dont-submit="{{ vue_dont_submit }}"
                 url="{% url 'api_v4:custom_field_list' %}"
-                :show-delete="true">
+                :show-delete="false">
         </formSet>
     </div>
 

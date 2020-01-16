@@ -10,6 +10,7 @@
                 :fields="fields"
                 :allowed="allowed"
                 :initial="initial"
+                :relatedModel="relatedModel"
                 :addButtonMessage="addButtonMessage"
                 :errors="errors"
                 :showLabels="showLabels"
@@ -47,6 +48,10 @@
                 type: String,
                 default: '[]',
             },
+            dataRelatedModel: {
+                type: String,
+                default: "All"
+            },
             dataAddButtonMessage: {
                 type: String,
                 default: 'Add',
@@ -68,6 +73,7 @@
             this.fields = JSON.parse(this.dataFields)
             this.initial = JSON.parse(this.dataInitial)
             this.addButtonMessage = this.dataAddButtonMessage
+            this.relatedModel = this.dataRelatedModel
         },
         methods: {
             onSubmit: function (data) {
