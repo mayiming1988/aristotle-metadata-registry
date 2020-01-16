@@ -124,11 +124,11 @@ setup(
 
         # Bulk updates
         'django-bulk-update',
-        'django-mptt'
+        'django-mptt',
 
         # Date parsing
         # Should be replaced with .fromisoformat when using python 3.7
-        'python-dateutil'
+        'python-dateutil',
     ],
 
 )
