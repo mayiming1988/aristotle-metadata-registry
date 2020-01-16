@@ -99,8 +99,12 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
         self.content_type = self.get_name_of_edited_model(self.metadata_type)
+
+        edited_model_id = self.get_allowed_models().get(self.content_type)
+
         context.update({
             'vue_edited_model': self.content_type,
+            'vue_edited_model_id': edited_model_id,
             'vue_allowed_models': json.dumps(self.get_allowed_models()),
             'vue_formset_add_button_message': "Add Custom Field for {}".format(self.content_type),
         })
@@ -149,7 +153,7 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         allowed_models: Dict = {}
         # We don't need to do any form of permission checking because this is a super user only view.
         for allowed_model in ContentType.objects.all():
-            allowed_models[allowed_model.pk] = allowed_model.name.title()
+            allowed_models[allowed_model.name.title()] = allowed_model.pk
 
         return allowed_models
 

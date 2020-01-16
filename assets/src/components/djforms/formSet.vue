@@ -79,12 +79,6 @@
                     return {}
                 }
             },
-            allowed: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             initial: {
                 type: Array,
                 default () {
@@ -94,6 +88,10 @@
             relatedModel: {
                 type: String,
                 default: "All"
+            },
+            relatedModelId: {
+                type: String,
+                default: '',
             },
             addButtonMessage: {
                 type: String,
@@ -159,8 +157,15 @@
                 let defaults = {
                     vid: this.nextVid,
                     new: true,
-                    allowed_model: this.getAllowedModelIdFromName(this.relatedModel)
+                    allowed_model: this.relatedModelId
                 }
+
+                // We need to check whether the relatedModelId exists.
+                // If relatedModelId does not exist, then this is an "All" Custom Field:
+                if (this.relatedModelId === "None") {
+                    delete defaults.allowed_model
+                }
+
                 for (let fname in this.fields) {
                     let field = this.fields[fname]
                     if (field.default != null) {
@@ -181,17 +186,6 @@
             }
         },
         methods: {
-            getAllowedModelName: function (id) {
-                if (id == null || id == '') {
-                    return 'All'
-                }
-                else {
-                    return this.allowed[id.toString()]
-                }
-            },
-            getAllowedModelIdFromName: function (name) {
-                return Object.keys(this.allowed).find(key => this.allowed[key] === name);
-            },
             displayChoiceField: function (vid) {
                 return this.displayChoices[vid]
             },

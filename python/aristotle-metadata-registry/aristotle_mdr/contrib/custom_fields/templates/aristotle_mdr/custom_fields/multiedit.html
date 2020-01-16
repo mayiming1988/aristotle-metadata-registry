@@ -25,9 +25,9 @@
     <div id="vue-container">
         <formSet
                 data-fields="{{ vue_fields }}"
-                data-allowed="{{ vue_allowed_models }}"
                 data-initial="{{ vue_initial }}"
                 data-related-model="{{ vue_edited_model }}"
+                data-related-model-id="{{ vue_edited_model_id }}"
                 data-add-button-message="{{ vue_formset_add_button_message }}"
                 data-dont-submit="{{ vue_dont_submit }}"
                 url="{% url 'api_v4:custom_field_list' %}"

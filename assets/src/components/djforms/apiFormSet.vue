@@ -8,9 +8,9 @@
         </alert>
         <FormSet
                 :fields="fields"
-                :allowed="allowed"
                 :initial="initial"
                 :relatedModel="relatedModel"
+                :relatedModelId="relatedModelId"
                 :addButtonMessage="addButtonMessage"
                 :errors="errors"
                 :showLabels="showLabels"
@@ -39,6 +39,7 @@
         props: {
             dataFields: {
                 type: String,
+                default: '',
             },
             dataAllowed: {
                 type: String,
@@ -50,7 +51,11 @@
             },
             dataRelatedModel: {
                 type: String,
-                default: "All"
+                default: "All",
+            },
+            dataRelatedModelId: {
+                type: String,
+                default: ' ',
             },
             dataAddButtonMessage: {
                 type: String,
@@ -62,6 +67,7 @@
             },
             url: {
                 type: String,
+                default: '',
             },
             showLabels: {
                 type: Boolean,
@@ -69,11 +75,11 @@
             },
         },
         created: function () {
-            this.allowed = JSON.parse(this.dataAllowed)
             this.fields = JSON.parse(this.dataFields)
             this.initial = JSON.parse(this.dataInitial)
             this.addButtonMessage = this.dataAddButtonMessage
             this.relatedModel = this.dataRelatedModel
+            this.relatedModelId = this.dataRelatedModelId
         },
         methods: {
             onSubmit: function (data) {
@@ -95,7 +101,7 @@
                 let parsed_errors = [];
                 for (let error of errors) {
                     if (error.non_field_errors != undefined) {
-                        // It's an validation error
+                        // It's a validation error
                         parsed_errors.push(error.non_field_errors[0])
                     }
                 }
