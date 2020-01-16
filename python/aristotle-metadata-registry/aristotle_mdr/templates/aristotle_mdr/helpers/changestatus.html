@@ -42,6 +42,15 @@
         <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
         <div class="col-md-7">
             <ul id="registration-authorities-id" class="registration-authorities-list">
+                {% if not form.registrationAuthorities.field.choices %}
+                  <p>
+                    No registration authorities exist in this registry. A registration authority is <b>required</b>
+                    to change the status of items.
+                    {% if perms.aristotle_mdr.access_aristotle_dashboard %}
+                        To create a registration authority, click <a href="{% url 'aristotle:registrationauthority_create'%}" target="_blank">here</a>.
+                    {% endif %}
+                  </p>
+                {% else %}
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
                         <li>
@@ -53,6 +62,7 @@
                         </li>
                     {% endif %}
                 {% endfor %}
+                {% endif %}
             </ul>
         </div>
     </div>

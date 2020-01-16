@@ -2,9 +2,11 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView, CreateView, UpdateView, DetailView, DeleteView
 )
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 
 from aristotle_mdr.contrib.groups.backends import (
@@ -15,11 +17,13 @@ from aristotle_mdr.utils.model_utils import ManagedItem
 from aristotle_mdr.views.workgroups import GenericListWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
 from aristotle_mdr.views.views import get_app_config_list
+from aristotle_mdr.utils import fetch_metadata_apps
 
 from . import views
 from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection, add_urls_to_config_list
 from aristotle_mdr.contrib.stewards.models import Collection
-from aristotle_mdr.contrib.stewards.views.collections import EditCollectionViewBase
+from aristotle_mdr.contrib.stewards.views.collections import CollectionMixin
+from aristotle_mdr.contrib.stewards.forms.collections import MoveCollectionForm
 
 import logging
 
@@ -62,8 +66,14 @@ class ManagedItemViewMixin:
 class StewardURLManager(GroupURLManager):
     group_context_name = "stewardship_organisation"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        urls.append(url(r'^s/browse/$', view=self.browse_view(), name='browse'))
+        return urls
+
     def get_extra_group_urls(self):
         return [
+            # Browse metadata view
             url("browse/?$", view=self.browse_all_apps_view(), name="browse"),
             url("browse/all$", view=self.browse_all_metadata_view(), name="browse_all_metadata"),
             url("browse/(?P<app>[^/]+)/?$", view=self.browse_apps_view(), name="browse_app_models"),
@@ -79,14 +89,23 @@ class StewardURLManager(GroupURLManager):
 
             url("collections/$", view=self.collection_list_view(), name="collections"),
             url("collections/create$", view=self.collection_create_view(), name="collections_create"),
+            url("collections/(?P<pk>\d+)/create$", view=self.collection_create_view(), name="sub_collections_create"),
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
+            url("collection/(?P<pk>\d+)/move$", view=self.collection_move_view(), name="collection_move_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
-
         ]
 
+    def browse_view(self, *args, **kwargs):
+        return views.BrowseStewardOrganisationView.as_view()
+
     def list_all_view(self, *args, **kwargs):
-        return views.ListStewardOrg.as_view(manager=self, model=self.group_class, *args, **kwargs)
+        """Override the list_all_view defined in groups"""
+        return views.ListAllStewardOrganisationsView.as_view()
+
+    def list_view(self, *args, **kwargs):
+        """Override the list_view defined in groups"""
+        return views.ListOwnStewardOrganisationsView.as_view()
 
     def workgroup_list_view(self):
 
@@ -150,40 +169,84 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self):
                 return self.get_group().collection_set.visible(self.request.user).all()
 
-            def get_context_data(self, *args, **kwargs):
-                context = super().get_context_data(*args, **kwargs)
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
 
-                context['sub_collections'] = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
+                sub_collections = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
 
                 metadata = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
 
                 context['metadata'] = metadata
-                context['type_counts'] = get_aggregate_count_of_collection(metadata)
+                context['type_counts'] = get_aggregate_count_of_collection(
+                    metadata,
+                    len(sub_collections)  # Using len here since it will be evaluated anyway
+                )
+
+                context['sub_collections'] = sub_collections
 
                 return context
 
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_create_view(self):
-        class CreateCollectionView(EditCollectionViewBase, CreateView):
+        class CreateCollectionView(CollectionMixin, CreateView):
+            """Create collections under other collections or at base level"""
             template_name = "aristotle_mdr/collections/add.html"
 
-            def get_initial(self):
-                initial = super().get_initial()
-                initial['stewardship_organisation'] = self.get_group()
-                return initial
+            def dispatch(self, *args, **kwargs):
+                # Get group
+                self.group = self.get_group()
+                # Get parent collection
+                self.parent_collection = None
+
+                # Since this view is used on 2 urls (for creating top level and sub collections)
+                # we need to check this
+                if 'pk' in self.kwargs:
+                    # Get parent collection
+                    try:
+                        self.parent_collection = Collection.objects.get(id=self.kwargs['pk'])
+                    except Collection.DoesNotExist:
+                        raise Http404
+
+                    # Make sure parent is in same SO
+                    if self.parent_collection.stewardship_organisation_id != self.group.uuid:
+                        raise PermissionDenied
+
+                return super().dispatch(*args, **kwargs)
+
+            def set_fields(self, obj):
+                super().set_fields(obj)
+                obj.parent_collection = self.parent_collection
+
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
+                context['parent_collection'] = self.parent_collection
+                context['creating_subcollection'] = self.parent_collection is not None
+                return context
 
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_edit_view(self):
-        class UpdateCollectionView(EditCollectionViewBase, UpdateView):
+        class UpdateCollectionView(CollectionMixin, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
         return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
 
+    def collection_move_view(self):
+        class MoveCollectionView(CollectionMixin, UpdateView):
+            template_name = "aristotle_mdr/collections/edit.html"
+            form_class = MoveCollectionForm
+
+            def get_form_kwargs(self):
+                kwargs = super().get_form_kwargs()
+                kwargs['current_collection'] = self.object
+                return kwargs
+
+        return MoveCollectionView.as_view(manager=self, group_class=self.group_class)
+
     def collection_delete_view(self):
 
-        class DeleteCollectionView(EditCollectionViewBase, DeleteView):
+        class DeleteCollectionView(CollectionMixin, DeleteView):
             template_name = "aristotle_mdr/collections/delete.html"
 
             def get_success_url(self):
@@ -205,9 +268,9 @@ class StewardURLManager(GroupURLManager):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
 
-            def get_context_data(self, *args, **kwargs):
+            def get_context_data(self, **kwargs):
                 # Call the base implementation first to get a context
-                context = super().get_context_data(*args, **kwargs)
+                context = super().get_context_data(**kwargs)
                 if self.get_model_name() == '_concept':
                     context.pop('model')
                     context.pop('app')
@@ -219,10 +282,10 @@ class StewardURLManager(GroupURLManager):
         return BrowseAll.as_view(manager=self, group_class=self.group_class)
 
     def browse_all_apps_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseApps
+        from aristotle_mdr.contrib.browse.views import BrowseAppsView
         group = self
 
-        class BrowseAppsView(StewardGroupMixin, BrowseApps):
+        class BrowseAppsView(StewardGroupMixin, BrowseAppsView):
             current_group_context = "metadata"
 
             def get_context_data(self, **kwargs):
@@ -241,9 +304,9 @@ class StewardURLManager(GroupURLManager):
         return BrowseAppsView.as_view(manager=self, group_class=self.group_class)
 
     def browse_metadata_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseConcepts
+        from aristotle_mdr.contrib.browse.views import BrowseConceptsView
 
-        class Browse(StewardGroupMixin, BrowseConcepts):
+        class Browse(StewardGroupMixin, BrowseConceptsView):
             current_group_context = "metadata"
 
             def get_model_name(self):
@@ -256,9 +319,9 @@ class StewardURLManager(GroupURLManager):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
 
-            def get_context_data(self, *args, **kwargs):
+            def get_context_data(self, **kwargs):
                 # Call the base implementation first to get a context
-                context = super().get_context_data(*args, **kwargs)
+                context = super().get_context_data(**kwargs)
                 if self.get_model_name() == '_concept':
                     context.pop('model')
                     context.pop('app')
@@ -270,22 +333,25 @@ class StewardURLManager(GroupURLManager):
         return Browse.as_view(manager=self, group_class=self.group_class)
 
     def browse_apps_view(self):
-        from aristotle_mdr.contrib.browse.views import BrowseModelsBase
+        from aristotle_mdr.contrib.browse.views import BrowseModelsView
 
-        class Browse(StewardGroupMixin, BrowseModelsBase):
+        class Browse(StewardGroupMixin, BrowseModelsView):
             current_group_context = "metadata"
-
-            def get_queryset(self):
-                return add_urls_to_config_list(
-                    super().get_queryset(),
-                    self.get_group()
-                )
+            template_name = 'stewards/metadata/browse/app_model_list.html'
 
             def get_app_label(self):
                 return self.kwargs.get('app', 'aristotle_mdr') or 'aristotle_mdr'
 
-            def get_template_names(self):
-                return ['stewards/metadata/browse/app_model_list.html']
+            def get_queryset(self):
+                app = self.get_app_label()
+                if app not in fetch_metadata_apps():
+                    raise Http404
+                app_config = get_app_config_list([app])
+
+                return add_urls_to_config_list(
+                    app_config,
+                    self.get_group()
+                )
 
         return Browse.as_view(manager=self, group_class=self.group_class)
 

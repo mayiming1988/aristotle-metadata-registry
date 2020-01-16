@@ -5,12 +5,14 @@
 {% block title %}{{ post.title }}{% endblock %}
 
 {% block breadcrumbs %}
+<ol class="breadcrumb">
     <li>
         <a href="{% url 'aristotle:discussionsWorkgroup' post.workgroup.id %}">{{ post.workgroup }}</a>
     </li>
     <li>
         <a href="#">{{ post.title }}</a>
     </li>
+</ol>
 {% endblock %}
 
 {% block discussions_header %}{{ post.title }}{% endblock %}

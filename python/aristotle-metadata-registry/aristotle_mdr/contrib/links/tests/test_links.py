@@ -414,7 +414,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         )
 
     def test_add_link_gt1_multiplicity(self):
-
         self.relation_role1.multiplicity = 3
         self.relation_role1.save()
         self.relation_role2.multiplicity = 3

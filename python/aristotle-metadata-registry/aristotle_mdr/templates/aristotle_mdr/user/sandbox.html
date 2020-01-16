@@ -13,13 +13,19 @@
 {% endblock %}
 
 {% block page %}
-    <h1>
-        <i class="fa fa-pencil-square-o fa-fw"></i> {% block title %}{% trans "My Sandbox" %}{% endblock %}
-        <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#share-link-modal">
+    <div class="row">
+        <div class="col-md-10">
+            <h1>
+                <i class="fa fa-pencil-square-o fa-fw"></i>{% block title %}{% trans "My Sandbox" %}{% endblock %}
+            </h1>
+        </div>
+        <div class="col-md-2">
+            <button class="margin-above btn btn-primary" data-toggle="modal" data-target="#share-link-modal">
             {% if share %}Manage {% else %}Create {% endif %}Share Link <i class="fa fa-share-square-o fa-fw"></i>
-        </button>
-    </h1>
-
+            </button>
+        </div>
+        </h1>
+    </div>
     {% if display_share and share %}
         <div class="alert alert-info" role="alert">
             Your share link is:
@@ -37,6 +43,7 @@
             Only you can see these items.
         {% endif %}
     </p>
+    <hr>
 
     {# Skipping wcag on these modals due to how headers are rendered in modals #}
     <div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
@@ -100,6 +107,6 @@
         </div>
     </div>
 
-    {% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj delete=True %}
+    {% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj delete=True edit=True %}
 
 {% endblock %}
