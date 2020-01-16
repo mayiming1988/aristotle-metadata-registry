@@ -1,17 +1,19 @@
-from typing import Any
+from typing import Optional
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 
 from django.conf import settings
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Model
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.utils import six
 
+from dal import autocomplete
+
 from aristotle_mdr import models, perms
 from aristotle_mdr.contrib.links.models import Relation
-from dal import autocomplete
+from comet.models import FrameworkDimension
 
 
 class GenericAutocomplete(autocomplete.Select2QuerySetView):
@@ -19,25 +21,25 @@ class GenericAutocomplete(autocomplete.Select2QuerySetView):
     Generic autocomplete view subclassed below
     Is not used as a view itself
     """
-    model: Any = None
-    template_name = "autocomplete_light/item.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        if kwargs.get('app_name', None) and kwargs.get('model_name', None):
-            self.model = get_object_or_404(
-                ContentType, app_label=kwargs['app_name'], model=kwargs['model_name']
-            ).model_class()
-        return super().dispatch(request, *args, **kwargs)
+    model: Optional[Model] = None
+    template_name: str = "autocomplete_light/item.html"
 
     def get_queryset(self):
+        """Get queryset used to produce list, override for custom filtering
+        Should be doing permission checks here"""
         # Don't forget to filter out results depending on the visitor !
         if not self.request.user.is_authenticated:
             return self.model.objects.none()
 
         qs = self.model.objects.all()
+        qs = self.text_filter_query(qs)
+        return qs
 
+    def text_filter_query(self, qs):
+        """Filter query based on 'q' query param"""
         if self.q:
-            qs = qs.filter(name__icontains=self.q)
+            return qs.filter(name__icontains=self.q)
+
         return qs
 
     def get_result_title(self, result):
@@ -46,7 +48,6 @@ class GenericAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_result_text(self, result):
         """Return the label of a result."""
-
         template = get_template(self.template_name)
         context = {"result": result, 'request': self.request}
         return template.render(context)
@@ -64,17 +65,38 @@ class GenericAutocomplete(autocomplete.Select2QuerySetView):
 
 
 class GenericConceptAutocomplete(GenericAutocomplete):
-    model = models._concept
+    """
+    Generic concept autocomplete view.
+    Can be used to autocomplete any concept by app_label and model name
+    """
     template_name = "autocomplete_light/concept.html"
+    # Default model used if app_label and model_name are not supplied
+    model = models._concept
+
+    def get_concept_model(self):
+        """Get concept model from url params"""
+        if 'app_name' in self.kwargs and 'model_name' in self.kwargs:
+            model = get_object_or_404(
+                ContentType, app_label=self.kwargs['app_name'], model=self.kwargs['model_name']
+            ).model_class()
+
+            # Must be a model subclass, otherwise 403
+            if not issubclass(model, models._concept):
+                raise PermissionDenied
+
+        # Default to filtering _concept's
+        return self.model
 
     def get_queryset(self):
+        model = self.get_concept_model()
+
         # Get public query parameter
         public = self.request.GET.get('public', '')
         # If we requested public objects, or are not authenticated
         if public or not self.request.user.is_authenticated:
-            qs = self.model.objects.public()
+            qs = model.objects.public()
         else:
-            qs = self.model.objects.visible(self.request.user)
+            qs = model.objects.visible(self.request.user)
 
         # Filter by query
         if self.q:
@@ -82,11 +104,11 @@ class GenericConceptAutocomplete(GenericAutocomplete):
             q |= Q(uuid__iexact=self.q)
             if 'aristotle_mdr.contrib.identifiers' in settings.INSTALLED_APPS:
                 q |= Q(identifiers__identifier__iexact=self.q)
-            try:
-                int(self.q)
+
+            # If q is a number also query by pk
+            if self.q.isdigit():
                 q |= Q(pk=self.q)
-            except ValueError:
-                pass
+
             qs = qs.filter(q).order_by('name')
         return qs
 
@@ -104,6 +126,7 @@ class GenericConceptAutocomplete(GenericAutocomplete):
 
 
 class RelationAutocomplete(GenericConceptAutocomplete):
+    """Custom autocompletion for relations, with additional filtering"""
     model = Relation
 
     def get_queryset(self):
@@ -114,15 +137,14 @@ class RelationAutocomplete(GenericConceptAutocomplete):
 
 
 class FrameworkDimensionsAutocomplete(GenericAutocomplete):
+    """Autocomplete for framework dimension objects (these are not concepts)"""
+    model = FrameworkDimension
     template_name = "autocomplete_light/framework_dimensions.html"
 
     def get_queryset(self):
-        if self.q:
-            qs = self.model.objects.filter(
-                name__icontains=self.q
-            ).order_by('name')
-        else:
-            qs = self.model.objects.all().order_by('name')
+        qs = self.model.objects.all().visible(self.request.user)
+        qs = self.text_filter_query(qs)
+        qs = qs.order_by('name')
         return qs
 
 
@@ -189,9 +211,11 @@ class WorkgroupAutocomplete(GenericAutocomplete):
             qs = self.request.user.profile.editable_workgroups.filter(
                 Q(definition__icontains=self.q) |
                 Q(name__icontains=self.q)
-            ).order_by('name')
+            )
         else:
             qs = self.request.user.profile.editable_workgroups
+
+        qs = qs.order_by('name')
         return qs
 
     def get_result_text(self, result):
@@ -200,7 +224,3 @@ class WorkgroupAutocomplete(GenericAutocomplete):
         template = get_template(self.template_name)
         context = {"choice": result, 'request': self.request}
         return template.render(context)
-
-    def get_result_title(self, result):
-        """Return the title of a result."""
-        return six.text_type(result)
