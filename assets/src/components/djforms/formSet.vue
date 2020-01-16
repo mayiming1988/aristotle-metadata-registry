@@ -73,15 +73,23 @@
         },
         mixins: [validationMixin],
         props: {
-            // List of the available fields
-            fields: {
+            fields: {  // List of the available fields.
                 type: Object,
+                default () {
+                    return {}
+                }
             },
             allowed: {
                 type: Object,
+                default () {
+                    return {}
+                }
             },
             initial: {
                 type: Array,
+                default () {
+                    return []
+                }
             },
             relatedModel: {
                 type: String,
@@ -105,6 +113,9 @@
             },
             errors: {
                 type: Array,
+                default () {
+                    return []
+                }
             },
         },
         data: () => ({
