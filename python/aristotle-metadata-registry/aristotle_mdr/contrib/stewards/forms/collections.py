@@ -35,9 +35,10 @@ class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm
         super().__init__(*args, **kwargs)
 
         if 'parent_collection' in self.fields:
-            # Get collections in the same SO
-            collection_qs = Collection.objects.filter(
-                stewardship_organisation=current_collection.stewardship_organisation
+            # Get collections the user can edit (in same SO)
+            collection_qs = Collection.objects.editable_when_manage_collections(
+                self.user,
+                current_collection.stewardship_organisation
             )
             # Exclude current collection if provided
             if current_collection:
