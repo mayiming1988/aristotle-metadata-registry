@@ -1,8 +1,24 @@
 {% extends 'aristotle_mdr/user/base.html' %}
 
 {% block page %}
-    <h1>Delete {{ object.name }}</h1>
-    <div class="alert alert-danger">Are you sure you want to delete the custom field {{ object.name }}? This action is irreversible</div>
+
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li>
+            <a href="{% url 'aristotle_custom_fields:edit' %}">Manage Custom Fields</a>
+        </li>
+        <li>
+            <a href="{{ cancel_url }}">Edit Custom Fields for {{ cf_allowed_model }}</a>
+        </li>
+        <li class="active">
+            Delete Custom Field <em>{{ object.name }}</em>
+        </li>
+    </ol>
+
+    <h1>Delete Custom Field <em>{{ object.name }}</em> for <em>{{ cf_allowed_model }}</em></h1>
+    <div class="alert alert-danger">Are you sure you want to delete the custom field {{ object.name }} for {{ cf_allowed_model }}? This action is irreversible</div>
     <p>Choose how the current values for this field will be dealt with.</p>
     <p>Selecting move to slots will move any values for this field into custom slots.</p>
     <p>Selecting delete all values will delete the values for this field on all items.</p>

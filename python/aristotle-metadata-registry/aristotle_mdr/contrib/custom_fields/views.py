@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
 from aristotle_mdr.contrib.custom_fields import models
+from aristotle_mdr.contrib.custom_fields.utils import get_name_of_edited_model
 from aristotle_mdr.contrib.slots.models import Slot
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
@@ -98,7 +99,7 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
-        self.content_type = self.get_name_of_edited_model(self.metadata_type)
+        self.content_type = get_name_of_edited_model(self.metadata_type)
 
         edited_model_id = self.get_allowed_models().get(self.content_type)
 
@@ -157,12 +158,6 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
 
         return allowed_models
 
-    def get_name_of_edited_model(self, metadata_type):
-        mapping = get_content_type_to_concept_name()
-        if metadata_type in mapping:
-            return mapping[metadata_type]
-        return 'All Models'
-
 
 class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
     model = models.CustomField
@@ -210,7 +205,15 @@ class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        if self.object.allowed_model:
+            cf_allowed_model = get_name_of_edited_model(self.object.allowed_model.model)
+            cancel_url = reverse('aristotle_custom_fields:edit', args=[self.object.allowed_model.model])
+        else:
+            cf_allowed_model = "All Models"
+            cancel_url = reverse('aristotle_custom_fields:edit', args=["all"])
         context.update({
-            "cancel_url": reverse('aristotle_custom_fields:edit')
+            "cf_allowed_model": cf_allowed_model,
+            "cancel_url": cancel_url,
         })
         return context

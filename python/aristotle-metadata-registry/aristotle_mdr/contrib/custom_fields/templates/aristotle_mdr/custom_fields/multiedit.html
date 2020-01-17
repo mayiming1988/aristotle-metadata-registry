@@ -12,13 +12,15 @@
 {% block page %}
 
     <ol class="breadcrumb">
-        <li class="active">
+        <li>
             <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
         </li>
-        <li class="active">
+        <li>
             <a href="{% url 'aristotle_custom_fields:edit' %}">Manage Custom Fields</a>
         </li>
-        <li class="active">Edit Custom Fields for {{ vue_edited_model }}</li>
+        <li class="active">
+            Edit Custom Fields for {{ vue_edited_model }}
+        </li>
     </ol>
 
     <h1>Edit Custom Fields for {{ vue_edited_model }}</h1>
