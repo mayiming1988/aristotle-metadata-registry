@@ -14,7 +14,7 @@
             {% elif item.description %}
                 <td>{{ item.description|striptags|truncatewords:50 }}</td>
             {% else %}
-            -
+            <td>-</td>
             {% endif %}
         </tr>
     {% endfor %}
