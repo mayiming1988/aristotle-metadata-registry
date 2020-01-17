@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.urls import path
 from aristotle_mdr.contrib.autocomplete import views
 
 urlpatterns = [
@@ -27,8 +28,8 @@ urlpatterns = [
         views.FrameworkDimensionsAutocomplete.as_view(),
         name='framework'
     ),
-    url(
-        r'^(?P<soid>\d+)/collection',
+    path(
+        r'steward/<uuid:souuid>/collection',
         views.CollectionAutocomplete.as_view(),
         name='collection'
     ),

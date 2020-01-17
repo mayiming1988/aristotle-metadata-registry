@@ -38,7 +38,7 @@ class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm
         field = self.fields['parent_collection']
         field.queryset = Collection.objects.all()
         field.widget = widgets.CollectionSelect(
-            steward_organisation_id=current_collection.stewardship_organisation.id,
+            steward_organisation_uuid=current_collection.stewardship_organisation_id,
             current_collection_id=current_collection.id
         )
         field.widget.choices = field.choices

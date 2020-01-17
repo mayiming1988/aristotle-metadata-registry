@@ -81,9 +81,9 @@ class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:collection'
 
     def get_url(self, kwargs):
-        so_id = kwargs.pop('steward_organisation_id')
+        so_uuid = kwargs.pop('steward_organisation_uuid')
 
-        url = reverse(self.url, args=[so_id])
+        url = reverse(self.url, args=[str(so_uuid)])
 
         if 'current_collection_id' in kwargs:
             current_collection_id = kwargs.pop('current_collection_id')

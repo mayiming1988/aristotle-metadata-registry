@@ -156,7 +156,7 @@ class CollectionAutocomplete(GenericAutocomplete):
     template_name = 'autocomplete_light/collections.html'
 
     def dispatch(self, *args, **kwargs):
-        self.so = get_object_or_404(models.StewardOrganisation, id=self.kwargs['soid'])
+        self.so = get_object_or_404(models.StewardOrganisation, uuid=self.kwargs['souuid'])
         return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
