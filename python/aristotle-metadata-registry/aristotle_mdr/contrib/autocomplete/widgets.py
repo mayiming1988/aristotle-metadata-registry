@@ -82,7 +82,11 @@ class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
 
     def get_url(self, kwargs):
         so_id = kwargs.pop('steward_organisation_id')
-        current_collection = kwargs.pop('current_collection', None)
 
         url = reverse(self.url, args=[so_id])
+
+        if 'current_collection_id' in kwargs:
+            current_collection_id = kwargs.pop('current_collection_id')
+            url += '?exclude={}'.format(current_collection_id)
+
         return url

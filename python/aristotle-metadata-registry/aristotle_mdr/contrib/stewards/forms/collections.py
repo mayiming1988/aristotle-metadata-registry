@@ -38,13 +38,10 @@ class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm
         field = self.fields['parent_collection']
         field.queryset = Collection.objects.all()
         field.widget = widgets.CollectionSelect(
-            steward_organisation_id=current_collection.stewardship_organisation.id
+            steward_organisation_id=current_collection.stewardship_organisation.id,
+            current_collection_id=current_collection.id
         )
         field.widget.choices = field.choices
-
-        # Exclude current collection if provided
-        # if current_collection:
-        #     collection_qs = collection_qs.exclude(id=current_collection.id)
 
     class Meta:
         model = Collection

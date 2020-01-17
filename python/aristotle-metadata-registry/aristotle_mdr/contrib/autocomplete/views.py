@@ -165,6 +165,12 @@ class CollectionAutocomplete(GenericAutocomplete):
 
         qs = self.text_filter_query(qs)
         qs = qs.order_by('name')
+
+        # exclude by id if the query parameter is present
+        if 'exclude' in self.request.GET:
+            exclude = self.request.GET['exclude']
+            qs = qs.exclude(pk=exclude)
+
         return qs
 
 
