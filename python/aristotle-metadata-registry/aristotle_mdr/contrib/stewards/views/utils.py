@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.query import QuerySet
