@@ -3,38 +3,73 @@
 {% has_group_perm group "manage_collections" as can_manage_collections %}
 
 
-{% block title %}{{item.name}} Collections | {{ stewardship_organisation }}{% endblock %}
+{% block title %}{{ stewardship_organisation }}{% endblock %}
 
 {% block steward_content %}
 
     <h2>
-        {% block page_title %}{{ stewardship_organisation }} |  Collection | {{item.name}}{% endblock %}
+        {{ item.name}}
     </h2>
 
     <section>
+
     {% include "aristotle_mdr/collections/helpers/actionbar.html" %}
-    {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=item show_no_publication=True %}
 
-    <header>Description</header>
-    <div class="well">{{ item.description|bleach }}</div>
+    <aside id="sminfobox" class="col-md-3 pull-right">
+        <header>{{ item.name }}</header>
+        <dl>
+            <dt>Publication</dt>
+            <dd>
+                <ul>
+                    {% for record in item.publication_details.all %}
+                    <li>
+                        {{ record.get_permission_display }} from {% timetag record.publication_date %}
+                    </li>
+                    {% empty %}
+                    <li>This item is not published</li>
+                    {% endfor %}
+                </ul>
+            </dd>
+            {% if item.parent_collection %}
+                <dt>Parent Collection</dt>
+                <dd>
+                    <a href="{% url 'aristotle:stewards:group:collection_detail_view' stewardship_organisation.slug item.parent_collection.id %}">
+                      {{ item.parent_collection.name }}
+                    </a>
+                </dd>
+            {% endif %}
+            <dt>Created</dt>
+            <dd>{% timetag item.created %}</dd>
+            <dt>Last Updated</dt>
+            <dd>{% timetag item.modified %}</dd>
+        </dl>
+    </aside>
 
-    {% if type_counts %}
-    <header>Metadata in this collection:</header>
-    <div class="well well-sm">
-        <ul>
-        {% for type, count in type_counts.items %}
-            <li>{{ type|title}}{{count|pluralize:",s"}}: {{ count }}</li>
-        {% endfor %}
-        </ul>
-    </div>
+
+    <h3>Description</h3>
+    {% if item.description %}
+        <p>{{ item.description|bleach }}</p>
+    {% else %}
+        <em>This collection has no description</em>
     {% endif %}
 
+    {% if type_counts %}
+        <h3>Items Summary</h3>
+        <ul>
+        {% for type, count in type_counts.items %}
+            <li>{{ type.model_class|model_verbose_name_plural }}: {{ count }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h3 class="clear">Items</h3>
     <table class="table">
         <tbody>
             {% for obj in sub_collections.all %}
             <tr>
                 <td>
-                <a href="{{ obj.get_absolute_url }}">{{obj.name}}</a><br>
+                    <a href="{{ obj.get_absolute_url }}">{{obj.name}}</a>
+                    <br>
                     <div class="small" style="white-space: nowrap;">
                         {{ obj.item_type_name }}
                     </div>

@@ -95,7 +95,7 @@ setup(
         'geoip2',
 
         # Vendored package
-        # 'django-missing', 
+        # 'django-missing',
 
         # Webpack loading
         'django-webpack-loader',
@@ -124,7 +124,11 @@ setup(
 
         # Bulk updates
         'django-bulk-update',
-        'django-mptt'
+        'django-mptt',
+
+        # Date parsing
+        # Should be replaced with .fromisoformat when using python 3.7
+        'python-dateutil',
     ],
 
 )

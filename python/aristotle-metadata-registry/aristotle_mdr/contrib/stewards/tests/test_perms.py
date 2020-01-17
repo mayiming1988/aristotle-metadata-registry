@@ -75,13 +75,10 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         )
 
     def login_oscar(self):
-        self.logout()
-        response = self.client.post(
-            reverse('friendly_login'),
-            {'username': 'oscar@aristotle.example.com', 'password': 'naughty_cat'}
-        )
-        self.assertEqual(response.status_code, 302)
-        return response
+        self.client.login(email='oscar@aristotle.example.com', password='naughty_cat')
+
+    def login_frankie(self):
+        self.client.login(email='frankie@aristotle.example.com', password='naughty_kitten')
 
 
 class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
