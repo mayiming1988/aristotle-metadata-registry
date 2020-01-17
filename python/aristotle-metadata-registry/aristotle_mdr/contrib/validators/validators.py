@@ -1,11 +1,7 @@
 from typing import List, Tuple
 import re
 from aristotle_mdr import models
-from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.utils.module_loading import import_string
-
-from aristotle_mdr.models import STATES
 
 
 class BaseValidator:

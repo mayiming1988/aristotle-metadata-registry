@@ -3,7 +3,7 @@ from io import BytesIO
 
 from django.conf import settings
 from django.template.loader import select_template, get_template, render_to_string
-from django.core.files.base import File, ContentFile
+from django.core.files.base import File
 
 from aristotle_mdr.downloader import HTMLDownloader
 from aristotle_mdr.utils import fetch_aristotle_settings

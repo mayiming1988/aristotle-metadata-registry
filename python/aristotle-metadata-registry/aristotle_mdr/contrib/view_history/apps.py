@@ -7,4 +7,4 @@ class Config(AppConfig):
     verbose_name = 'Aristotle View History'
 
     def ready(self):
-        from aristotle_mdr.contrib.view_history import signals
+        from aristotle_mdr.contrib.view_history import signals  # noqa: F401

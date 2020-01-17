@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
