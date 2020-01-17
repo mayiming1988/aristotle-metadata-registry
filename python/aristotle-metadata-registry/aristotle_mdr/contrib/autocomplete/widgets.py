@@ -1,5 +1,5 @@
 from dal.autocomplete import ModelSelect2Multiple, ModelSelect2
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 
 def get_django_url(url: str, model=None) -> str:
@@ -17,12 +17,11 @@ def get_django_url(url: str, model=None) -> str:
 
 class AristotleSelect2Mixin:
     url: str = None
-    model = None
     type: str = 'single'  # choices are 'single' and 'multi'
 
     def __init__(self, *args, **kwargs):
-        model = kwargs.pop("model", None)
-        url = get_django_url(self.url, model)
+        url = self.get_url(kwargs)
+
         css_class = 'aristotle-select2'
         if self.type == 'multiple':
             css_class += '-multiple'
@@ -35,6 +34,12 @@ class AristotleSelect2Mixin:
             }
         )
         super().__init__(*args, **kwargs)
+
+    def get_url(self, kwargs):
+        """Get url for select2 to query
+        If using args passed to widget pop them off here"""
+        model = kwargs.pop("model", None)
+        return get_django_url(self.url, model)
 
 
 class ConceptAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
@@ -70,3 +75,14 @@ class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelS
 
 class WorkgroupAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:workgroup'
+
+
+class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
+    url = 'aristotle-autocomplete:collection'
+
+    def get_url(self, kwargs):
+        so_id = kwargs.pop('steward_organisation_id')
+        current_collection = kwargs.pop('current_collection', None)
+
+        url = reverse(self.url, args=[so_id])
+        return url

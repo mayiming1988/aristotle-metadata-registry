@@ -27,4 +27,9 @@ urlpatterns = [
         views.FrameworkDimensionsAutocomplete.as_view(),
         name='framework'
     ),
+    url(
+        r'^(?P<soid>\d+)/collection',
+        views.CollectionAutocomplete.as_view(),
+        name='collection'
+    ),
 ]

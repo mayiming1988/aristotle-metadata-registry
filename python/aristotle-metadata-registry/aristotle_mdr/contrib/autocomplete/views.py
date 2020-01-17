@@ -13,6 +13,7 @@ from dal import autocomplete
 
 from aristotle_mdr import models, perms
 from aristotle_mdr.contrib.links.models import Relation
+from aristotle_mdr.contrib.stewards.models import Collection
 from comet.models import FrameworkDimension
 
 
@@ -143,6 +144,25 @@ class FrameworkDimensionsAutocomplete(GenericAutocomplete):
 
     def get_queryset(self):
         qs = self.model.objects.all().visible(self.request.user)
+        qs = self.text_filter_query(qs)
+        qs = qs.order_by('name')
+        return qs
+
+
+class CollectionAutocomplete(GenericAutocomplete):
+    """Autocomplete for collection objects
+    Used for selecting parent collection"""
+    model = Collection
+    template_name = 'autocomplete_light/collections.html'
+
+    def dispatch(self, *args, **kwargs):
+        self.so = get_object_or_404(models.StewardOrganisation, id=self.kwargs['soid'])
+        return super().dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        # Restrict to collections the user can manage
+        qs = self.model.objects.all().editable(self.request.user, self.so)
+
         qs = self.text_filter_query(qs)
         qs = qs.order_by('name')
         return qs
