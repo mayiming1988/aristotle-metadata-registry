@@ -134,4 +134,8 @@
     .form-inline label {
         display: block;
     }
+
+    textarea {
+        resize: none;
+    }
 </style>

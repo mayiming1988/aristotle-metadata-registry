@@ -1068,7 +1068,7 @@ class VueFormView(FormView):
                 field_data.update(self.widget_mapping[widget_name])
 
             if widget_name == 'Select':
-                # field.choices can be an iterator hence the need for this
+                # Field.choices can be an iterator hence the need for this:
                 field_data['options'] = [[c[0], c[1]] for c in field.choices]
 
                 if self.capitalize_options:
@@ -1081,6 +1081,7 @@ class VueFormView(FormView):
                     if attrdata:
                         field_data['rules'][rule_attr] = attrdata
 
+            # Get the attrs for the fields to be used by the Vue component:
             field_widget = field.widget
             if hasattr(field_widget, "attrs"):
                 field_data['field_attrs'] = getattr(field_widget, "attrs")
