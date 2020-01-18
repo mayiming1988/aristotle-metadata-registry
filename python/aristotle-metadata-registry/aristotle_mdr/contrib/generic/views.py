@@ -1021,7 +1021,7 @@ class VueFormView(FormView):
     # Attributes to pull from field as rules.
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
 
-    default_tag = 'input'  # Base field data.
+    default_tag = 'textarea'  # Base field data.
     non_write_fields: List = []  # Fields to strip from initial.
     capitalize_options: bool = True  # Whether to capitalize option names.
 
@@ -1075,11 +1075,15 @@ class VueFormView(FormView):
                     for item in field_data['options']:
                         item[1] = capitalize_words(item[1])
 
-            for attr in self.rules_attrs_to_pull:
-                if hasattr(field, attr):
-                    attrdata = getattr(field, attr)
+            for rule_attr in self.rules_attrs_to_pull:
+                if hasattr(field, rule_attr):
+                    attrdata = getattr(field, rule_attr)
                     if attrdata:
-                        field_data['rules'][attr] = attrdata
+                        field_data['rules'][rule_attr] = attrdata
+
+            field_widget = field.widget
+            if hasattr(field_widget, "attrs"):
+                field_data['field_attrs'] = getattr(field_widget, "attrs")
 
             vue_fields[fname] = field_data
 

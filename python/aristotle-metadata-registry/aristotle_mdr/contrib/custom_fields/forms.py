@@ -36,6 +36,11 @@ class CustomFieldForm(forms.ModelForm):
         help_texts = {
             'choices': "Enter a comma separated list of options."
         }
+        widgets = {
+            'name': forms.Textarea(attrs={'rows': 1}),
+            'system_name': forms.Textarea(attrs={'rows': 1}),
+            'help_text': forms.Textarea(attrs={'rows': 5}),
+        }
 
 
 class CustomFieldDeleteForm(forms.Form):

@@ -4,8 +4,7 @@
         <!-- Each div is a field -->
         <div :key="name" v-for="(fielddata, name) in fields">
             <div v-if="displayField(name, showChoiceField)">
-            <bsFieldWrapper :help-text="fielddata.help_text" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
-                    <singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" :column="inline" />
+                <bsFieldWrapper :help-text="fielddata.help_text" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline"><singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" :column="inline" />
                     <formField
                             :tag="fielddata.tag"
                             :name="name"
@@ -13,12 +12,13 @@
                             :placeholder="placeholder(name)"
                             :options="fielddata.options"
                             :value="value[name]"
+                            v-bind="fielddata.field_attrs"
                             @input="fieldInput(name, $event)"
                     />
                 </bsFieldWrapper>
+            </div>
         </div>
-        </div>
-            <slot name="after" />
+        <slot name="after" />
     </div>
 </template>
 
