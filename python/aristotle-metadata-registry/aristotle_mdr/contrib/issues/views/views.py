@@ -52,7 +52,7 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             'fields': json.dumps(Issue.get_propose_fields()),
             'field_data': json.dumps(field_data),
             'initial': json.dumps(data),
-            'config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
+            'editor_config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
             'all_labels': json.dumps(label_map)
         }
 

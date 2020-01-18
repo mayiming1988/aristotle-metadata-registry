@@ -599,6 +599,12 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         # Convenience class as we can't call functions in templates
         return self.items.select_subclasses()
 
+    @property
+    def issues(self):
+        """Return all issues for items in this workgroup"""
+        from aristotle_mdr.contrib.issues.models import Issue
+        return Issue.objects.filter(item__in=self.items.all()).order_by('-modified')
+
     def list_roles_for_user(self, user):
         return self.roles_for_user(user)
 

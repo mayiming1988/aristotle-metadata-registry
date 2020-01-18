@@ -47,6 +47,9 @@
         {% if delete %}
             <th>{% trans 'Delete' %}</th>
         {% endif %}
+        {% if edit %}
+            <th>{% trans 'Edit' %}</th>
+        {% endif %}
     </tr>
     </thead>
     {# End pagination #}
@@ -115,6 +118,11 @@
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                         </a>
                     </td>
+                {% endif %}
+                {% if edit %}
+                <td>
+                    <a class="btn btn-default" href="{% url 'aristotle:edit_item' item.id %}">Edit <i class="fa fa-pencil"></i></a>
+                </td>
                 {% endif %}
             </tr>
         {% endfor %}

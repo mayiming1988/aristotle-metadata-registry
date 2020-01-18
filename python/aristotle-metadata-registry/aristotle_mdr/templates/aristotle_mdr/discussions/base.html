@@ -18,13 +18,10 @@
 {% endblock %}
 
 {% block page %}
-    <ol class="breadcrumb">
-        <li><a href="{% url 'aristotle:discussions' %}">All Discussions</a></li>
         {% block breadcrumbs %}
         {% endblock %}
-    </ol>
 
-    <h1>{% block discussions_header %}All Discussions{% endblock %}</h1>
+    <h1><i class="fa fa-comments"></i> {% block discussions_header %}All Discussions{% endblock %}</h1>
 
     {% block discussion_content %}
     {% endblock %}

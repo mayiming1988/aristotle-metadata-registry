@@ -9,7 +9,7 @@
     <dt>{% trans 'Version Created' %}</dt>
     <dd>{% timetag revision.date_created %}</dd>
     <dt>{% trans 'Item Created' %}</dt>
-    <dd>{% timetag item.created %}</dd>
+    <dd>{% timetag item.created|parse_date %}</dd>
     <dt>{% trans 'Workgroup' %}</dt>
     <dd>
       {% if item.workgroup %}

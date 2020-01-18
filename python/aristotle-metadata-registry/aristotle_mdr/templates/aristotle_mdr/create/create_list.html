@@ -7,11 +7,9 @@
 
 
 {% block page %}
-<h1>{% block title %}{% trans "Create New Metadata" %}{% endblock %}</h1>
-
+<h1><i class="fa fa-plus"></i> {% block title %}{% trans "Create New Metadata" %}{% endblock %}</h1>
 
 {% if wizards %}
-
 <h2><i class="fa fa-fw fa-magic"></i> {% trans "Create metadata using a Wizard" %}</h2>
 <ul class="list-group">
     {% for wizard in wizards %}

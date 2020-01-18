@@ -12,16 +12,14 @@
     <section id="ras">
         {% has_group_perm group "manage_collections" as can_manage_collections %}
         {% if can_manage_collections %}
-        <a class="btn btn-default pull-right" href="{% url 'aristotle:stewards:group:collections_create' group.slug %}">Add New Collection</a>
+          <a class="btn btn-success pull-right" href="{% url 'aristotle:stewards:group:collections_create' group.slug %}">Create Collection</a>
         {% endif %}
 
 <table class="table">
     <thead>
     <tr>
-        <th>{% trans 'Collection' %}
-        </th>
-        <th>{% trans 'Description' %}
-        </th>
+        <th>{% trans 'Collection' %}</th>
+        <th>{% trans 'Description' %}</th>
         <th>
             <i class="fa fa-folder" title="{% trans 'Number of sub collections' %}"></i>
         </th>

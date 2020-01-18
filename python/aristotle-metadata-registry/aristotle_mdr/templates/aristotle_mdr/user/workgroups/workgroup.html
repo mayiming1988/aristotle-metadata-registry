@@ -37,7 +37,7 @@
                         {% include 'aristotle_mdr/discussions/discussion_list.html' with discussions=item.discussions.all|slice:":5" %}
                     </div>
                     <div class="panel-footer">
-                        <a href="{% url 'aristotle:discussionsWorkgroup' item.id %}">View all discussions</a>
+                        <a href="{% url 'aristotle:workgroup_discussions' item.id %}">View all discussions</a>
                     </div>
                 </div>
             </div>
@@ -58,6 +58,19 @@
                             </li>
                         {% endif %}
                     </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Recent issues</div>
+                    <div class="panel-body">
+                        {% include 'aristotle_mdr/helpers/issues_list.html' with issues=item.issues.all|slice:":5" %}
+                    </div>
+                    <div class="panel-footer">
+                        <a href="{% url 'aristotle:workgroupIssues' item.id %}">View all issues</a>
+                    </div>
                 </div>
             </div>
         </div>

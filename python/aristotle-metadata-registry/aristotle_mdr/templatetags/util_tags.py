@@ -4,9 +4,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
+from django.db.models import Model
 
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.structs import Breadcrumb
+from dateutil.parser import parse
 
 import bleach
 import json
@@ -31,17 +33,8 @@ def startswith(string, substr):
 
 
 @register.filter
-def visible_count(ct_or_qs, user):
-    from django.contrib.contenttypes.models import ContentType
-    if type(ct_or_qs) is ContentType:
-        return ct_or_qs.model_class().objects.all().visible(user).count()
-    else:
-        return ct_or_qs.visible(user).count()
-
-
-@register.filter
-def so_filter(qs, steward_org):
-    return qs.filter(stewardship_organisation=steward_org)
+def visible_count(model, user):
+    return type(model).objects.all().visible(user).count()
 
 
 @register.filter
@@ -108,9 +101,7 @@ def iso_time(dt: Union[datetime, date, None]):
         return '-'
 
     dtype = type(dt)
-    if dtype == datetime:
-        return dt.isoformat()
-    elif dtype == date:
+    if dtype in (datetime, date):
         return dt.isoformat()
     else:
         # If we got a non datetime or date object don't do anything
@@ -136,16 +127,42 @@ def get_custom_values_for_item(item, user):
 
 @register.filter
 def as_str(item):
-    return repr(item)
+    return str(item)
+
+
+def format_time(dt, html_format):
+    """Format html with dates inserted
+    Helper function used by timetag and timefromtag"""
+    if dt is None:
+        return '-'
+
+    elif type(dt) in (datetime, date):
+        # ISO format to be parsed by js
+        isotime = dt.isoformat()
+        # Format to use when js replacement fails
+        nicetime = dt.strftime('%d %B %Y')
+
+        return format_html(
+            html_format,
+            isotime=isotime,
+            time=nicetime
+        )
+
+    # If we got an invalid type return initial value
+    return dt
 
 
 @register.simple_tag
 def timetag(dt: Union[datetime, date, None]):
-    isotime = iso_time(dt)
-    return format_html(
-        '<time datetime="{isotime}">{isotime}</time>',
-        isotime=isotime
-    )
+    """Render time element for use with js local time replacement"""
+    return format_time(dt, '<time datetime="{isotime}">{time}</time>')
+
+
+@register.simple_tag
+def timefromtag(dt: Union[datetime, date, None]):
+    """Same as timetag above, but will show time from now
+    e.g. 4 Days Ago"""
+    return format_time(dt, '<time datetime="{isotime}" data-time-from="true">{time}</time>')
 
 
 @register.simple_tag(name='lookup')
@@ -187,3 +204,34 @@ def dict_lookup_or(mapping, key, default):
 @register.inclusion_tag('aristotle_mdr/helpers/breadcrumbs.html')
 def breadcrumb_list(crumbs: List[Breadcrumb]):
     return {'breadcrumbs': crumbs}
+
+
+@register.filter
+def pluralize_model(count: int, model: Model):
+    """Return verbose name or plural verbose name, depending on a count"""
+    if count > 1:
+        return model._meta.verbose_name_plural.title()
+
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name(model):
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name_plural(model):
+    return model._meta.verbose_name_plural.title()
+
+
+@register.simple_tag()
+def assign(string):
+    return string
+
+
+@register.filter
+def parse_date(date: str) -> datetime:
+    """Parse iso 8601 date string into datetime object"""
+    # Can be replaced with .fromisoformat in python 3.7
+    return parse(date)
