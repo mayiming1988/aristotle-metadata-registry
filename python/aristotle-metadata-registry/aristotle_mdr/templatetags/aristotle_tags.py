@@ -457,7 +457,7 @@ def doc(item, field=None):
     """
 
     from aristotle_mdr.utils.doc_parse import parse_rst
-    from django.contrib.admindocs.utils import  parse_docstring
+    from django.contrib.admindocs.utils import parse_docstring
 
     ct = item
     if field is None:
