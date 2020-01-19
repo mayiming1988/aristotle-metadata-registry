@@ -76,9 +76,11 @@ class GenericConceptAutocomplete(GenericAutocomplete):
 
     def get_concept_model(self):
         """Get concept model from url params"""
-        if 'app_name' in self.kwargs and 'model_name' in self.kwargs:
+        app_name = self.kwargs.get('app_name', None)
+        model_name = self.kwargs.get('model_name', None)
+        if app_name and model_name:
             model = get_object_or_404(
-                ContentType, app_label=self.kwargs['app_name'], model=self.kwargs['model_name']
+                ContentType, app_label=app_name, model=model_name
             ).model_class()
 
             # Must be a model subclass, otherwise 403
