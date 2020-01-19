@@ -21,7 +21,7 @@ from aristotle_mdr.models import (
     DedDerivesThrough,
     aristotleComponent
 )
-
+from aristotle_mdr.contrib.serializers.utils import get_concept_fields
 from aristotle_mdr.contrib.links.models import RelationRole
 from aristotle_mdr.utils.utils import cloud_enabled
 
@@ -182,19 +182,6 @@ class ConceptSerializerFactory:
             'dssgrouping_set',
         ] + list(self.field_subserializer_mapping.keys())
 
-    def _get_concept_fields(self, model_class):
-        """Internal helper function to get fields that are actually **on** the model.
-           Returns a tuple of fields"""
-        fields = []
-        for field in model_class._meta.get_fields():
-            # If data field or foreign key field
-            if not field.is_relation or field.many_to_one:
-                if not field.name.startswith('_'):
-                    # Don't serialize internal fields
-                    fields.append(field.name)
-
-        return tuple(fields)
-
     def get_field_name(self, field):
         if hasattr(field, 'get_accessor_name'):
             return field.get_accessor_name()
@@ -246,7 +233,7 @@ class ConceptSerializerFactory:
         universal_fields = ('slots', 'customvalue_set', 'org_records', 'identifiers', 'stewardship_organisation',
                             'workgroup', 'submitter')
 
-        concept_fields = self._get_concept_fields(concept_class)
+        concept_fields = get_concept_fields(concept_class)
         relation_fields = self.get_relation_fields(concept_class)
 
         included_fields = concept_fields + relation_fields + universal_fields
