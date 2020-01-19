@@ -456,7 +456,8 @@ def doc(item, field=None):
     If 2, returns the help_text for the field on the given model in the specified app.
     """
 
-    from aristotle_mdr.utils.doc_parse import parse_rst, parse_docstring
+    from aristotle_mdr.utils.doc_parse import parse_rst
+    from django.contrib.admindocs.utils import  parse_docstring
 
     ct = item
     if field is None:
