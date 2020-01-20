@@ -1,6 +1,7 @@
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr.utils.utils import get_concept_models
 from aristotle_mdr.contrib.serializers.utils import get_concept_fields, get_relation_field_names
+from django.conf import settings
 
 from django.test import TestCase, override_settings
 
@@ -13,7 +14,10 @@ def generate_item_test(model):
     def test(self):
         """The actual testing function"""
         # Automatically the data for the actual item
-        item = G(model)
+        aristotle_settings = settings.ARISTOTLE_SETTINGS
+        aristotle_settings['CONTENT_EXTENSIONS'].append('comet')
+        with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
+            item = G(model)
 
         # Login a superuser
         self.login_superuser()
@@ -54,7 +58,7 @@ class FieldsMetaclass(type):
         return metaclass
 
 
-@override_settings(DDF_FILL_NULLABLE_FIELDS=True)
+@override_settings(DDF_FILL_NULLABLE_FIELDS=True,)
 class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
     """A class to formally check that fields appear on the item page"""
 
