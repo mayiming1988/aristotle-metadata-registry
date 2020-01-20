@@ -42,13 +42,14 @@ export function initDALWidget(element, urlfunc) {
         if (item.id == "") {
             return item.text;
         }
+        let url = item.element.getAttribute('data-item-url');
         // This is an item that was loaded with the page.
         if (item.id && !item.body) {
             var result = $('<strong>');
             result.html(
                 item.text +
                 " <small>(id: " + item.id + ")</small> " +
-                '<a class="ac_preview_link" href="/item/'+ item.id + '" target="preview" title="Open in a new window" onclick="window.open(\'/item/'+ item.id+'\', \'preview\', \'height=600,width=595,resizable=yes,scrollbars=yes\');return false;">'+
+                '<a class="ac_preview_link" href="'+ url + '" target="preview" title="Open in a new window" onclick="window.open(\'' + url +'\', \'preview\', \'height=600,width=595,resizable=yes,scrollbars=yes\');return false;">'+
                 '<i class="fa fa-external-link-square"></i>' +
                 '</a>'
             );

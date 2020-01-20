@@ -1,4 +1,5 @@
 from dal.autocomplete import ModelSelect2Multiple, ModelSelect2
+from django.db.models import Model
 from django.urls import reverse_lazy, reverse
 
 
@@ -16,11 +17,15 @@ def get_django_url(url: str, model=None) -> str:
 
 
 class AristotleSelect2Mixin:
+    model: Model = None
+    # Url name of view to fetch options from
     url: str = None
     type: str = 'single'  # choices are 'single' and 'multi'
+    item_url_name: str = 'aristotle:item'
 
     def __init__(self, *args, **kwargs):
-        url = self.get_url(kwargs)
+        self.model = kwargs.pop("model", None)
+        url = self.get_url()
 
         css_class = 'aristotle-select2'
         if self.type == 'multiple':
@@ -30,16 +35,26 @@ class AristotleSelect2Mixin:
             url=url,
             attrs={
                 'class': css_class,
-                'data-html': 'true'
+                'data-html': 'true',
             }
         )
         super().__init__(*args, **kwargs)
 
-    def get_url(self, kwargs):
-        """Get url for select2 to query
-        If using args passed to widget pop them off here"""
-        model = kwargs.pop("model", None)
-        return get_django_url(self.url, model)
+    def get_url(self):
+        """Get url for select2 to query"""
+        return get_django_url(self.url, self.model)
+
+    def get_item_url(self, identifier):
+        """Get url for single item"""
+        return reverse(self.item_url_name, args=[identifier])
+
+    def create_option(self, *args, **kwargs):
+        """Set data-item-url on option"""
+        option = super().create_option(*args, **kwargs)
+        value = option['value']
+        if value and self.item_url_name:
+            option['attrs']['data-item-url'] = self.get_item_url(value)
+        return option
 
 
 class ConceptAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
@@ -75,18 +90,29 @@ class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelS
 
 class WorkgroupAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:workgroup'
+    item_url_name = 'aristotle:workgroup'
 
 
 class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
     url = 'aristotle-autocomplete:collection'
+    item_url_name = 'aristotle:stewards:group:collection_detail_view'
 
-    def get_url(self, kwargs):
-        so_uuid = kwargs.pop('steward_organisation_uuid')
+    def __init__(self, *args, **kwargs):
+        self.so_slug = kwargs.pop('steward_organisation_slug', None)
+        self.so_uuid = kwargs.pop('steward_organisation_uuid', None)
+        self.current_collection_id = kwargs.pop('current_collection_id', None)
+        super().__init__(*args, **kwargs)
 
-        url = reverse(self.url, args=[str(so_uuid)])
+    def get_url(self):
+        url = reverse(self.url, args=[str(self.so_uuid)])
 
-        if 'current_collection_id' in kwargs:
-            current_collection_id = kwargs.pop('current_collection_id')
-            url += '?exclude={}'.format(current_collection_id)
+        if self.current_collection_id is not None:
+            url += '?exclude={}'.format(self.current_collection_id)
 
         return url
+
+    def get_item_url(self, identifier):
+        return reverse(self.item_url_name, args=[self.so_slug, identifier])
+
+    def get_initial_item_url(self):
+        return '/steward/' + self.so_slug + '/collection/{id}'
