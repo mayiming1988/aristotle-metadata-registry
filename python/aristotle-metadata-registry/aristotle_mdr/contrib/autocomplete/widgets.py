@@ -19,7 +19,7 @@ def get_django_url(url: str, model=None) -> str:
 class AristotleSelect2Mixin:
     model: Model = None
     # Url name of view to fetch options from
-    url: str = None
+    url_name: str = None
     type: str = 'single'  # choices are 'single' and 'multi'
     item_url_name: str = 'aristotle:item'
 
@@ -42,7 +42,7 @@ class AristotleSelect2Mixin:
 
     def get_url(self):
         """Get url for select2 to query"""
-        return get_django_url(self.url, self.model)
+        return get_django_url(self.url_name, self.model)
 
     def get_item_url(self, identifier):
         """Get url for single item"""
@@ -58,43 +58,43 @@ class AristotleSelect2Mixin:
 
 
 class ConceptAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
-    url = 'aristotle-autocomplete:concept'
+    url_name = 'aristotle-autocomplete:concept'
     type = 'multiple'
 
 
 class ConceptAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:concept'
+    url_name = 'aristotle-autocomplete:concept'
 
 
 class RelationAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:relation'
+    url_name = 'aristotle-autocomplete:relation'
 
 
 class UserAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:user'
+    url_name = 'aristotle-autocomplete:user'
 
 
 class UserAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
-    url = 'aristotle-autocomplete:user'
+    url_name = 'aristotle-autocomplete:user'
     type = 'multiple'
 
 
 class FrameworkDimensionAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:framework'
+    url_name = 'aristotle-autocomplete:framework'
 
 
 class FrameworkDimensionAutocompleteSelectMultiple(AristotleSelect2Mixin, ModelSelect2Multiple):
-    url = 'aristotle-autocomplete:framework'
+    url_name = 'aristotle-autocomplete:framework'
     type = 'multiple'
 
 
 class WorkgroupAutocompleteSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:workgroup'
+    url_name = 'aristotle-autocomplete:workgroup'
     item_url_name = 'aristotle:workgroup'
 
 
 class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
-    url = 'aristotle-autocomplete:collection'
+    url_name = 'aristotle-autocomplete:collection'
     item_url_name = 'aristotle:stewards:group:collection_detail_view'
 
     def __init__(self, *args, **kwargs):
@@ -104,7 +104,7 @@ class CollectionSelect(AristotleSelect2Mixin, ModelSelect2):
         super().__init__(*args, **kwargs)
 
     def get_url(self):
-        url = reverse(self.url, args=[str(self.so_uuid)])
+        url = reverse(self.url_name, args=[str(self.so_uuid)])
 
         if self.current_collection_id is not None:
             url += '?exclude={}'.format(self.current_collection_id)
