@@ -1,4 +1,4 @@
-import { isFormstageElement } from 'src/lib/html.js'
+import { isFormstageElement, buildElement } from 'src/lib/html.js'
 // DAL needs the full version
 import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
@@ -12,6 +12,31 @@ export function initDAL(urlfunc) {
             initDALWidget($(element), urlfunc)
         }
     }
+}
+
+// Build initial select2 element
+function buildSelect2item(id, text, url) {
+    let strong = document.createElement('strong');
+    let id_text = buildElement('small', {}, `(id: ${id}) `)
+    // Build link element
+    let link = buildElement('a',
+        {
+            'class': 'ac_preview_link',
+            'href': url,
+            'target': 'preview',
+            'title': 'Open in a new window',
+        }
+    )
+    link.appendChild(buildElement('i', {'class': 'fa fa-external-link-square'}))
+    // When clicking link open in small window
+    link.addEventListener('click', () => {
+        window.open(url, 'preview', 'height=600,width=595,resizeable=yes,scrollbars=yes')
+    })
+    // Add elements to strong
+    strong.appendChild(document.createTextNode(text + ' '))
+    strong.appendChild(id_text)
+    strong.appendChild(link)
+    return strong
 }
 
 // Initialize a single dal element (urlfunc is optional)
@@ -45,15 +70,7 @@ export function initDALWidget(element, urlfunc) {
         let url = item.element.getAttribute('data-item-url');
         // This is an item that was loaded with the page.
         if (item.id && !item.body) {
-            var result = $('<strong>');
-            result.html(
-                item.text +
-                " <small>(id: " + item.id + ")</small> " +
-                '<a class="ac_preview_link" href="'+ url + '" target="preview" title="Open in a new window" onclick="window.open(\'' + url +'\', \'preview\', \'height=600,width=595,resizable=yes,scrollbars=yes\');return false;">'+
-                '<i class="fa fa-external-link-square"></i>' +
-                '</a>'
-            );
-            return result
+            return buildSelect2item(item.id, item.text, url)
         }
         if (element.attr('data-html') !== undefined) {
             var $result = $('<span>');
