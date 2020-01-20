@@ -21,7 +21,7 @@ from aristotle_mdr.models import (
     DedDerivesThrough,
     aristotleComponent
 )
-from aristotle_mdr.contrib.serializers.utils import get_concept_fields
+from aristotle_mdr.contrib.serializers.utils import get_concept_field_names, get_relation_field_names
 from aristotle_mdr.contrib.links.models import RelationRole
 from aristotle_mdr.utils.utils import cloud_enabled
 
@@ -182,43 +182,6 @@ class ConceptSerializerFactory:
             'dssgrouping_set',
         ] + list(self.field_subserializer_mapping.keys())
 
-    def get_field_name(self, field):
-        if hasattr(field, 'get_accessor_name'):
-            return field.get_accessor_name()
-        else:
-            return field.name
-
-    def get_relation_fields(self, model_class):
-        """
-        Internal helper function to get related fields
-        Returns a tuple of fields
-        """
-        related_fields = []
-
-        for field in model_class._meta.get_fields():
-            if not field.name.startswith('_'):
-                # Don't serialize internal fields
-                if field.is_relation:
-                    # Check if the model class is the parent of the item, we don't want to serialize up the chain
-                    field_model = field.related_model
-                    if issubclass(field_model, aristotleComponent):
-                        # If it's a subclass of aristotleComponent it should have a parent
-                        parent_model = field_model.get_parent_model()
-                        if not parent_model:
-                            # This aristotle component has no parent model
-                            related_fields.append(self.get_field_name(field))
-                        else:
-                            if field_model.get_parent_model() == model_class:
-                                # If the parent is the model we're serializing, right now
-                                related_fields.append(self.get_field_name(field))
-                            else:
-                                # It's the child, we don't want to serialize
-                                pass
-                    else:
-                        # Just a normal field
-                        related_fields.append(self.get_field_name(field))
-        return tuple([field for field in related_fields if field in self.whitelisted_fields])
-
     def _get_class_for_serializer(self, concept):
         return concept.__class__
 
@@ -233,8 +196,8 @@ class ConceptSerializerFactory:
         universal_fields = ('slots', 'customvalue_set', 'org_records', 'identifiers', 'stewardship_organisation',
                             'workgroup', 'submitter')
 
-        concept_fields = get_concept_fields(concept_class)
-        relation_fields = self.get_relation_fields(concept_class)
+        concept_fields = get_concept_field_names(concept_class)
+        relation_fields = get_relation_field_names(concept_class)
 
         included_fields = concept_fields + relation_fields + universal_fields
 
