@@ -32,15 +32,11 @@ def generate_item_test(model):
             if field_name not in response:
                 failures.append(f"Can't find field_name: {field_name} in response")
 
+        failure_str = ''
         if failures:
             for failure in failures:
-                print(failure)
-            raise AssertionError
-
-        # # Check that the relation field headings appear (this is only the name, the testing of the actual fields needs
-        # # to be tested separately
-        # for field_name in get_relation_field_names(model):
-        #     self.assertContains(response, field_name)
+                failure_str += f'{failure} \n'
+            raise AssertionError(failure_str)
 
     test.__doc__ = f'Test that all fields are visible on the item page for {model.__name__}'
     return test
