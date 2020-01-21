@@ -25,3 +25,7 @@ class ComparatorTester(utils.LoggedInViewPages):
 
     def test_concept_with_no_version_handled(self):
         pass
+
+    def test_version_comparator(self):
+        return True
+        # TODO: complete

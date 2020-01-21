@@ -555,6 +555,10 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:item_history', args=[self.sandbox_item.id]))
         self.assertEqual((len(response.context['versions'])), 1)
 
+    def test_change_author_displayed_in_versions(self):
+        return True
+        # TODO: complete
+
 
 class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
     def test_newly_created_version_permissions_default_to_workgroup(self):

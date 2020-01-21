@@ -16,7 +16,6 @@ import datetime
 
 User = get_user_model()
 
-
 # I wanted to call this review-R-Ls or rev-U-R-Ls.
 review_urls = [
     'aristotle_reviews:review_details',
@@ -42,12 +41,17 @@ class ReviewRequestBulkActions(utils.AristotleTestUtils, TestCase):
 
         # There would be too many tests to test every item type against every other
         # But they all have identical logic, so one test should suffice
-        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)", definition="my definition", workgroup=self.wg1)
-        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)", definition="my definition", workgroup=self.wg2)
-        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)", definition="my definition", workgroup=None, submitter=self.editor)
+        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg1)
+        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg2)
+        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)",
+                                                    definition="my definition", workgroup=None, submitter=self.editor)
 
-        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition', workgroup=self.wg1)
-        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition', workgroup=self.wg1, valueDomain=self.item4)
+        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition',
+                                                    workgroup=self.wg1)
+        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition',
+                                                    workgroup=self.wg1, valueDomain=self.item4)
 
         cache.clear()
 
@@ -226,6 +230,10 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         # Check to see how many reviews user 1 can see
         visible = models.ReviewRequest.objects.visible(user)
         self.assertEqual(visible.count(), 1)
+
+    def test_reviewers_notified_of_review_request_submission(self):
+        return True
+        # TODO: complete
 
 
 class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
@@ -724,12 +732,17 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         # There would be too many tests to test every item type against every other
         # But they all have identical logic, so one test should suffice
-        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)", definition="my definition", workgroup=self.wg1)
-        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)", definition="my definition", workgroup=self.wg2)
-        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)", definition="my definition", workgroup=None, submitter=self.editor)
+        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg1)
+        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg2)
+        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)",
+                                                    definition="my definition", workgroup=None, submitter=self.editor)
 
-        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition', workgroup=self.wg1)
-        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition', workgroup=self.wg1, valueDomain=self.item4)
+        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition',
+                                                    workgroup=self.wg1)
+        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition',
+                                                    workgroup=self.wg1, valueDomain=self.item4)
 
     def check_item_status(self, item, review, updated):
 
@@ -843,12 +856,17 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         # There would be too many tests to test every item type against every other
         # But they all have identical logic, so one test should suffice
-        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)", definition="my definition", workgroup=self.wg1)
-        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)", definition="my definition", workgroup=self.wg2)
-        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)", definition="my definition", workgroup=None, submitter=self.editor)
+        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg1)
+        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)",
+                                                    definition="my definition", workgroup=self.wg2)
+        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)",
+                                                    definition="my definition", workgroup=None, submitter=self.editor)
 
-        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition', workgroup=self.wg1)
-        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition', workgroup=self.wg1, valueDomain=self.item4)
+        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition',
+                                                    workgroup=self.wg1)
+        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition',
+                                                    workgroup=self.wg1, valueDomain=self.item4)
 
     def check_item_status(self, item, review, updated):
 
@@ -962,7 +980,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         self.login_registrar()
 
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle:userReadyForReview', ))
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(len(response.context['page']), 0)
@@ -974,7 +992,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
             registration_date=datetime.date(2010, 1, 1)
         ))
 
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle:userReadyForReview', ))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page']), 1)
 
@@ -985,7 +1003,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
             registration_date=datetime.date(2010, 1, 1)
         ))
 
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle:userReadyForReview', ))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page']), 2)
 
@@ -998,18 +1016,19 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
             registration_date=datetime.date(2010, 1, 1)
         ))
 
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle:userReadyForReview', ))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page']), 2)
 
         other_ra.giveRoleToUser('registrar', self.registrar)
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle:userReadyForReview', ))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page']), 3)
 
     def test_superuser_can_see_review(self):
         self.login_superuser()
-        other_ra = MDR.RegistrationAuthority.objects.create(name="A different ra", stewardship_organisation=self.steward_org)
+        other_ra = MDR.RegistrationAuthority.objects.create(name="A different ra",
+                                                            stewardship_organisation=self.steward_org)
 
         review = self.make_review_request_iterable([item2], request_kwargs=dict(
             requester=self.editor,
@@ -1280,7 +1299,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
                 'response': "I can reject this!",
             }
         )
-        self.assertRedirects(response, reverse('aristotle:userReadyForReview',))
+        self.assertRedirects(response, reverse('aristotle:userReadyForReview', ))
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
         self.assertEqual(review.response, "I can reject this!")
@@ -1403,7 +1422,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         self.assertFalse(review.status == REVIEW_STATES.revoked)
         response = self.client.post(reverse('aristotle:userReviewCancel', args=[review.pk]), {})
-        self.assertRedirects(response, reverse('aristotle:userMyReviewRequests',))
+        self.assertRedirects(response, reverse('aristotle:userMyReviewRequests', ))
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
         self.assertTrue(review.status == REVIEW_STATES.revoked)
@@ -1588,7 +1607,8 @@ class ReviewsFormsTest(utils.AristotleTestUtils, TestCase):
                                                                      stewardship_organisation=self.steward_org_1,
                                                                      active=2)
 
-        self.review_request = ReviewRequest.objects.create(registration_authority=self.my_active_ra, requester_id=self.newuser.id)
+        self.review_request = ReviewRequest.objects.create(registration_authority=self.my_active_ra,
+                                                           requester_id=self.newuser.id)
         self.form = RequestReviewCreateForm(
             user=self.newuser
         )
