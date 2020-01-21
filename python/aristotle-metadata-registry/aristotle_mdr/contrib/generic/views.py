@@ -921,8 +921,9 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
 
 class BootTableListView(ListView):
     """
-    Lists objects in a bootstrap table (with optional pagination).
-    This View is useful for
+    Lists objects in a Bootstrap table (with optional pagination).
+    This View might be useful for basic object viewing or debugging,
+    but currently it is not being used by the Registry.
     """
     template_name = 'aristotle_mdr/generic/boottablelist.html'
 

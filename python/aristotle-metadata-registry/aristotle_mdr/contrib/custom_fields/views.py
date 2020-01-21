@@ -21,60 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CustomFieldListView(IsSuperUserMixin, ListView):
-
-    template_name = 'aristotle_mdr/custom_fields/list.html'
-    model = models.CustomField
-    paginate_by = 20
-    model_name = 'Custom Field'
-    table_headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
-    model_attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
-    model_blank_field_replacement = {
-        'allowed_model': 'All',
-    }
-
-    delete_url_name = 'aristotle_custom_fields:delete'
-
-    def dispatch(self, request, *args, **kwargs):
-        self.foreign_key_extra_filtering_value = kwargs.get('content_type')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_listing(self, iterable) -> List[Dict]:
-        listing = []
-        for item in iterable:
-            itemdict = {'attrs': [], 'pk': item.pk}
-            for attr in self.model_attrs:
-                val = getattr(item, attr)
-                if not val and attr in self.model_blank_field_replacement:
-                    val = self.model_blank_field_replacement[attr]
-                itemdict['attrs'].append(val)
-            listing.append(itemdict)
-
-        return listing
-
-    def get_queryset(self):
-        my_ct = ContentType.objects.get(model=self.foreign_key_extra_filtering_value)
-        queryset = models.CustomField.objects.filter(allowed_model=my_ct)
-        return queryset
-
-    def get_context_data(self, **kwargs) -> dict:
-
-        context = super().get_context_data()
-
-        if context['page_obj'] is not None:
-            iterable = context['page_obj']
-        else:
-            iterable = context['object_list']
-
-        final_list = self.get_listing(iterable)
-
-        context.update({
-            'list': final_list,
-            'delete_url_name': self.delete_url_name,
-        })
-        return context
-
-
 class CustomFieldListCreateView(IsSuperUserMixin, ListView):
     template_name = 'aristotle_mdr/custom_fields/list_create.html'
 
@@ -101,25 +47,27 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         context = super().get_context_data()
         self.content_type = get_name_of_edited_model(self.metadata_type)
 
-        edited_model_id = self.get_allowed_models().get(self.content_type)
+        try:
+            edited_model_id = ContentType.objects.get(model=self.metadata_type).pk
+        except ContentType.DoesNotExist:
+            edited_model_id = None
 
         context.update({
             'vue_edited_model': self.content_type,
             'vue_edited_model_id': edited_model_id,
-            'vue_allowed_models': json.dumps(self.get_allowed_models()),
             'vue_formset_add_button_message': "Add Custom Field for {}".format(self.content_type),
         })
 
-        my_vue_initial = json.loads(context["vue_initial"])
+        vue_initial = json.loads(context["vue_initial"])
 
         # Add delete button urls for vue delete button component:
-        for serialised_custom_field in my_vue_initial:
+        for serialised_custom_field in vue_initial:
             serialised_custom_field.update({
                 "delete_button_url": reverse('aristotle_custom_fields:delete', args=[serialised_custom_field["id"]])
             })
 
         context.update({
-            "vue_initial": json.dumps(my_vue_initial)
+            "vue_initial": json.dumps(vue_initial)
         })
         return context
 
@@ -149,14 +97,6 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
             return models.CustomField.objects.filter(allowed_model=None)
         else:
             raise Http404
-
-    def get_allowed_models(self):
-        allowed_models: Dict = {}
-        # We don't need to do any form of permission checking because this is a super user only view.
-        for allowed_model in ContentType.objects.all():
-            allowed_models[allowed_model.name.title()] = allowed_model.pk
-
-        return allowed_models
 
 
 class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
@@ -199,9 +139,9 @@ class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
 
     def get_success_url(self) -> str:
         if self.object.allowed_model:
-            return reverse('aristotle_custom_fields:list', args=[self.object.allowed_model.model])
+            return reverse('aristotle_custom_fields:edit', args=[self.object.allowed_model.model])
         else:
-            return reverse('aristotle_custom_fields:list', args=["all"])
+            return reverse('aristotle_custom_fields:edit', args=["all"])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

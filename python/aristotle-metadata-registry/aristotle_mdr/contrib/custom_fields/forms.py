@@ -23,7 +23,7 @@ class CustomFieldForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
-        obj = super(CustomFieldForm, self).save(commit=False)
+        obj = super().save(commit=False)
         obj.allowed_model = self.content_type
         if commit:
             obj.save()
