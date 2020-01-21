@@ -4,9 +4,7 @@ Serializer for concept and all attached subfields
 from rest_framework import serializers
 
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
-from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
-from django.db import DEFAULT_DB_ALIAS
 from django.conf import settings
 
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
@@ -19,7 +17,6 @@ from aristotle_mdr.models import (
     ValueMeaning,
     DedInputsThrough,
     DedDerivesThrough,
-    aristotleComponent
 )
 from aristotle_mdr.contrib.serializers.utils import get_concept_field_names, get_relation_field_names
 from aristotle_mdr.contrib.links.models import RelationRole
@@ -132,6 +129,11 @@ def get_class_for_serializer(concept):
     return concept.__class__
 
 
+def get_class_for_deserializer(json):
+    data = JSON.loads(json)
+    return apps.get_model(data['serialized_model'])
+
+
 class ConceptSerializerFactory:
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     field_subserializer_mapping = {
@@ -220,13 +222,9 @@ class ConceptSerializerFactory:
         Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
         return Serializer
 
-    def _get_class_for_deserializer(self, json):
-        data = JSON.loads(json)
-        return apps.get_model(data['serialized_model'])
-
     def generate_deserializer(self, json):
         """ Generate the deserializer """
-        concept_model = self._get_class_for_deserializer(json)
+        concept_model = get_class_for_deserializer(json)
 
         Deserializer = self._generate_serializer_class(concept_model)
         return Deserializer
@@ -253,30 +251,5 @@ class Serializer(BaseDjangoSerializer):
         self.data = JSON.dumps(data)
 
     def getvalue(self):
-        # Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly
+        """Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly"""
         return self.data
-
-
-def Deserializer(json, using=DEFAULT_DB_ALIAS, **options):
-    # TODO: fix
-    """ Deserialize JSON back into Django ORM instances.
-        Django deserializers yield a DeserializedObject generator.
-        DeserializedObjects are thin wrappers over POPOs. """
-    m2m_data = {}
-
-    # Generate the serializer
-    ModelDeserializer = ConceptSerializerFactory().generate_deserializer(json)
-
-    # Instantiate the serializer
-    data = JSON.loads(json)
-
-    Model = apps.get_model(data['serialized_model'])
-
-    # Deserialize the data
-    serializer = ModelDeserializer(data=data)
-
-    serializer.is_valid(raise_exception=True)
-
-    obj = build_instance(Model, data, using)
-
-    yield DeserializedObject(obj, m2m_data)
