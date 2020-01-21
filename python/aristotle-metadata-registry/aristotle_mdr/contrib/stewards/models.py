@@ -20,11 +20,11 @@ class CollectionQuerySet(PublishedItemQuerySet):
         """Restrict to collections editable by a user
         In a specific stewardship organisation"""
         if so.user_has_permission(user=user, permission='manage_collections'):
-            return self.editable_when_manage_collections(user, so)
+            return self.editable_when_manage_collections(so)
 
         return self.none()
 
-    def editable_when_manage_collections(self, user, so: MDR.StewardOrganisation):
+    def editable_when_manage_collections(self, so: MDR.StewardOrganisation):
         """Restrict to collections editable by a user
         If that user has the 'manage_collections' permission in the SO"""
         return self.filter(stewardship_organisation=so)

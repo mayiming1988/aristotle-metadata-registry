@@ -31,14 +31,17 @@ class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm
     i.e. changing the parent collection"""
 
     def __init__(self, *args, **kwargs):
-        current_collection = kwargs.pop('current_collection', None)
+        current_collection = kwargs.pop('current_collection')
+        stewardship_organisation = current_collection.stewardship_organisation
 
         super().__init__(*args, **kwargs)
 
         field = self.fields['parent_collection']
-        field.queryset = Collection.objects.all()
+        # Set queryset for validation
+        field.queryset = Collection.objects.editable_when_manage_collections(
+            stewardship_organisation
+        ).exclude(id=current_collection.id)
 
-        stewardship_organisation = current_collection.stewardship_organisation
         field.widget = widgets.CollectionSelect(
             steward_organisation_uuid=stewardship_organisation.uuid,
             steward_organisation_slug=stewardship_organisation.slug,
