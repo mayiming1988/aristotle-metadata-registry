@@ -23,14 +23,13 @@ def normalize_string(string: str) -> str:
     return ''.join(string.casefold().split())
 
 
-def normalize_date(datetime: Optional[datetime]) -> str:
-    return datetime.strftime('%B %Y')
+def normalize_date(time: datetime) -> str:
+    return time.isoformat()
 
 
 def generate_item_test(model):
     """ Helper function to generate a test that goes to an item page and checks that all the fields are there"""
 
-    @override_settings()
     def test(self):
         """The actual testing function"""
         aristotle_settings = settings.ARISTOTLE_SETTINGS
@@ -52,18 +51,17 @@ def generate_item_test(model):
             value = field.value_from_object(item)
 
             # Unify cases and whitespace
-            field_name = normalize_string(field.name.replace("_", " "))
+            field_name = normalize_string(field.name.replace("_", ""))
             content = normalize_string(str(response.content))
 
             # Replace modified with last updated to correspond with display on item page
             if field.name == 'modified':
                 field_name = normalize_string('Last updated')
 
-            # Normalize display of date objects
-
             if value is not None:
                 if issubclass(type(field), (DateTimeField, DateField)):
                     value = normalize_string(normalize_date(value))
+
                 if str(value) not in content and field_name not in self.excluded_fields:
                     failures.append(f"Can't find field value: {value} in response")
 

@@ -197,7 +197,7 @@ class ConceptSerializerFactory:
                             'workgroup', 'submitter')
 
         concept_fields = get_concept_field_names(concept_class)
-        relation_fields = get_relation_field_names(concept_class)
+        relation_fields = get_relation_field_names(concept_class, whitelisted_fields=self.whitelisted_fields)
 
         included_fields = concept_fields + relation_fields + universal_fields
 
