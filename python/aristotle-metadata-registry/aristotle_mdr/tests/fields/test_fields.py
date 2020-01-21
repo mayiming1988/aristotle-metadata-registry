@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.db.models import DateTimeField, DateField
 
 from ddf import G  # Django Dynamic Fixture
-from typing import List, Optional
+from typing import List
 from datetime import datetime
 
 
@@ -38,6 +38,9 @@ def generate_item_test(model):
         with self.settings(ARISTOTLE_SETTINGS=aristotle_settings):
             item = G(model)
 
+        item.refresh_from_db()
+        item._concept_ptr.refresh_from_db()
+
         # Login a superuser
         self.login_superuser()
 
@@ -54,16 +57,12 @@ def generate_item_test(model):
             field_name = normalize_string(field.name.replace("_", ""))
             content = normalize_string(str(response.content))
 
-            # Replace modified with last updated to correspond with display on item page
-            if field.name == 'modified':
-                field_name = normalize_string('Last updated')
-
             if value is not None:
                 if issubclass(type(field), (DateTimeField, DateField)):
                     value = normalize_string(normalize_date(value))
 
                 if str(value) not in content and field_name not in self.excluded_fields:
-                    failures.append(f"Can't find field value: {value} in response")
+                    failures.append(f"Can't find field value: {value} in response for field {field.name}")
 
             if field_name not in content and field_name not in self.excluded_fields:
                 failures.append(f"Can't find field_name: '{field.name}' in response")
@@ -93,8 +92,6 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
         'id',
         'byte_size',
         'submitter',
-        'symbol'
+        'symbol',
+        'modified'
     ]
-
-    def setUp(self) -> None:
-        super().setUp()
