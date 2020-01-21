@@ -87,6 +87,8 @@ class GenericConceptAutocomplete(GenericAutocomplete):
             if not issubclass(model, models._concept):
                 raise PermissionDenied
 
+            return model
+
         # Default to filtering _concept's
         return self.model
 
