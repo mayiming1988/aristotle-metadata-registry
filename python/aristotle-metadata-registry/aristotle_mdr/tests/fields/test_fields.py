@@ -1,11 +1,30 @@
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr.utils.utils import get_concept_models
-from aristotle_mdr.contrib.serializers.utils import get_concept_fields, get_relation_field_names
-from django.conf import settings
+from aristotle_mdr.contrib.serializers.utils import get_concept_fields
 
+from django.conf import settings
 from django.test import TestCase, override_settings
+from django.db.models import DateTimeField, DateField
 
 from ddf import G  # Django Dynamic Fixture
+from typing import List, Optional
+from datetime import datetime
+
+
+def generate_failure_report(failures: List) -> None:
+    failure_str = '\n'
+    if failures:
+        for failure in failures:
+            failure_str += f'{str(failure)} \n'
+        raise AssertionError(failure_str)
+
+
+def normalize_string(string: str) -> str:
+    return ''.join(string.casefold().split())
+
+
+def normalize_date(datetime: Optional[datetime]) -> str:
+    return datetime.strftime('%B %Y')
 
 
 def generate_item_test(model):
@@ -14,7 +33,6 @@ def generate_item_test(model):
     @override_settings()
     def test(self):
         """The actual testing function"""
-        # Automatically the data for the actual item
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].extend(['comet', 'aristotle_dse', 'aristotle_glossary'])
 
@@ -28,26 +46,31 @@ def generate_item_test(model):
         response = self.client.get(item.get_absolute_url())
         self.assertEqual(response.status_code, self.OK)
 
-        excluded_fields = ['id']
         # Check that all the concept (the fields that are directly on the concept) fields appear with their content
         failures = []
         for field in get_concept_fields(model):
             value = field.value_from_object(item)
 
-            # Unify cases
-            field_name = field.name.replace("_", " ").casefold()
-            content = str(response.content).casefold()
+            # Unify cases and whitespace
+            field_name = normalize_string(field.name.replace("_", " "))
+            content = normalize_string(str(response.content))
 
-            if str(value) not in content and field_name not in excluded_fields:
-                failures.append(f"Can't find field value: {value} in response")
-            if field_name not in content and field_name not in excluded_fields:
-                failures.append(f"Can't find field_name: '{field_name}' in response")
+            # Replace modified with last updated to correspond with display on item page
+            if field.name == 'modified':
+                field_name = normalize_string('Last updated')
 
-        failure_str = ''
-        if failures:
-            for failure in failures:
-                failure_str += f'{str(failure)} \n'
-            raise AssertionError(failure_str)
+            # Normalize display of date objects
+
+            if value is not None:
+                if issubclass(type(field), (DateTimeField, DateField)):
+                    value = normalize_string(normalize_date(value))
+                if str(value) not in content and field_name not in self.excluded_fields:
+                    failures.append(f"Can't find field value: {value} in response")
+
+            if field_name not in content and field_name not in self.excluded_fields:
+                failures.append(f"Can't find field_name: '{field.name}' in response")
+
+        generate_failure_report(failures)
 
     test.__doc__ = f'Test that all fields are visible on the item page for {model.__name__}'
     return test
@@ -68,6 +91,12 @@ class FieldsMetaclass(type):
 @override_settings(DDF_FILL_NULLABLE_FIELDS=True)
 class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
     """A class to formally check that fields appear on the item page"""
+    excluded_fields = [
+        'id',
+        'byte_size',
+        'submitter',
+        'symbol'
+    ]
 
     def setUp(self) -> None:
         super().setUp()
