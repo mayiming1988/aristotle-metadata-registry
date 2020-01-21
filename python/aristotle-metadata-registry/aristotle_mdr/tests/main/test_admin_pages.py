@@ -72,7 +72,7 @@ class AdminPage(utils.LoggedInViewPages, TestCase):
     def test_clone(self):
         from aristotle_mdr.utils import concept_to_clone_dict
 
-        # Does cloning an item prepopulate everythin?
+        # Does cloning an item prepopulate everything?
         self.login_editor()
         oc = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg1)
         prop = models.Property.objects.create(name="Prop1", workgroup=self.wg1)
@@ -344,7 +344,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
             ),
             follow=True
         )
-        # In django 1.11, if you can't view an item you are redirected to the admin index page
+        # If you can't view an item you are redirected to the admin index page
         self.assertRedirects(response, reverse("admin:index"))
         self.assertContains(response, "Perhaps it was deleted?")
 
@@ -564,58 +564,3 @@ class DataElementDerivationAdminPage(AdminPageForConcept, TestCase):
 
         self.assertTrue(self.derived_de.is_public())
         self.create_items()
-
-# Deprecating old Orgs
-# class OrganizationAdminPage(utils.LoggedInViewPages, TestCase):
-#     def test_registrar_cannot_promote_org_to_ra(self):
-#         self.login_registrar()
-
-#         org = models.Organization.objects.create(name="My org", definition="My new org")
-#         ra_count = models.RegistrationAuthority.objects.count()
-
-#         response = self.client.post(
-#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-#             {
-#                 'action': "promote_to_ra",
-#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
-#                 "post":"yes"
-#             }
-#         )
-#         self.assertEqual(response.status_code, 302) # Redirects to admin login
-#         self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
-
-#     def test_admin_user_can_promote_org_to_ra(self):
-#         self.login_superuser()
-#         org = models.Organization.objects.create(name="My org", definition="My new org")
-#         ra_count = models.RegistrationAuthority.objects.count()
-#         org_count = models.Organization.objects.count()
-
-#         response = self.client.post(
-#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-#             {
-#                 'action': "promote_to_ra",
-#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
-#             }
-#         )
-#         msg = "Are you sure you want to promote the selected organizations to Registration Authorities"
-
-#         self.assertContains(response, msg)
-#         self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
-#         self.assertTrue(org_count == models.Organization.objects.count())
-
-#         response = self.client.post(
-#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-#             {
-#                 'action': "promote_to_ra",
-#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
-#                 "post":"yes"
-#             }, follow=True
-#         )
-
-#         # We should have another registration authority
-#         self.assertEqual(ra_count + 1, models.RegistrationAuthority.objects.count())
-#         # BUT we should NOT have another organisation
-#         self.assertTrue(org_count == models.Organization.objects.count())
-
-#         msg = "Successfully promoted 1 organization."
-#         self.assertContains(response, msg)

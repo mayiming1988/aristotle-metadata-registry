@@ -128,6 +128,10 @@ class BaseSerializer(serializers.ModelSerializer):
 #   2. Add to FIELD_SUBSERIALIZER_MAPPING
 
 
+def get_class_for_serializer(concept):
+    return concept.__class__
+
+
 class ConceptSerializerFactory:
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     field_subserializer_mapping = {
@@ -165,7 +169,6 @@ class ConceptSerializerFactory:
                 IndicatorDisaggregationSerializer,
                 IndicatorInclusionSerializer
             )
-
             self.field_subserializer_mapping.update({
                 'indicatornumeratordefinition_set': IndicatorNumeratorSerializer(many=True),
                 'indicatordenominatordefinition_set': IndicatorDenominatorSerializer(many=True),
@@ -177,17 +180,15 @@ class ConceptSerializerFactory:
             self.field_subserializer_mapping.update({
                 'metadatareferencelink_set': ReferenceLinkSerializer(many=True)
             })
+
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
         ] + list(self.field_subserializer_mapping.keys())
 
-    def _get_class_for_serializer(self, concept):
-        return concept.__class__
-
     def generate_serializer(self, concept):
         """ Generate the serializer class """
-        concept_class = self._get_class_for_serializer(concept)
+        concept_class = get_class_for_serializer(concept)
         Serializer = self._generate_serializer_class(concept_class)
 
         return Serializer
