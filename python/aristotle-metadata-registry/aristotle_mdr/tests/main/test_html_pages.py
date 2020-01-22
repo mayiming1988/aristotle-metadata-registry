@@ -677,6 +677,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
+        # TODO: Test user cannot add to workgroup they aren't a member of
+
     def test_non_existent_item_404(self):
         response = self.reverse_get(
             'aristotle:item',

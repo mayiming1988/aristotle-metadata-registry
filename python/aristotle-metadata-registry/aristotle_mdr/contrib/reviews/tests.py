@@ -134,6 +134,10 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         rr.concepts.add(self.item)
         return rr
 
+    def test_create_review_request(self):
+        # TODO: Confirm that a user can submit a review request
+        pass
+
     def test_view_review_request(self):
         rr = self.create_single_item_review_request(MDR.STATES.standard)
         self.login_editor()
@@ -488,6 +492,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
+        # TODO: Check if notification sent to user
 
     @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_supersedes_status_applied(self):
