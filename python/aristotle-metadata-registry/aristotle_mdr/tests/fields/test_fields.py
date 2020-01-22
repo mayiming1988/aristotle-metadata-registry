@@ -11,7 +11,7 @@ from typing import List
 from datetime import datetime
 
 
-def generate_failure_report(failures: List) -> None:
+def report_failures(failures: List) -> None:
     failure_str = '\n'
     if failures:
         for failure in failures:
@@ -36,7 +36,7 @@ def generate_item_test(model):
         aristotle_settings['CONTENT_EXTENSIONS'].extend(['comet', 'aristotle_dse', 'aristotle_glossary'])
 
         with self.settings(ARISTOTLE_SETTINGS=aristotle_settings):
-            item = G(model)
+            item = G(model, fill_nullable_fields=True)
 
         item.refresh_from_db()
         item._concept_ptr.refresh_from_db()
@@ -67,7 +67,7 @@ def generate_item_test(model):
             if field_name not in content and field_name not in self.excluded_fields:
                 failures.append(f"Can't find field_name: '{field.name}' in response")
 
-        generate_failure_report(failures)
+        report_failures(failures)
 
     test.__doc__ = f'Test that all fields are visible on the item page for {model.__name__}'
     return test
@@ -85,7 +85,6 @@ class FieldsMetaclass(type):
         return metaclass
 
 
-@override_settings(DDF_FILL_NULLABLE_FIELDS=True)
 class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
     """A class to formally check that fields appear on the item page"""
     excluded_fields = [
