@@ -379,7 +379,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertTrue(int(dp_result.statuses[0]) == int(models.STATES.standard))
 
     def test_visibility_restriction_facets(self):
-        # See issue #351
+        # See issue #351q
         self.logout()
 
         response = self.client.get(reverse('aristotle:search') + "?q=xman")

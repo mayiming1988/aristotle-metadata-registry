@@ -683,6 +683,10 @@ class UserProfileTests(TestCase):
         self.assertEqual(initial['full_name'], 'new user')
         self.assertFalse('profilePicture' in initial)
 
+    def test_edit_user_profile(self):
+        return True
+        # TODO: complete
+
     def test_profile_upload(self):
 
         self.login_newuser()

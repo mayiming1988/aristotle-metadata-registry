@@ -223,7 +223,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertFalse('form' in response.context)
             self.assertTrue('error_message' in response.context)
 
-
     def test_self_registration_page_with_signup_enabled(self):
         # With signup enabled
         mock_settings = MagicMock(return_value={'SELF_SIGNUP': {'enabled': True}})
@@ -350,9 +349,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(mail.outbox[1].to, ['super@example.com'])
         self.assertTrue('Testing Registry' in mail.outbox[1].subject)
 
-
     def test_self_register_activate_error_handling(self):
-
         mock_settings = MagicMock(return_value={'registry': {'SELF_SIGNUP': {'enabled': False}}})
         with patch('aristotle_mdr.contrib.user_management.views.fetch_aristotle_settings', mock_settings):
             # Test trying to activate with signup disabled
@@ -388,13 +385,12 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.context['error_message'], 'Account could not be activated')
 
-
     def test_get_resend_activation(self):
         response = self.client.get(reverse('aristotle-user:signup_resend'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['title'], 'Resend Activation')
 
-    def test_resend_activation_non_existant(self):
+    def test_resend_activation_non_existent(self):
 
         response = self.client.get(reverse('aristotle-user:signup_resend'))
         self.assertEqual(response.status_code, 200)
@@ -427,7 +423,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertTrue('activation link has been sent' in response.context['message'])
 
         self.assertEqual(len(mail.outbox), 1)
-
 
     @tag('emailcase')
     def test_creating_user_model_case(self):
@@ -529,3 +524,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertTrue('activation link has been sent' in response.context['message'])
 
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_adding_view_all_metadata_permission_to_user(self):
+        return True
+        # TODO: complete
