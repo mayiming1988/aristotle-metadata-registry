@@ -35,7 +35,13 @@ class TestPublishing(utils.AristotleTestUtils, TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
 
+    # TODO addtest: for publishing an item via the form
+
+    # TODO addtest: for publishing / viewing items at other permission levels
+    # such as 'Workgroup'
+
     def test_self_publish_queryset_anon(self):
+        """Check that publishing an item as 'Public' makes it visible to anonymous users"""
         self.logout()
         response = self.client.get(self.item.get_absolute_url())
         # self.assertTrue(response.status_code == 302)

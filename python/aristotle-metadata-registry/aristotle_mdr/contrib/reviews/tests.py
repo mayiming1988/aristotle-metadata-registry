@@ -195,6 +195,9 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_request_visible_multiple_registrars(self):
+        # TODO fixtest: make this test check that both users can see the review
+        # Only checks user1 can see the review, user1 also created the review
+
         # create 2 users
         user = get_user_model().objects.create_user(
             email='example@example.com',

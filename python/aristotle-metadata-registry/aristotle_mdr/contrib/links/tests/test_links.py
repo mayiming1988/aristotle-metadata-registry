@@ -334,6 +334,8 @@ class TestLinkPages(LinkTestBase, TestCase):
     @tag('link_wizard')
     @skip('Skipping for now due to changes in wizard')
     def test_add_link_wizard(self):
+        # TODO fixtest: Unskip this tests and fix it up
+        # Nothing else is testing the standard case
         self.wizard_form_name = "add_link_wizard"
         finish_url = reverse("aristotle:item", args=[self.item1.pk])
         self.wizard_url = reverse('aristotle_mdr_links:add_link', args=[self.item1.pk])
