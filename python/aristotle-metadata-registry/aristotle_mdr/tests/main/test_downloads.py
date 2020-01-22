@@ -21,6 +21,11 @@ from unittest import skip
         'BULK_ACTIONS': ['aristotle_mdr.forms.bulk_actions.BulkDownloadForm']
     }
 )
+class PreviewDownloadsTestCase(AristotleTestUtils, TestCase):
+    def test_print_preview(self):
+        pass
+
+
 class DownloadsTestCase(AristotleTestUtils, TestCase):
     """
     Testing downloads views and task
@@ -69,6 +74,10 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.assertIsNotNone(result)
         fake_dl_class.assert_called_once_with([self.item.id], self.editor.id, {})
         fake_dl_class().download.assert_called_once()
+
+    def test_upload_of_cover_page_to_download(self):
+        return True
+        # TODO: complete
 
     def test_dl_options_get_no_items(self):
         url = reverse('aristotle:download_options', args=['fake'])
@@ -266,19 +275,6 @@ class DownloaderTestCase(AristotleTestUtils, TestCase):
         with self.assertRaises(PermissionDenied):
             downloader = FakeDownloader([self.item.id], self.viewer.id, {})
 
-    @skip('Removed direct email attachments')
-    def test_email_file_direct(self):
-        downloader = FakeDownloader([self.item.id], self.editor.id, {})
-        f = ContentFile('MyFile')
-        size = f.size
-        f.close()
-        downloader.email_file(f, size, 'https://example.com/file.txt')
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
-        self.assertEqual(len(message.attachments), 1)
-        content = message.attachments[0][1]
-        self.assertEqual(content, 'MyFile')
-
     def test_email_file(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {'CURRENT_HOST': 'http://testserver'})
         f = ContentFile('MyFile')
@@ -290,12 +286,13 @@ class DownloaderTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(len(message.attachments), 0)
         self.assertTrue('https://example.com/file.txt' in message.body)
 
-        expected_regen_url = reverse('aristotle:download_options', args=['fake'])\
-            + '?items=' + str(self.item.id)
+        expected_regen_url = reverse('aristotle:download_options', args=['fake']) \
+                             + '?items=' + str(self.item.id)
         self.assertTrue(expected_regen_url in message.body)
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']}})
+@override_settings(
+    ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']}})
 class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
     def setUp(self):
@@ -356,7 +353,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse(self.forbidden_speed.definition in html)
 
     def test_sub_item_list_single_download(self):
-
         self.aspeed.objectClass = self.animal
         self.aspeed.property = self.speed
         self.aspeed.save()
@@ -429,7 +425,8 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse('You dont have permission' in html)
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
+@override_settings(
+    ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):
@@ -442,7 +439,13 @@ class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
 
     @tag('docx')
     @skip('pandoc isnt installed on all test environments')
+    # TODO: stop skipping this since we moved to Github Actions
     def test_docx_downloader_generates_file(self):
         downloader = DocxDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)
+
+class DataDictionaryTestCase:
+    def test_data_dictionary_download(self):
+        return True
+        # TODO: complete

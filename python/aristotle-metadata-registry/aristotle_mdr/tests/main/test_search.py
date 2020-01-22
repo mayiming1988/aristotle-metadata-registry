@@ -866,6 +866,7 @@ class TestTokenSearch(TestCase):
 
     def test_search_result_ordering(self):
         pass
+        # TODO: complete
 
     def test_uuid_search(self):
         item = self.item_xmen[0]
