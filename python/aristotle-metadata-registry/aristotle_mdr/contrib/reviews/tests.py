@@ -138,7 +138,6 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         # TODO: Confirm that a user can submit a review request
         pass
 
-
     def test_view_review_request(self):
         rr = self.create_single_item_review_request(MDR.STATES.standard)
         self.login_editor()

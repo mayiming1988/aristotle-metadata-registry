@@ -94,7 +94,7 @@ class IssueTests(AristotleTestUtils, TestCase):
         # TODO:
         #   Test a user can create an issue with a label for the items stewardship organisation
         #   Test a user can't create an issue with a label for a different stewardship organisation
-
+        pass
 
     def test_own_issue_false_on_other_issue(self):
         issue = self.create_test_issue()
