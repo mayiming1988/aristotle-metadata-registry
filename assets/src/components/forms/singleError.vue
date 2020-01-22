@@ -1,6 +1,6 @@
 <template>
     <div class="single-error">
-        <span v-if="hasBeError" class="text-danger">{{ beErrors[0] }}</span>
+        <span class="text-danger" v-if="hasBeError">{{ beErrors[0] }}</span>
         <span v-if="!hasBeError && hasFeError" class="text-danger">{{ feErrors[0] }}</span>
     </div>
 </template>
