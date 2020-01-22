@@ -236,7 +236,6 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
             'name': "My cool registrar",
             'definition': "This Workgroup rocks!"
         })
-
         response = self.client.post(
             reverse('aristotle:workgroup_edit', args=[my_wg.pk]),
             data

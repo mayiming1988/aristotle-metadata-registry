@@ -61,7 +61,7 @@ class RACreationTests(utils.LoggedInViewPages, TestCase):
         after_count = models.RegistrationAuthority.objects.count()
         self.assertEqual(after_count, before_count)
 
-    def test_registry_owner_can_create(self):
+    def test_registry_owner_can_create_ra(self):
         self.login_superuser()
 
         response = self.client.get(reverse('aristotle:registrationauthority_create'))
@@ -133,7 +133,7 @@ class RAUpdateTests(utils.AristotleTestUtils, TestCase):
         self.assertNotEqual(my_ra.name, "My cool registrar")
         self.assertNotEqual(my_ra.definition, "This RA rocks!")
 
-    def test_registry_owner_can_edit(self):
+    def test_registry_owner_can_edit_ra(self):
         self.login_superuser()
 
         my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="",
@@ -235,6 +235,17 @@ class RAUpdateTests(utils.AristotleTestUtils, TestCase):
         self.assertTrue(len(nfe) > 0)
         self.assertContains(response, nfe[0])
 
+    def test_administrator_can_deactivate_registration_authority(self):
+        return True
+        # TODO: complete
+
+    def test_administrator_can_reactivate_registration_authority(self):
+        return True
+        # TODO: complete
+
+    def test_administrator_can_edit_locked_metadata(self):
+        return True
+        # TODO: complete
 
 class RAListTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_create(self):
