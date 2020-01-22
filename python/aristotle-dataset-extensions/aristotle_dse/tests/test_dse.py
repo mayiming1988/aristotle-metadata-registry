@@ -44,6 +44,7 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
 
     @skip('Weak editing currently disabled on this model')
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
+        # TODO: Un-disable this
         oc = MDR.ObjectClass.objects.create(
             name="a very nice object class"
         )
