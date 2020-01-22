@@ -78,7 +78,25 @@ class IssueTests(AristotleTestUtils, TestCase):
 
         self.assertTrue(response.context['own_issue'])
 
-    def test_own_issue_false_on_othes_issue(self):
+    def test_submitter_can_propose_changes(self):
+        # TODO:
+        #   Test a user can propose an issue with a change on an item they can see
+        #   Test a user can't propose an issue with a change on an item they can't see
+        pass
+
+    def test_editor_can_accept_proposed_changes(self):
+        # TODO:
+        #   Test a user can accept a change on an item they can edit
+        #   Test a user can't accept a change on an item they can't edit
+        pass
+
+    def test_submitter_can_create_issue_with_label(self):
+        # TODO:
+        #   Test a user can create an issue with a label for the items stewardship organisation
+        #   Test a user can't create an issue with a label for a different stewardship organisation
+        pass
+
+    def test_own_issue_false_on_other_issue(self):
         issue = self.create_test_issue()
         self.login_viewer()
 
