@@ -1,11 +1,14 @@
 <template>
     <div class="vue-formset">
         <draggable :list="formsData" :options="sortableConfig">
-            <div class="row container" v-for="(item, index) in formsData" v-bind:key="index">
+            <div class="row container" v-for="(item, index) in formsData" :key="index">
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}</h4>
+                            <h4 class="panel-title">
+                                <i class="fa fa-lg fa-bars grabber" />
+                                {{ item.name }}: {{ relatedModel }}
+                            </h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
@@ -18,12 +21,20 @@
                                         :errors="getError(item.vid)"
                                         :fe_errors="getIndexValidationErrors('formsData', index)"
                                         :showSubmit="false"
-                                        :showLabels="true"
-                                        :showChoiceField="displayChoiceField(item.vid)">
-
+                                        :showChoiceField="displayChoiceField(item.vid)"
+                                >
                                     <template v-if="showDeleteItem(item.new)" slot="after">
                                         <div class="col-md-1">
-                                            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                                            <button class="btn btn-danger" @click="deleteRow(index)">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template v-else slot="after">
+                                        <div class="col-md-1">
+                                            <a class="btn btn-danger" :href="item.delete_button_url">
+                                                Delete
+                                            </a>
                                         </div>
                                     </template>
                                 </baseForm>
@@ -34,9 +45,12 @@
             </div>
         </draggable>
         <div class="vue-formset-button-group">
-            <button class="btn btn-success" @click="addRow">Add</button>
-            <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
-
+            <button class="btn btn-success" @click="addRow">
+                {{ addButtonMessage }}
+            </button>
+            <button class="btn btn-primary" @click="submitFormSet">
+                Submit Edits
+            </button>
         </div>
     </div>
 </template>
@@ -59,9 +73,33 @@
         },
         mixins: [validationMixin],
         props: {
-            // List of the available fields
-            fields: {
-                type: Object
+            fields: {  // List of the available fields.
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            initial: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            relatedModel: {
+                type: String,
+                default: "All"
+            },
+            relatedModelId: {
+                type: String,
+                default: '',
+            },
+            addButtonMessage: {
+                type: String,
+                default: 'Add',
+            },
+            showDelete: {
+                type: Boolean,
+                default: true
             },
             orderField: {
                 type: String,
@@ -69,20 +107,13 @@
             },
             showLabels: {
                 type: Boolean,
-                default: true
-            },
-            showDelete: {
-                type: Boolean,
-                default: true
-            },
-            initial: {
-                type: Array,
-            },
-            allowed: {
-                type: Object,
+                default: true,
             },
             errors: {
-                type: Array
+                type: Array,
+                default () {
+                    return []
+                }
             },
         },
         data: () => ({
@@ -102,12 +133,9 @@
                 this.nextVid = this.formsData.length
             }
             for (let i = 0; i < this.formsData.length; i++) {
-                // Add a vue id to each item as unique key
-                this.formsData[i]['vid'] = i
+                this.formsData[i]['vid'] = i  // Add a vue id to each item as unique key
                 this.formsData[i]['new'] = false
-
-                // Populate the showAccordion list
-                this.showAccordion.push(false)
+                this.showAccordion.push(false)  // Populate the showAccordion list
             }
         },
         validations: function () {
@@ -126,7 +154,18 @@
         },
         computed: {
             default: function () {
-                let defaults = {vid: this.nextVid, new: true}
+                let defaults = {
+                    vid: this.nextVid,
+                    new: true,
+                    allowed_model: this.relatedModelId
+                }
+
+                // We need to check whether the relatedModelId exists.
+                // If relatedModelId does not exist, then this is an "All" Custom Field:
+                if (this.relatedModelId === "None") {
+                    delete defaults.allowed_model
+                }
+
                 for (let fname in this.fields) {
                     let field = this.fields[fname]
                     if (field.default != null) {
@@ -136,29 +175,17 @@
                 return defaults
             },
             displayChoices: function () {
-                // Display choices fields is an dictionary of true/false values to allow the baseForm component
+                // Display choices fields is a dictionary of true/false values to allow the baseForm component
                 // to determine whether or not to display the choice form field
-                let displayChoices = new Object();
+                let displayChoices = {};
 
                 for (let i = 0; i < this.formsData.length; i++) {
-                    if (this.formsData[i]['type'] === 'enum') {
-                        displayChoices[i] = true
-                    } else {
-                        displayChoices[i] = false
-                    }
+                    displayChoices[i] = this.formsData[i]['type'] === 'enum';
                 }
                 return displayChoices
             }
         },
         methods: {
-            getAllowedModelName: function (id) {
-                if (id == null || id == '') {
-                    return 'All'
-                }
-                else {
-                    return this.allowed[id.toString()]
-                }
-            },
             displayChoiceField: function (vid) {
                 return this.displayChoices[vid]
             },
@@ -175,7 +202,7 @@
                 this.formsData.splice(index, 1)
             },
             postProcess: function () {
-                let fdata = []
+                let formsetData = []
                 for (let i = 0; i < this.formsData.length; i++) {
                     // Get shallow clone of item
                     let item = Object.assign({}, this.formsData[i])
@@ -185,9 +212,9 @@
                     }
                     // Reorder
                     item['order'] = i + 1
-                    fdata.push(item)
+                    formsetData.push(item)
                 }
-                return fdata
+                return formsetData
             },
             submitFormSet: function () {
                 if (this.isDataValid('formsData')) {
@@ -226,5 +253,6 @@
 
     .vue-formset-button-group {
         margin-top: 10px;
+        margin-bottom: 20px;
     }
 </style>

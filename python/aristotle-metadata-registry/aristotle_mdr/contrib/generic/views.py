@@ -920,14 +920,25 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
 
 
 class BootTableListView(ListView):
-    """Lists objects in a bootstrap table (with optional pagination)"""
+    """
+    Lists objects in a Bootstrap table (with optional pagination).
+    This View might be useful for basic object viewing or debugging,
+    but currently it is not being used by the Registry.
+    """
     template_name = 'aristotle_mdr/generic/boottablelist.html'
-    # Need to override these
-    headers: List[str]
-    attrs: List[str]
+
+    # Need to override these:
+
+    table_headers: List[str]
+    model_attrs: List[str]
     model_name = ''
-    # Can optionally override these
-    blank_value: Dict[str, str]
+
+    # Can optionally override these:
+
+    # Provide a key value pair with the model field name and string text to be used in case the model field has an empty
+    # value: e.g. {'model_field': 'Not assigned yet...',}
+    model_blank_field_replacement: Dict[str, str]
+
     page_heading = ''
     create_button_text = ''
     create_url_name = ''
@@ -950,10 +961,10 @@ class BootTableListView(ListView):
         listing = []
         for item in iterable:
             itemdict = {'attrs': [], 'pk': item.pk}
-            for attr in self.attrs:
+            for attr in self.model_attrs:
                 val = getattr(item, attr)
-                if not val and attr in self.blank_value:
-                    val = self.blank_value[attr]
+                if not val and attr in self.model_blank_field_replacement:
+                    val = self.model_blank_field_replacement[attr]
                 itemdict['attrs'].append(val)
             listing.append(itemdict)
 
@@ -961,7 +972,7 @@ class BootTableListView(ListView):
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data()
-        headers = copy(self.headers)
+        headers = copy(self.table_headers)
 
         page_heading = self.get_heading()
         create_button_text = self.get_create_text()
@@ -995,51 +1006,52 @@ class BootTableListView(ListView):
         return context
 
 
-class CancelUrlMixin:
-    cancel_url_name = ''
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        if self.cancel_url_name:
-            context['cancel_url'] = reverse(self.cancel_url_name)
-        return context
-
-
 class VueFormView(FormView):
     """
     A view for returning a serialized json representation of a django form
     for use with vue components. Does not permit the POST method as that
-    should be handled by the api
+    should be handled by the API.
     """
 
-    # Mapping of widgets to extra fields data
+    # Mapping of widgets to extra fields data.
     widget_mapping: Dict[str, Dict] = {
         'Textarea': {'tag': 'textarea'},
         'Select': {'tag': 'select'},
     }
 
-    # Attributes to pull from field as rules
+    # Attributes to pull from field as rules.
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
 
-    # Base field data
-    default_tag = 'input'
-
-    # Fields to strip from initial
-    non_write_fields: List = []
-    # Wether to capitalize option names
-    capitalize_options: bool = True
+    default_tag = 'textarea'  # Base field data.
+    non_write_fields: List = []  # Fields to strip from initial.
+    capitalize_options: bool = True  # Whether to capitalize option names.
 
     def get_vue_initial(self):
-        # To be overwritten
-        return {}
+        """
+        To be overwritten.
+        Must return a list of dictionaries containing the serialised fields data.
+        """
+        return []
 
-    def strip_fields(self, data: List[Dict]):
-        for fname in self.non_write_fields:
-            if fname in data:
-                del data[fname]
+    def post(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        initial = self.get_vue_initial()
+        self.strip_fields(initial)
+
+        context.update({
+            'vue_fields': json.dumps(
+                self.get_vue_form_fields(context['form'])
+            ),
+            'vue_initial': json.dumps(initial)
+        })
+
+        return context
 
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
-        vuefields = {}
+        vue_fields = {}
         for fname, field in form.fields.items():
             widget_name = type(field.widget).__name__
 
@@ -1057,36 +1069,29 @@ class VueFormView(FormView):
                 field_data.update(self.widget_mapping[widget_name])
 
             if widget_name == 'Select':
-                # field.choices can be an iterator hence the need for this
+                # Field.choices can be an iterator hence the need for this:
                 field_data['options'] = [[c[0], c[1]] for c in field.choices]
 
                 if self.capitalize_options:
                     for item in field_data['options']:
                         item[1] = capitalize_words(item[1])
 
-            for attr in self.rules_attrs_to_pull:
-                if hasattr(field, attr):
-                    attrdata = getattr(field, attr)
+            for rule_attr in self.rules_attrs_to_pull:
+                if hasattr(field, rule_attr):
+                    attrdata = getattr(field, rule_attr)
                     if attrdata:
-                        field_data['rules'][attr] = attrdata
+                        field_data['rules'][rule_attr] = attrdata
 
-            vuefields[fname] = field_data
+            # Get the attrs for the fields to be used by the Vue component:
+            field_widget = field.widget
+            if hasattr(field_widget, "attrs"):
+                field_data['field_attrs'] = getattr(field_widget, "attrs")
 
-        return vuefields
+            vue_fields[fname] = field_data
 
-    def post(self, request, *args, **kwargs):
-        return self.http_method_not_allowed(request, *args, **kwargs)
+        return vue_fields
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-        context['vue_fields'] = json.dumps(
-            self.get_vue_form_fields(context['form'])
-        )
-
-        initial = self.get_vue_initial()
-
-        self.strip_fields(initial)
-
-        context['vue_initial'] = json.dumps(initial)
-
-        return context
+    def strip_fields(self, data: List[Dict]):
+        for fname in self.non_write_fields:
+            if fname in data:
+                del data[fname]
