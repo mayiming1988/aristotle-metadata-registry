@@ -17,7 +17,8 @@
 {% block objSpecific %}
     For more details on how to access this data contact the publishing organisation.
     {% if item.issued %}
-        <h2></h2>
+        <h2>Issued</h2>
+        <p>{% timetag item.issued %}</p>
     {% endif %}
     <h2>Data source details</h2>
     <dl class="">
