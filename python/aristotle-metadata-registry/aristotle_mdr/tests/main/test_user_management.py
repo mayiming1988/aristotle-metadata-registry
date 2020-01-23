@@ -485,11 +485,9 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             'myemail@example.com',
             'verysecure'
         )
-
         data = {
             'email_list': 'myemail@example.com\nnewguy@example.com'
         }
-
         post_response = self.client.post(reverse('aristotle-user:registry_invitations_create'), data)
         self.assertEqual(post_response.status_code, 302)
 
