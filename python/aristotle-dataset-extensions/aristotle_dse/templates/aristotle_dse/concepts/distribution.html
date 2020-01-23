@@ -42,7 +42,10 @@
             <dt class="float-left">Size in bytes</dt>
             <dd>{{ item.byte_size|bleach }}</dd>
         {% endif %}
-
+        {% if item.media_type %}
+            <dt class="float-left">Media type</dt>
+            <dd>{{ item.media_type|bleach }}</dd>
+        {% endif %}
         <div class="well">
             {% if item.download_URL %}
                 <a href='{{item.download_URL}}' class='btn btn-default'>
