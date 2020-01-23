@@ -282,7 +282,6 @@ class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Comm
 
     def get_success_url(self):
         # TODO: How does this work, is it even tested?
-        from django.utils.functional import lazy
         success_url = reverse('aristotle:discussionsPost', args=[self.discussion_post.pk])
         return success_url
 

@@ -1,8 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr.fields import LowerEmailFormField
-
 
 class RolesFormBase:
     def add_role_fields(self, manager, group, member=None):

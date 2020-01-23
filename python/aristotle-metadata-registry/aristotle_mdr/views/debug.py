@@ -1,6 +1,4 @@
-from django.http import HttpResponse, Http404
-from django.conf import settings
-
+from django.http import HttpResponse
 import pypandoc
 from aristotle_mdr.downloader import PandocDownloader
 

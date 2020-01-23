@@ -1,7 +1,5 @@
 from aristotle_mdr.contrib.redirect.exceptions import Redirect
 from django.http import HttpResponseRedirect
-from django.core.exceptions import PermissionDenied
-
 
 import logging
 

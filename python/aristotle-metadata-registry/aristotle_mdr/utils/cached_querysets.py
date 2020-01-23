@@ -1,7 +1,7 @@
 import pickle
 from django.core.cache import cache
 from django.db import models
-from django.db.models.fields import Field, _load_field, _empty
+from django.db.models.fields import _load_field, _empty
 
 import logging
 logger = logging.getLogger(__name__)
