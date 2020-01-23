@@ -103,4 +103,5 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
                         'Indicator': {'computation_description': 'Description',
                                       'numerator_description': 'Description',
                                       'denominator_description': 'Description',
-                                      'disaggregation_description': 'Description'}}
+                                      'disaggregation_description': 'Description'},
+                        'Distribution': {}}
