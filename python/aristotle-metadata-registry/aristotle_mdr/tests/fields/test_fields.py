@@ -71,7 +71,7 @@ def generate_item_test(model):
                     if str(value) not in content:
                         failures.append(f"Can't find field value: {value} in response for field {field.name}")
 
-                if field_name not in content:
+                if field_name not in content and field.name not in self.no_heading_fields:
                     failures.append(f"Can't find field_name: '{field.name}' in response")
 
         report_failures(failures)
@@ -94,17 +94,24 @@ class FieldsMetaclass(type):
 
 class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
     """A class to formally check that fields appear on the item page"""
+
+    # Fields on the model that do not show up in the templates
     excluded_fields = [
         'id',
         'submitter',
         'symbol',
         'modified',
-        'dct_modified'
+        'dct_modified'  # Data Catalog Modified
     ]
-    field_transforms = {'ValueDomain': {'maximum_length': 'MaximumCharacterLength'},
+    # Fields on the model that do not have a heading
+    no_heading_fields = [
+        'access_URL',
+        'download_URL'
+    ]
+    field_transforms = {'ValueDomain': {'maximum_length': 'Maximum Character Length'},
                         'Indicator': {'computation_description': 'Description',
                                       'numerator_description': 'Description',
                                       'denominator_description': 'Description',
                                       'disaggregation_description': 'Description'},
-                        'Distribution': {'byte_size': 'SizeInBytes'}
+                        'Distribution': {'byte_size': 'Size In Bytes'}
                         }
