@@ -95,7 +95,6 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
     """A class to formally check that fields appear on the item page"""
     excluded_fields = [
         'id',
-        'byte_size',
         'submitter',
         'symbol',
         'modified'

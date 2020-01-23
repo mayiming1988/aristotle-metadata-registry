@@ -35,11 +35,6 @@ class DataCatalog(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('The dataset specification to which this data source conforms'),
         )
-    # publisher_record = models.ForeignKey(
-    #     aristotle.models.OrganizationRecord,
-    #     blank=True, null=True,
-    #     help_text=_('The entity responsible for making the catalog online.'),
-    #     )
     spatial = models.TextField(
         blank=True, null=True,
         help_text=_('The geographical area covered by the catalog.'),
