@@ -51,6 +51,11 @@ def generate_item_test(model):
         for field in get_concept_fields(model):
             value = field.value_from_object(item)
 
+            # Is the field excluded?
+            field_excluded = False
+            if field.name in self.excluded_fields:
+                field_excluded = True
+
             # Transform fields if necessary
             transform_exists = False
             if model.__name__ in self.field_transforms:
@@ -67,10 +72,10 @@ def generate_item_test(model):
                 if issubclass(type(field), (DateTimeField, DateField)):
                     value = normalize_string(normalize_date(value))
 
-                if str(value) not in content and field_name not in self.excluded_fields:
+                if str(value) not in content and not field_excluded:
                     failures.append(f"Can't find field value: {value} in response for field {field.name}")
 
-            if field_name not in content and field_name not in self.excluded_fields:
+            if field_name not in content and not field_excluded:
                 failures.append(f"Can't find field_name: '{field.name}' in response")
 
         report_failures(failures)
@@ -97,7 +102,8 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
         'id',
         'submitter',
         'symbol',
-        'modified'
+        'modified',
+        'dct_modified'
     ]
     field_transforms = {'ValueDomain': {'maximum_length': 'MaximumCharacterLength'},
                         'Indicator': {'computation_description': 'Description',
