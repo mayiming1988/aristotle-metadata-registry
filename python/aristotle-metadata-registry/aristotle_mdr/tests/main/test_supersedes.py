@@ -111,6 +111,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
 
     @tag('integration_test', 'supersede')
     def test_supersede(self):
+        # TODO fixtest: split this test into multiple tests
         self.logout()
         response = self.client.get(reverse('aristotle:supersede', args=[self.item1.id]))
         self.assertEqual(response.status_code, 403)

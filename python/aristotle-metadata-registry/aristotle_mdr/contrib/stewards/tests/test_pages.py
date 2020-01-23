@@ -280,3 +280,10 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+
+class ManagedItemTestCase:
+
+    def test_managed_item_edit(self):
+        # TODO addtest: create test for editing a managed items
+        pass

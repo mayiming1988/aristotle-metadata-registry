@@ -68,6 +68,9 @@ def status_changed(message, **kwargs):
                 seen_registrars.add(registrar)
 
 
+# TODO addtest: send notification when an item is published
+
+
 def item_superseded(message, **kwargs):
     new_super_rel = safe_object(message)
     concept = new_super_rel.older_item

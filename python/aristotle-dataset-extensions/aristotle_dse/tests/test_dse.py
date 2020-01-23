@@ -42,9 +42,11 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'datasetspecification'
     itemType = models.DataSetSpecification
 
+    # TODO: Add test for dss groupings
+
     @skip('Weak editing currently disabled on this model')
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
-        # TODO: Un-disable this
+        # TODO addtest: enable this test or a test with equivalent functionality
         oc = MDR.ObjectClass.objects.create(
             name="a very nice object class"
         )

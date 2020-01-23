@@ -41,6 +41,9 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
             workgroup=self.wg1,
         )
 
+    # TODO addtest: test for notifications on certain actions occuring work with the notificiationPermission settings
+    # i.e. if you dont recive notification for things you have unchecked in the settings
+
     def test_subscriber_is_notified_of_discussion(self):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
