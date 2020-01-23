@@ -51,32 +51,28 @@ def generate_item_test(model):
         for field in get_concept_fields(model):
             value = field.value_from_object(item)
 
-            # Is the field excluded?
-            field_excluded = False
-            if field.name in self.excluded_fields:
-                field_excluded = True
+            if field.name not in self.excluded_fields:
+                # Transform fields if necessary
+                transform_exists = False
+                if model.__name__ in self.field_transforms:
+                    transform_exists = field.name in self.field_transforms[model.__name__].keys()
 
-            # Transform fields if necessary
-            transform_exists = False
-            if model.__name__ in self.field_transforms:
-                transform_exists = field.name in self.field_transforms[model.__name__].keys()
+                if transform_exists:
+                    field_name = normalize_string(self.field_transforms[model.__name__][field.name])
+                else:
+                    field_name = normalize_string(field.name.replace("_", ""))
 
-            if transform_exists:
-                field_name = normalize_string(self.field_transforms[model.__name__][field.name])
-            else:
-                field_name = normalize_string(field.name.replace("_", ""))
+                content = normalize_string(str(response.content))
 
-            content = normalize_string(str(response.content))
+                if value is not None:
+                    if issubclass(type(field), (DateTimeField, DateField)):
+                        value = normalize_string(normalize_date(value))
 
-            if value is not None:
-                if issubclass(type(field), (DateTimeField, DateField)):
-                    value = normalize_string(normalize_date(value))
+                    if str(value) not in content:
+                        failures.append(f"Can't find field value: {value} in response for field {field.name}")
 
-                if str(value) not in content and not field_excluded:
-                    failures.append(f"Can't find field value: {value} in response for field {field.name}")
-
-            if field_name not in content and not field_excluded:
-                failures.append(f"Can't find field_name: '{field.name}' in response")
+                if field_name not in content:
+                    failures.append(f"Can't find field_name: '{field.name}' in response")
 
         report_failures(failures)
 
@@ -110,4 +106,5 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
                                       'numerator_description': 'Description',
                                       'denominator_description': 'Description',
                                       'disaggregation_description': 'Description'},
-                        'Distribution': {}}
+                        'Distribution': {'byte_size': 'SizeInBytes'}
+                        }
