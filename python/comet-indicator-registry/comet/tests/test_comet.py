@@ -76,5 +76,18 @@ class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='description',
                                                              default_fields=default_fields)
 
-# TODO addtest: Run the LoggedInViewConceptPages tests for QualityStatements
-# Plus any other missing types from comet
+
+class IndicatorSetViewPage(LoggedInViewConceptPages, TestCase):
+    itemType = models.IndicatorSet
+
+
+class QualityStatementViewPage(LoggedInViewConceptPages, TestCase):
+    itemType = models.QualityStatement
+
+
+class OutcomeAreaViewPage(LoggedInViewConceptPages, TestCase):
+    itemType = models.OutcomeArea
+
+
+class FrameworkViewPage(LoggedInViewConceptPages, TestCase):
+    itemType = models.Framework
