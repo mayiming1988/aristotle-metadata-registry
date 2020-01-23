@@ -1975,22 +1975,18 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'objectClass'
     itemType = models.ObjectClass
 
 
 class PropertyViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'property'
     itemType = models.Property
 
 
 class UnitOfMeasureViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'unitOfMeasure'
     itemType = models.UnitOfMeasure
 
 
 class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'valueDomain'
     itemType = models.ValueDomain
 
     def setUp(self):
@@ -2378,7 +2374,6 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'conceptualDomain'
     itemType = models.ConceptualDomain
 
     def setUp(self):
@@ -2418,7 +2413,6 @@ class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'dataElementConcept'
     itemType = models.DataElementConcept
     run_cascade_tests = True
 
@@ -2567,7 +2561,6 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DataElementViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'dataElement'
     itemType = models.DataElement
 
     def add_dec(self, wg):
@@ -2679,7 +2672,6 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'dataelementderivation'
     itemType = models.DataElementDerivation
 
     def test_weak_editing_in_advanced_editor_dynamic(self):

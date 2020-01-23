@@ -27,7 +27,6 @@ class IndicatorAdmin(AdminPageForConcept, TestCase):
 
 
 class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'indicator'
     itemType = models.Indicator
 
     @tag('perms')

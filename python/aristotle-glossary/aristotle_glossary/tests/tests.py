@@ -72,7 +72,6 @@ class GlossaryItemAdminPage(AdminPageForConcept, TestCase):
 
 
 class GlossaryViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'glossary'
     itemType = gmodels.GlossaryItem
 
     def test_view_glossary(self):

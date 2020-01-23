@@ -39,7 +39,6 @@ class DataSetSpecificationAdmin(AdminPageForConcept, TestCase):
 
 
 class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'datasetspecification'
     itemType = models.DataSetSpecification
 
     # TODO: Add test for dss groupings
@@ -188,12 +187,10 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DataCatalogViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'datacatalog'
     itemType = models.DataCatalog
 
 
 class DatasetViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'dataset'
     itemType = models.Dataset
 
     def create_public_dataset(self) -> models.Dataset:
@@ -211,7 +208,6 @@ class DatasetViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'distribution'
     itemType = models.Distribution
 
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):

@@ -29,7 +29,6 @@ class LoggedInViewExtensionConceptPages(LoggedInViewConceptPages):
 
 
 class QuestionViewPage(LoggedInViewExtensionConceptPages, TestCase):
-    url_name='question'
     itemType=Question
 
     def test_help_page_exists(self):
