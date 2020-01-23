@@ -3,7 +3,7 @@ from aristotle_mdr.utils.utils import get_concept_models
 from aristotle_mdr.contrib.serializers.utils import get_concept_fields
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.db.models import DateTimeField, DateField
 
 from ddf import G  # Django Dynamic Fixture
@@ -34,10 +34,8 @@ def generate_item_test(model):
         """The actual testing function"""
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].extend(['comet', 'aristotle_dse', 'aristotle_glossary'])
-
         with self.settings(ARISTOTLE_SETTINGS=aristotle_settings):
             item = G(model, fill_nullable_fields=True)
-
         item.refresh_from_db()
         item._concept_ptr.refresh_from_db()
 
@@ -53,8 +51,16 @@ def generate_item_test(model):
         for field in get_concept_fields(model):
             value = field.value_from_object(item)
 
-            # Unify cases and whitespace
-            field_name = normalize_string(field.name.replace("_", ""))
+            # Transform fields if necessary
+            transform_exists = False
+            if model.__name__ in self.field_transforms:
+                transform_exists = field.name in self.field_transforms[model.__name__].keys()
+
+            if transform_exists:
+                field_name = normalize_string(self.field_transforms[model.__name__][field.name])
+            else:
+                field_name = normalize_string(field.name.replace("_", ""))
+
             content = normalize_string(str(response.content))
 
             if value is not None:
@@ -94,3 +100,8 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
         'symbol',
         'modified'
     ]
+    field_transforms = {'ValueDomain': {'maximum_length': 'MaximumCharacterLength'},
+                        'Indicator': {'computation_description': 'Description',
+                                      'numerator_description': 'Description',
+                                      'denominator_description': 'Description',
+                                      'disaggregation_description': 'Description'}}
