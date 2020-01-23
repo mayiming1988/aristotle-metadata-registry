@@ -82,6 +82,8 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages, TestCase)
         self.wg1.giveRoleToUser('viewer', self.viewer3)
         self.wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
 
+    # TODO addtest: test for creating a discussion post with linked metadata
+
     def can_the_current_logged_in_user_toggle_post(self):
         post = models.DiscussionPost.objects.create(author=self.viewer, workgroup=self.wg1, title="test", body="test")
         self.assertEqual(post.closed, False)

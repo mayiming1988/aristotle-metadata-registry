@@ -26,6 +26,14 @@ class ComparatorTester(utils.LoggedInViewPages):
     def test_concept_with_no_version_handled(self):
         pass
 
+    def test_user_can_compare_different_dss_objects(self):
+        pass
+        # TODO: Make a test that compares two DSS's and identifies different Data Elements
+
+    def test_user_can_compare_different_distribution_objects(self):
+        pass
+        # TODO: Make a test that compares two Distributions and identifies different Data Elements
+
     def test_version_comparator(self):
         return True
         # TODO: complete

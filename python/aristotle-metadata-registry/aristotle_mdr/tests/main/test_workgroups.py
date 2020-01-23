@@ -308,6 +308,9 @@ class WorkgroupListTests(utils.LoggedInViewPages, TestCase):
 
 
 class WorkgroupMemberTests(utils.LoggedInViewPages, TestCase):
+
+    # TODO addtest: test for viewing a list of known items in a workgroup
+
     def test_userCanLeaveWorkgroup(self):
         self.login_viewer()
         response = self.client.get(self.wg1.get_absolute_url())

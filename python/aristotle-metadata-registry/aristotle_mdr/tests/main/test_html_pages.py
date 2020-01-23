@@ -677,6 +677,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
+        # TODO: Test user cannot add to workgroup they aren't a member of
+
     def test_non_existent_item_404(self):
         response = self.reverse_get(
             'aristotle:item',
@@ -1735,6 +1737,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertFormError(response, 'form', 'state',
                              'Select a valid choice. 343434 is not one of the available choices.')
 
+    # TODO addtest: future dating a registration
+
     def registrar_can_change_status_with_review(self, cascade):
         # If not running cascade tests return
         if not hasattr(self, "run_cascade_tests") and cascade:
@@ -2680,7 +2684,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
 
     def test_weak_editing_in_advanced_editor_dynamic(self):
         self.item1 = self.create_linked_ded()
-        # TODO: fix this test
+        # TODO fixtest: fix this test
         # super().test_weak_editing_in_advanced_editor_dynamic()
 
     def create_linked_ded(self):
@@ -2708,6 +2712,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         return self.ded
 
     def derivation_m2m_concepts_save(self, url, attr):
+        # TODO fixtest: have test actually use this function, or test the equivalent
         self.de1 = models.DataElement.objects.create(name='DE1 - visible', definition="my definition",
                                                      workgroup=self.wg1)
         self.de2 = models.DataElement.objects.create(name='DE2 - not visible', definition="my definition",
@@ -2793,6 +2798,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
 
     def derivation_m2m_formset(self, url, attr, prefix='form', item_add_field='item_to_add', add_itemdata=False,
                                extra_postdata=None):
+        # TODO fixtest: have test actually use this function, or test the equivalent
 
         self.de1 = models.DataElement.objects.create(name='DE1 - visible', definition="my definition",
                                                      workgroup=self.wg1)

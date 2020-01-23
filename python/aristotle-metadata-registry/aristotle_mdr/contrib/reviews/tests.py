@@ -138,6 +138,10 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         rr.concepts.add(self.item)
         return rr
 
+    def test_create_review_request(self):
+        # TODO: Confirm that a user can submit a review request
+        pass
+
     def test_view_review_request(self):
         rr = self.create_single_item_review_request(MDR.STATES.standard)
         self.login_editor()
@@ -199,6 +203,9 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_request_visible_multiple_registrars(self):
+        # TODO fixtest: make this test check that both users can see the review
+        # Only checks user1 can see the review, user1 also created the review
+
         # create 2 users
         user = get_user_model().objects.create_user(
             email='example@example.com',
@@ -496,6 +503,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
+        # TODO: Check if notification sent to user
 
     @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_supersedes_status_applied(self):
