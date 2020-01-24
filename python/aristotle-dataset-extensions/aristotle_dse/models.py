@@ -65,12 +65,6 @@ class Dataset(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('Date of formal issuance (e.g., publication) of the catalog.'),
         )
-    # publisher_record = models.ForeignKey(
-    #     aristotle.models.OrganizationRecord,
-    #     verbose_name=_("Publisher"),
-    #     blank=True, null=True,
-    #     help_text=_('An entity responsible for making the dataset available.'),
-    #     )
     frequency = models.TextField(
         blank=True, null=True,
         help_text=_('The frequency at which dataset is published.'),
@@ -92,10 +86,6 @@ class Dataset(aristotle.models.concept):
     landing_page = models.URLField(
         blank=True, null=True,
         help_text=_('A Web page that can be navigated to in a Web browser to gain access to the dataset, its distributions and/or additional information'),
-        )
-    contact_point = models.TextField(
-        blank=True, null=True,
-        help_text=_('The temporal period that the dataset covers.'),
         )
     dct_modified = models.DateTimeField(
         blank=True, null=True,

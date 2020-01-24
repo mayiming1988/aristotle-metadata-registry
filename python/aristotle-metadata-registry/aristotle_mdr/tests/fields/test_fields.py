@@ -101,7 +101,7 @@ class FieldsTestCase(AristotleTestUtils, TestCase, metaclass=FieldsMetaclass):
         'submitter',
         'symbol',
         'modified',
-        'dct_modified'  # Data Catalog Modified
+        'dct_modified', # Data Catalog Modified
     ]
     # Fields on the model that do not have a heading
     no_heading_fields = [
