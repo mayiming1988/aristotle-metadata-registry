@@ -22,7 +22,6 @@ from aristotle_mdr.widgets.bootstrap import (
     BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect,
     BootstrapDateTimePicker,
-    BootstrapDropdownSearchCategoriesSelect
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps

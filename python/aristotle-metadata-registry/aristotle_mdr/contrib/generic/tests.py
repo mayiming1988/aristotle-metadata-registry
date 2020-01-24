@@ -57,8 +57,8 @@ class VueFormTestCase(TestCase):
 
     def test_tags_correct(self):
         fields = self.get_fields()
-        self.assertEqual(fields['name']['tag'], 'input')
-        self.assertEqual(fields['description']['tag'], 'input')
+        self.assertEqual(fields['name']['tag'], 'textarea')
+        self.assertEqual(fields['description']['tag'], 'textarea')
         self.assertEqual(fields['fruit']['tag'], 'select')
 
     def test_labels_correct(self):

@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
@@ -426,7 +426,15 @@ def get_concept_name_to_content_type() -> Dict[str, ContentType]:
 
 
 def get_content_type_to_concept_name() -> Dict[str, str]:
-    return {str(content_type).replace(" ", ""): content_type.name.title()
+    """
+    This function returns a Dictionary object containing key value pairs of the content types (in lowercase and without
+    blank spaces) and their corresponding concept name (capitalised and with blank spaces).
+    :return: Dict
+
+        e.g.: {'datacatalog': 'Data Catalog', 'dataset': 'Dataset', 'qualitystatement': 'Quality Statement', ... }
+
+    """
+    return {str(content_type).replace(" ", "").lower(): content_type.name.title()
             for content_type in get_concept_content_types().values()}
 
 

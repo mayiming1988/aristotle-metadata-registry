@@ -1,14 +1,7 @@
 from braces.views import PermissionRequiredMixin
-from typing import Optional
-
-from django.conf import settings
-from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from aristotle_mdr import perms
-from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.issues.models import IssueLabel
 from aristotle_mdr.contrib.issues.forms import IssueLabelEditForm
 from aristotle_mdr.views.utils import UserFormViewMixin

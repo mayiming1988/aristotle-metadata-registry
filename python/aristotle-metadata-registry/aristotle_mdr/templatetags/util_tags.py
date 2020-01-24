@@ -1,6 +1,5 @@
 from typing import Union, List
 from django import template
-from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings

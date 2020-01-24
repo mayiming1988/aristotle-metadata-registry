@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import dj_database_url
-from typing import List, Tuple
+from typing import List
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
