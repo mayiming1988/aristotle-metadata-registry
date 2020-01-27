@@ -41,9 +41,7 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
 
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
-        with self.modify_settings(ARISTOTLE_SETTINGS={
-            'append': 'comet'
-        }):
+        with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
             self.data_set_specification = DSE.DataSetSpecification.objects.create(
                 name='Person DSS',
                 definition='A data set specification about people',
