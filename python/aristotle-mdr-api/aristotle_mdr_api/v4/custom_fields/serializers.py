@@ -74,7 +74,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
         return CustomField.objects.create(**validated_data)
 
-    def update(self, instance, validated_data ) -> CustomField:
+    def update(self, instance, validated_data) -> CustomField:
         instance.order = validated_data.get('order', instance.order)
         instance.name = validated_data.get('name', instance.name)
         instance.type = validated_data.get('type', instance.type)

@@ -1,5 +1,5 @@
 from aristotle_mdr.utils.text import truncate_words
-from typing import Optional, List, Dict, Tuple, Any, Union, Callable
+from typing import List, Dict, Tuple, Any, Union, Callable
 from django.conf import settings
 from django.urls import reverse
 from collections import defaultdict

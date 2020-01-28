@@ -1,6 +1,4 @@
 from django.conf.urls import url
-from django.urls import path
-
 from aristotle_mdr.contrib.browse import views
 
 urlpatterns = [

@@ -2,7 +2,6 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView, CreateView, UpdateView, DetailView, DeleteView
 )

@@ -1,3 +1,4 @@
+import json
 from django.test import TestCase
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
@@ -46,29 +47,33 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
         )
         return cf
 
-    def test_custom_fields_list(self):
-        cf1 = CustomField.objects.create(
+    def test_custom_fields_edit(self):
+        object_class_ctype = ContentType.objects.get(app_label="aristotle_mdr", model="objectclass")
+        CustomField.objects.create(
             order=0,
             name='CF1',
             type='str',
-            help_text='Custom Field 1'
+            help_text='Custom Field 1',
+            allowed_model=object_class_ctype,
         )
-        cf2 = CustomField.objects.create(
+        CustomField.objects.create(
             order=1,
             name='CF2',
             type='str',
-            help_text='Custom Field 2'
+            help_text='Custom Field 2',
+            allowed_model=object_class_ctype,
         )
 
         self.login_superuser()
         response = self.reverse_get(
-            'aristotle_custom_fields:list',
-            status_code=200
+            'aristotle_custom_fields:edit',
+            status_code=200,
+            reverse_args=["objectclass"],
         )
-        flist = response.context['list']
+        edit_fields = json.loads(response.context['vue_initial'])
 
-        self.assertEqual(flist[0]['attrs'][0], 'CF1')
-        self.assertEqual(flist[1]['attrs'][0], 'CF2')
+        self.assertEqual(edit_fields[0]['name'], 'CF1')
+        self.assertEqual(edit_fields[1]['name'], 'CF2')
 
     def test_custom_field_delete(self):
         cf = self.create_test_field_with_values()

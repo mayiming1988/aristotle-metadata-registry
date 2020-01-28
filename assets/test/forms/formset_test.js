@@ -1,8 +1,6 @@
 import chai from 'chai'
 const assert = chai.assert
 import VueTestUtils from '@vue/test-utils'
-
-
 import Formset from '@/djforms/formSet.vue'
 
 describe('FormSet', function() {
@@ -34,7 +32,7 @@ describe('FormSet', function() {
         let fields = {name: {default: 'wow'}, desc: {}, type: {default: 'swell'}}
         let wrapper = getWrapper([], fields)
         
-        let expectedDefault = {name: 'wow', type: 'swell', vid: 0, new: true}
+        let expectedDefault = {name: 'wow', type: 'swell', vid: 0, new: true, allowed_model: ''}
         assert.deepEqual(wrapper.vm.default, expectedDefault)
     })
 
@@ -60,7 +58,7 @@ describe('FormSet', function() {
 
         assert.equal(wrapper.vm.formsData.length, 0)
         wrapper.vm.addRow()
-        assert.deepEqual(wrapper.vm.formsData, [{name: 'MyName', vid: 0, new: true}])
+        assert.deepEqual(wrapper.vm.formsData, [{name: 'MyName', vid: 0, new: true, allowed_model: ''}])
     })
 
     it('deletes row', function() {
