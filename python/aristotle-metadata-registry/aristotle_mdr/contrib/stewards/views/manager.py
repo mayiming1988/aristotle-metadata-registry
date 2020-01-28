@@ -38,17 +38,21 @@ class ListCollectionsBase(ListView):
     model = Collection
 
 
-class ManagedItemViewMixin:
+class ManagedItemViewMixin(StewardGroupMixin, HasRolePermissionMixin):
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.check_permissions(request):
+            raise PermissionDenied
+
+        self.model = self.get_model_class(request)
+        return super().dispatch(request, *args, **kwargs)
+
     def get_model_class(self, request):
         model_name = self.kwargs.get("model_name").lower()
         self.model = ContentType.objects.get(model=model_name).model_class()
         if not issubclass(self.model, ManagedItem):
             raise Http404
         return self.model
-
-    def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model_class(request)
-        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         kwargs.update({
@@ -58,9 +62,7 @@ class ManagedItemViewMixin:
         return super().get_context_data(**kwargs)
 
     def get_queryset(self):
-        self.model = self.get_model_class(self.request)
-        self.queryset = self.model.objects.all().visible(self.request.user).order_by("name")
-        return super().get_queryset()
+        return self.model.objects.all().visible(self.request.user).order_by("name")
 
 
 class StewardURLManager(GroupURLManager):
@@ -356,7 +358,7 @@ class StewardURLManager(GroupURLManager):
         return Browse.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_create_view(self):
-        class CreateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, CreateView):
+        class CreateManagedItemView(ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
             role_permission = "manage_managed_items"
             fields=["stewardship_organisation", "name", "definition"]
@@ -369,11 +371,14 @@ class StewardURLManager(GroupURLManager):
         return CreateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_edit_view(self):
-        class UpdateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, UpdateView):
+        class UpdateManagedItemView(ManagedItemViewMixin, UpdateView):
             template_name = "stewards/managed_item/edit.html"
             role_permission = "manage_managed_items"
             fields=["name", "definition"]
             pk_url_kwarg = "mi_pk"
+
+            def get_queryset(self):
+                return self.model.objects.all().editable(self.request.user)
 
         return UpdateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
@@ -398,7 +403,7 @@ class StewardURLManager(GroupURLManager):
         return ListManagedItemTypesList.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_list_items(self):
-        class ListManagedItems(StewardGroupMixin, HasRolePermissionMixin, ManagedItemViewMixin, ListView):
+        class ListManagedItems(ManagedItemViewMixin, ListView):
             current_group_context = "managed"
             role_permission = "view_group"
             template_name = "stewards/managed_item/list_items.html"
@@ -406,7 +411,9 @@ class StewardURLManager(GroupURLManager):
             paginate_by = 50
 
             def get_queryset(self):
-                return super().get_queryset().filter(stewardship_organisation=self.get_group()).visible(self.request.user).order_by('name')
+                return self.model.objects.all().filter(
+                    stewardship_organisation=self.get_group()
+                ).visible(self.request.user).order_by('name')
 
         return ListManagedItems.as_view(manager=self, group_class=self.group_class)
 
