@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+class BaseGroupsTestCase(utils.AristotleTestUtils):
     def setUp(self):
         super().setUp()
         cache.clear()
@@ -46,16 +46,16 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         )
 
     def get_url_from_email(self, email_content):
-            start = email_content.find('http://')
-            end = email_content.find('\n', start)
-            accept_url = email_content[start:end]
+        start = email_content.find('http://')
+        end = email_content.find('\n', start)
+        accept_url = email_content[start:end]
 
-            return accept_url[7:]
+        return accept_url[7:]
 
 
 @tag('invite_stewardship_user')
 @skip("Skipped until we have time to fix inviting")
-class InviteUserToStewardGroup(BaseStewardOrgsTestCase, TestCase):
+class InviteUserToStewardGroup(BaseGroupsTestCase, TestCase):
     def test_created_user_is_added_to_stewardship_org(self):
         self.login_superuser()
 

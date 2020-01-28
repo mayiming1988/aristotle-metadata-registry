@@ -13,7 +13,8 @@ from aristotle_mdr.tests import utils
 User = get_user_model()
 
 
-class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+class TestPrivatePermissions(TestCase):
+
     def setUp(self):
         super().setUp()
 
@@ -84,64 +85,62 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
             workgroup=self.regular_wg,
         )
 
-
-class TestPrivatePermissions(BaseStewardOrgsTestCase, TestCase):
     def test_metadata_permissions(self):
         self.assertTrue(
-            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)
         )
         self.assertTrue(
-            self.regular_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+            self.regular_oc not in models.ObjectClass.objects.all().visible(self.oscar)
         )
         self.assertTrue(
-            self.private_oc not in models.ObjectClass.objects.all().visible(self.pyle)    
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.pyle)
         )
         self.assertTrue(
-            self.regular_oc not in models.ObjectClass.objects.all().visible(self.pyle)    
+            self.regular_oc not in models.ObjectClass.objects.all().visible(self.pyle)
         )
 
         self.private_ra.register(
             item=self.private_oc,
             state=models.STATES.standard,
             user=self.su,
-            registrationDate=(timezone.now()-timedelta(days=5)).date()
+            registrationDate=(timezone.now() - timedelta(days=5)).date()
         )
         self.regular_ra.register(
             item=self.regular_oc,
             state=models.STATES.standard,
             user=self.su,
-            registrationDate=(timezone.now()-timedelta(days=5)).date()
+            registrationDate=(timezone.now() - timedelta(days=5)).date()
         )
         self.private_ra.register(
             item=self.regular_oc,
             state=models.STATES.standard,
             user=self.su,
-            registrationDate=(timezone.now()-timedelta(days=5)).date()
+            registrationDate=(timezone.now() - timedelta(days=5)).date()
         )
         self.regular_ra.register(
             item=self.private_oc,
             state=models.STATES.standard,
             user=self.su,
-            registrationDate=(timezone.now()-timedelta(days=5)).date()
+            registrationDate=(timezone.now() - timedelta(days=5)).date()
         )
 
         self.assertTrue(
-            self.private_oc not in models.ObjectClass.objects.all().visible(None)    
+            self.private_oc not in models.ObjectClass.objects.all().visible(None)
         )
         self.assertTrue(
-            self.regular_oc in models.ObjectClass.objects.all().visible(None)    
+            self.regular_oc in models.ObjectClass.objects.all().visible(None)
         )
         self.assertTrue(
-            self.private_oc in models.ObjectClass.objects.all().visible(self.pyle)    
+            self.private_oc in models.ObjectClass.objects.all().visible(self.pyle)
         )
         self.assertTrue(
-            self.regular_oc in models.ObjectClass.objects.all().visible(self.pyle)    
+            self.regular_oc in models.ObjectClass.objects.all().visible(self.pyle)
         )
         self.assertTrue(
-            self.regular_oc in models.ObjectClass.objects.all().visible(self.oscar)    
+            self.regular_oc in models.ObjectClass.objects.all().visible(self.oscar)
         )
         self.assertTrue(
-            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)
         )
 
     def test_ra_permissions(self):
@@ -150,13 +149,13 @@ class TestPrivatePermissions(BaseStewardOrgsTestCase, TestCase):
             self.oscar not in self.private_ra.stewardship_organisation.member_list
         )
         self.assertTrue(
-            self.private_ra not in RA.objects.all().visible(self.oscar)    
+            self.private_ra not in RA.objects.all().visible(self.oscar)
         )
         self.assertTrue(
-            self.regular_ra in RA.objects.all().visible(self.oscar)    
+            self.regular_ra in RA.objects.all().visible(self.oscar)
         )
         self.assertTrue(
-            self.private_ra in RA.objects.all().visible(self.pyle)    
+            self.private_ra in RA.objects.all().visible(self.pyle)
         )
         self.assertTrue(
             self.regular_ra in RA.objects.all().visible(self.pyle)

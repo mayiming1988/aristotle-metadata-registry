@@ -11,6 +11,7 @@ User = get_user_model()
 
 
 class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+
     def setUp(self):
         super().setUp()
 
