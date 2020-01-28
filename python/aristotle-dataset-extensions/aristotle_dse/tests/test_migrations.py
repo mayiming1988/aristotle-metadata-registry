@@ -81,8 +81,8 @@ class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
 class TestDSSGroupingLinkedGroupThroughTable(MigrationsTestCase, TestCase):
     app = 'aristotle_dse'
     migrate_from = [
-        ('aristotle_mdr', '0084_remove_temp_field'),
-        ('aristotle_dse', '0037_create_new_through_tables'),
+        ('aristotle_mdr', '0085_remove_temp_field'),
+        ('aristotle_dse', '0038_create_new_through_tables'),
     ]
     migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
 
@@ -166,8 +166,8 @@ class TestDSSGroupingLinkedGroupThroughTable(MigrationsTestCase, TestCase):
 class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, TestCase):
     app = 'aristotle_dse'
     migrate_from = [
-        ('aristotle_mdr', '0084_remove_temp_field'),
-        ('aristotle_dse', '0037_create_new_through_tables'),
+        ('aristotle_mdr', '0085_remove_temp_field'),
+        ('aristotle_dse', '0038_create_new_through_tables'),
     ]
     migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
 
@@ -243,8 +243,8 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
 class TestDistributionDataElementPathSpecialisationClassesThroughTable(MigrationsTestCase, TestCase):
     app = 'aristotle_dse'
     migrate_from = [
-        ('aristotle_mdr', '0084_remove_temp_field'),
-        ('aristotle_dse', '0037_create_new_through_tables'),
+        ('aristotle_mdr', '0085_remove_temp_field'),
+        ('aristotle_dse', '0038_create_new_through_tables'),
     ]
     migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
 
@@ -347,8 +347,8 @@ class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCa
 
 class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(
     UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
-    migrate_from = '0042_add_temp_field'
-    migrate_to = '0043_copy_and_paste_foreign_value'
+    migrate_from = '0043_add_temp_field'
+    migrate_to = '0044_copy_and_paste_foreign_value'
 
     def setUpBeforeMigration(self, apps):
 
@@ -395,8 +395,8 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(
 
 
 class TestDSSGroupingUUIDForeignKey(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
-    migrate_from = '0045_add_foreign_key_field'
-    migrate_to = '0046_copy_and_paste_to_foreign_key'
+    migrate_from = '0046_add_foreign_key_field'
+    migrate_to = '0047_copy_and_paste_to_foreign_key'
 
     def setUpBeforeMigration(self, apps):
         super().setUpBeforeMigration(apps)
