@@ -41,9 +41,9 @@
             {% if item_a and item_b %}
             <tbody>
                 <tr>
-                    <td><a href="{{item_a.get_absolute_url}}">{{item_a}}</a></td>
+                    <td><a href="{{ item_a.get_absolute_url }}">{{item_a}}</a></td>
                     <td>To</td>
-                    <td><a href="{{item_b.get_absolute_url}}">{{item_b}}</a></td>
+                    <td><a href="{{ item_b.get_absolute_url }}">{{item_b}}</a></td>
                     <td>
                         <a href="?item_a={{item_b.pk}}&item_b={{item_a.pk}}" title="Reverse order"><i class="fa fa-retweet"></i>
                         </a>

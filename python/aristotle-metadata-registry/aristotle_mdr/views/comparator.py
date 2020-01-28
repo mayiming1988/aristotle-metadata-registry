@@ -117,6 +117,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
     def get_context_data(self, **kwargs):
         if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
             # Not all concepts selected
+            self.context['not_all_versions_selected'] = True
             self.context['form'] = self.get_form()
             return self.context
 

@@ -449,7 +449,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     hidden_diff_fields = ['modified', 'created', 'uuid', 'serialized_model', 'parent_dss']
 
     differ = diff_match_patch.diff_match_patch()
-
     raw = False
     comparing_different_formats = False
 
