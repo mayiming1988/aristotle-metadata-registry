@@ -1,0 +1,29 @@
+{% extends "aristotle_mdr/user/workgroups/base.html" %}
+{% block workgroup_page %}
+    {% if not object_list %}
+        <p>There are no items in this workgroup</p>
+        <hr>
+    {% else %}
+        <p class="margin-above">Showing {{ num_issues }} issue{{num_issues|pluralize}}.</p>
+    <hr>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <th>Item</th>
+            <th>Issues</th>
+        </thead>
+            {% for item, issues in object_list.items %}
+            <tr>
+             <td>
+                {% include "aristotle_mdr/helpers/itemLink.html" with item=item skip_can_view=skip_can_view %}
+                <div class="small" style="white-space: nowrap;">
+                    {{ item.item_type_name }}
+                </div>
+            </td>
+            <td>
+                {% include 'aristotle_mdr/helpers/issues_list.html' with issues=issues %}
+            </td>
+            </tr>
+            {% endfor %}
+    </table>
+    {% endif %}
+{% endblock %}

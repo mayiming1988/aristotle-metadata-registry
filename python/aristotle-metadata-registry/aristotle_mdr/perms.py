@@ -1,7 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils.utils import item_is_visible_to_user
+
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 import logging
@@ -9,6 +13,43 @@ logger = logging.getLogger(__name__)
 
 VIEW_CACHE_SECONDS = 60
 EDIT_CACHE_SECONDS = 60
+
+
+def user_can(user, item, method_name):
+    """When custom methods are required"""
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    method = getattr(item, method_name)
+    if callable(method):
+        return method(user)
+
+    return False
+
+
+def get_item_if_user_can(obj_type, user, iid, permission_type):
+    """
+    The purpose of this function is to get an item if the user has a particular permission type.
+    If the user does not have the permission specified in permission_type, a PermissionDenied error is raised.
+
+    usage:
+
+        get_item_if_user_can(MDR._concept, request.user, kwargs.get("iid"), perms.user_can_supersede)
+
+    :param obj_type: Class or model of the item to be checked.
+    :param user: User instance.
+    :param iid: String or Int ID of the object instance.
+    :param permission_type: Function. Permission type function.
+    :return: Item
+    """
+    item = get_object_or_404(obj_type, pk=iid)
+    if permission_type(user, item):
+        return item
+    else:
+        raise PermissionDenied
 
 
 def user_can_alter_comment(user, comment):
@@ -57,21 +98,6 @@ def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():
             return True
-    return False
-
-
-def user_can(user, item, method_name):
-    """When custom methods are required"""
-    if user.is_superuser:
-        return True
-
-    if user.is_anonymous:
-        return False
-
-    method = getattr(item, method_name)
-    if callable(method):
-        return method(user)
-
     return False
 
 
@@ -147,6 +173,13 @@ def user_can_submit_to_workgroup(user, workgroup):
 
 
 def user_is_registrar(user, ra=None):
+    """
+    This function can be used to check whether a user is associated with ANY Registration Authority or associated with a
+    specific Registration Authority.
+    :param user: User object.
+    :param ra: (Optional) Registration Authority object.
+    :return: Boolean
+    """
     if user.is_anonymous:
         return False
     if user.is_superuser:
@@ -170,27 +203,18 @@ def user_is_registation_authority_manager(user, ra=None):
 
 def user_can_add_status(user, item):
     """Can the user add a status to this item in some RA"""
+
     if user.is_anonymous:
         return False
+
     if user.is_superuser:
         return True
 
-    # If this item has any requested reviews for a registration authority this user is a registrar of:
-    if item.rr_review_requests.visible(user):
-        return True
+    if user.profile.registrar_count < 1:  # If the user is not associated with any Registration Authority.
+        return False
 
-    # Get proposed supersedes in ra's where the user is a registrar and the older item is this item
-    ss_items = item.superseded_by_items_relation_set.filter(
-        Q(proposed=True),
-        Q(registration_authority__registrars__profile__user=user)
-    )
-    # If these exist user can change status on the item
-    if ss_items.exists():
+    if user.profile.is_registrar and item_is_visible_to_user(user, item):
         return True
-
-    if user.profile.is_registrar and item.is_public():
-        return True
-
     return False
 
 
@@ -404,6 +428,9 @@ def user_can_move_any_workgroup(user):
 def user_can_move_any_stewardship_organisation(user):
     """Checks if a user can move an item from any of their stewardship organisations"""
     from aristotle_mdr.models import StewardOrganisation
+    if user.is_anonymous:
+        return False
+
     if user.is_superuser:
         return True
     else:

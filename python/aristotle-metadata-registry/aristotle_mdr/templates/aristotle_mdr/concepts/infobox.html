@@ -55,16 +55,14 @@
                     <dd>
                         {% if request.user.is_authenticated %}
                             {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
-                                </time>
+                              {% timefromtag last_edit.revision.date_created %}
                             {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
-                                </time>
+                              {% timefromtag last_edit.revision.date_created %}
+                            {% else %}
+                              {% timetag last_edit.revision.date_created %}
                             {% endif %}
                         {% else %}
-                            <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
-                                {{ last_edit.revision.date_created|naturaltime }}
-                            </time>
+                            {% timetag last_edit.revision.date_created %}
                         {% endif %}
                         {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
                             <span style="display:inline-block">
@@ -79,41 +77,44 @@
                         {% endif %}
                     </dd>
                     <dt>{% trans 'Created'%}</dt>
-                    <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|isotime }}">{{ item.created|date:'o-m-d' }}</time></dd>
+                    <dd>
+                      {% timetag item.created %}
+                    </dd>
 
                     {% block asideContent %}{% endblock %}
 
                     {% if not hide_item_supersedes %}
-                        <dt class="large">{% trans 'Supersedes'%}
-                        </dt>
+                        <dt class="large">{% trans 'Supersedes'%}</dt>
                         <dd class="large">
-                            <ul>
-                                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-                                {% for suprel in item|visible_supersedes_items:request.user %}
+                        <ul>
+                            {% for suprel in item|visible_supersedes_items:request.user %}
+                            <li>
+                                <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                                    {{ suprel.older_item.name }}
+                                </a>
+                                <ul>
+                                    {% for rel in suprel.rels %}
                                     <li>
-                                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
-                                            {{ suprel.older_item.name }}
-                                        </a>
-                                        <ul>
-                                            {% for rel in suprel.rels %}
-                                                <li>
-                              <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                {{ rel.registration_authority.name }}
-                              </span>,
-                                                    <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
-                                                    {{ rel.message }}
-                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
+                                        <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                            {{ rel.registration_authority.name }}
+                                        </span>
+                                        {% if rel.date_effective %}
+                                            ,
+                                            {% timetag rel.date_effective %} 
+                                        {% endif %}
+                                        -
+                                        {{ rel.message }}
+                                        {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
                                     </li>
-                                {% empty %}
-                                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
-                                {% endfor %}
-                            </ul>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                          {% empty %}
+                          <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                          {% endfor %}
+                        </ul>
                         </dd>
-                        <dt class="large">{% trans 'Superseded by'%}
-                        </dt>
+                        <dt class="large">{% trans 'Superseded by' %}</dt>
                         <dd class="large">
                             <ul>
                                 {% for suprel in item|visible_superseded_by_items:request.user %}
@@ -125,8 +126,12 @@
                                             {% for rel in suprel.rels %}
                                                 <li>
                                                     <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                                        {{ rel.registration_authority.name }},
-                                                    </span> <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                                        {{ rel.registration_authority.name }}
+                                                    </span>
+                                                    {% if rel.date_effective %}
+                                                        , 
+                                                        {% timetag rel.date_effective %}
+                                                    {% endif %}
                                                     {% if rel.message %} - {{ rel.message }} {% endif %}
                                                     {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
                                                 </li>
@@ -139,7 +144,8 @@
                             </ul>
                         </dd>
                     {% endif %}
-                    <dt class="large">{% trans 'Collections' %} </dt>
+
+                    <dt class="large">{% trans 'Collections' %}</dt>
                     <ul>
                         {% for collection in item.collection_set.all|can_view_iter:request.user %}
                             <li>
@@ -149,7 +155,6 @@
                             <li><em>None</em></li>
                         {% endfor %}
                     </ul>
-
 
                     {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
                         <hr>

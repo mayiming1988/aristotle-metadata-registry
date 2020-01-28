@@ -1,8 +1,6 @@
 {% extends "aristotle_mdr/helpers/wizard_form_modal.html" %}
 
-{% load aristotle_tags %}
-{% load i18n %}
-{% load static %}
+{% load aristotle_tags i18n static %}
 {% load render_bundle from webpack_loader %}
 
 {% block title %}Change Status{% endblock %}
@@ -30,19 +28,22 @@
 {% endblock %}
 
 {% block form_tag %}
-    <form method="post" action="{% url 'aristotle_mdr:changeStatus' item.id %}">
+    <form class="form-horizontal" method="post" action="{% url 'aristotle_mdr:changeStatus' item.id %}">
 {% endblock %}
 
 {% block form %}
-    <ol class="breadcrumb">
-        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-        <li class="active">Change registation status</li>
-    </ol>
+    {% if not request.is_ajax %}
+        <ol class="breadcrumb">
+            <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+            <li class="active">Change registration status</li>
+        </ol>
+    {% endif %}
 
-    <header>This form allows you to change the status of multiple items in your registration authorities.
+    <header>
+        This form allows you to create registration statuses for items in your registration authorities.
     </header>
+    <hr>
     <div>
-
         {{ wizard.form.items }}
     </div>
     <div id="visibilty">

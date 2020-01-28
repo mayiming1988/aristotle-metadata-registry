@@ -1,17 +1,19 @@
+{% load aristotle_tags %}
+
 {% if raw %}
     {% if difference.0 == -1 %}
-        <del>{{ difference.1 }}</del>
+        <del>{% transform_difference difference.1 }}</del>
     {% elif difference.0 == 1 %}
-        <ins>{{ difference.1 }}</ins>
+        <ins>{% transform_difference difference.1 %}</ins>
     {% else %}
-        {{ difference.1 }}
+        {% transform_difference difference.1 %}
     {% endif %}
 {%  else %}
     {% if difference.0 == -1 %}
-        <del>{{ difference.1|safe }}</del>
+        <del>{% transform_difference difference.1 %}</del>
     {% elif difference.0 == 1 %}
-        <ins>{{ difference.1|safe }}</ins>
+        <ins>{% transform_difference difference.1 %}</ins>
     {% else %}
-        {{ difference.1|safe }}
+        {% transform_difference difference.1 %}
     {% endif %}
 {% endif %}

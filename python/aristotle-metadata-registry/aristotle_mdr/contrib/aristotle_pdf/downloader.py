@@ -3,7 +3,7 @@ from io import BytesIO
 
 from django.conf import settings
 from django.template.loader import select_template, get_template, render_to_string
-from django.core.files.base import File, ContentFile
+from django.core.files.base import File
 
 from aristotle_mdr.downloader import HTMLDownloader
 from aristotle_mdr.utils import fetch_aristotle_settings
@@ -137,12 +137,14 @@ class PDFDownloader(GenericPDFDownloader):
     download_type = "pdf"
 
     default_wk_options = {
-        '--page-offset': -1,  # Make the table of contents start at 1
         '--margin-top': '10mm',
         '--margin-bottom': '5mm',
     }
 
     preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
+    # Footer used when cover page is on
+    cover_footer_template = 'aristotle_mdr/downloads/html/cover_footer.html'
+    # Standard footer
     footer_template = 'aristotle_mdr/downloads/html/footer.html'
 
     def __init__(self, *args, **kwargs):
@@ -150,16 +152,20 @@ class PDFDownloader(GenericPDFDownloader):
 
         # Set dynamic options
         self.wk_options = self.default_wk_options.copy()
-        # Get path to footer template
-        footer_template_path = os.path.join(settings.MDR_BASE_DIR, 'templates', self.footer_template)
-        self.wk_options['--footer-html'] = os.path.abspath(footer_template_path)
+        # Get path to footer templates
+        self.cover_footer_path = os.path.abspath(
+            os.path.join(settings.MDR_BASE_DIR, 'templates', self.cover_footer_template)
+        )
+        self.footer_path = os.path.abspath(
+            os.path.join(settings.MDR_BASE_DIR, 'templates', self.footer_template)
+        )
 
         # Set pdf page size
         aristotle_settings = fetch_aristotle_settings()
         if 'DOWNLOAD_OPTIONS' in aristotle_settings:
             self.wk_options['--page-size'] = aristotle_settings['DOWNLOAD_OPTIONS'].get('PDF_PAGE_SIZE', 'A4')
 
-        # Create configuration object so we can ser wkhtmltopdf binary location
+        # Create configuration object so we can set wkhtmltopdf binary location
         if settings.WKHTMLTOPDF_LOCATION is not None:
             self.wk_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_LOCATION)
         else:
@@ -180,7 +186,7 @@ class PDFDownloader(GenericPDFDownloader):
         title_temp_file = None
         cover = None
 
-        # If we are making a title, write to temp file
+        # If we are making a title
         if table_of_contents:
             # Add toc option so toc is generated
             toc_options['--toc-header-text'] = 'Table Of Contents'
@@ -191,6 +197,13 @@ class PDFDownloader(GenericPDFDownloader):
             title_temp_file.write(preamble_string.encode('utf-8'))
             # Set cover
             cover = title_temp_file.name
+            # Set options for fixing page numbers with 2 page cover
+            final_options['--page-offset'] = -1
+            final_options['--footer-html'] = self.cover_footer_path
+        else:
+            # If there is no cover / toc use standard footer
+            # otherwise page numbers will be incorrect
+            final_options['--footer-html'] = self.footer_path
 
         # Convert to pdf
         pdf: bytes = pdfkit.from_string(
@@ -199,7 +212,7 @@ class PDFDownloader(GenericPDFDownloader):
             cover=cover,
             cover_first=True,
             configuration=self.wk_config,
-            options=self.wk_options,
+            options=final_options,
             toc=toc_options
         )
 

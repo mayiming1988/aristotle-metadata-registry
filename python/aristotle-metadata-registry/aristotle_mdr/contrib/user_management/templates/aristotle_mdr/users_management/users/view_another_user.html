@@ -6,6 +6,17 @@
 {% endblock %}
 
 {% block page %}
+
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li>
+            <a href="{% url 'aristotle-user:registry_user_list' %}">User management</a>
+        </li>
+        <li class="active">View profile</li>
+    </ol>
+
 <h1>
 View profile for <em>{% firstof object.short_name object.full_name object.email %}</em>
 </h1>

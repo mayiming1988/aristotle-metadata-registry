@@ -18,10 +18,12 @@ class ItemGraphView(SimpleItemGet, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['activetab'] = 'graphs'
-        context['hide_item_actions'] = True
-        context['item'] = self.item.item
-        context['links_active'] = is_active_extension('aristotle_mdr_links')
+        context.update({
+            'activetab': 'graphs',
+            'hide_item_actions': True,
+            'item': self.item.item,
+            'links_active': is_active_extension('aristotle_mdr_links'),
+        })
         return context
 
 
@@ -68,12 +70,14 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['activetab'] = 'related'
-        context['current_relation'] = self.get_current_relation()
-        context['relational_attributes'] = self.item.item.relational_attributes
-        context['hide_item_actions'] = True
-        context['item'] = self.item.item
-        context['sort'] = self.get_sort()
+        context.update({
+            'activetab': 'related',
+            'current_relation': self.get_current_relation(),
+            'relational_attributes': self.item.item.relational_attributes,
+            'hide_item_actions': True,
+            'item': self.item.item,
+            'sort': self.get_sort()
+        })
         return context
 
 

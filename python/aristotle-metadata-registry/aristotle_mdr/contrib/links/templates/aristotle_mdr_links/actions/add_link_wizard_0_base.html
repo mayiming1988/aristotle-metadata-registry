@@ -18,6 +18,11 @@
     <div class="modal-body">
         {{wizard.management_form}}
         <ol class="breadcrumb">
+          <li>
+            <a href="{% url 'aristotle:item' root_item.pk %}">
+              {{ root_item.name }}
+            </a>
+          </li>
           <li class="active">Add new link</a></li>
         </ol>
         <h1>{% block form_title %}{% endblock %}</h1>
@@ -32,10 +37,9 @@
         {% endblock %}
         <div class="modal-footer">
           <a class="btn btn-default" href="{% url 'aristotle:item' root_item.id %}">Cancel</a>
-          {% if wizard.steps.prev %}
-            <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
-          {% endif %}
-          <input type="submit" class="btn btn-primary" value="{% block form_save_text %}Next{% endblock %}" />
+          <div class="btn-group" role="group" aria-label="Next & previous button group">
+              <input type="submit" class="btn btn-primary" value="{% block form_save_text %}Next{% endblock %}" />
+          </div>
         </div>
     </div>
     </form>

@@ -553,7 +553,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             help_text='Custom',
             order=0
         )
-
         postdata = utils.model_to_dict_with_change_time(self.item)
         postdata[cf.form_field_name] = 4
         response = self.reverse_post(
@@ -940,7 +939,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.workgroup, None)
 
     def test_submitter_can_save_via_edit_page_with_change_comment(self):
-
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
@@ -1194,10 +1192,11 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.wg_other.giveRoleToUser('submitter', self.editor)
 
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
-
         response = self.client.post(reverse('aristotle:edit_item', args=[self.item1.id]), updated_item)
 
         self.assertEqual(response.status_code, 302)
+        response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
+        updated_item = utils.model_to_dict_with_change_time(response.context['item'])
         updated_item['workgroup'] = str(self.wg2.pk)
         response = self.client.post(reverse('aristotle:edit_item', args=[self.item1.id]), updated_item)
         self.assertEqual(response.status_code, 200)
@@ -1303,19 +1302,23 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @tag('clone_item')
     def test_submitter_can_save_via_clone_page(self):
         self.login_editor()
+
         import time
-        time.sleep(
-            2)  # delays so there is a definite time difference between the first item and the clone on very fast test machines
+        time.sleep(2)  # Delay so there is a time difference between original item and new item
+
         response = self.client.get(reverse('aristotle:clone_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
+
         updated_item = self.get_updated_data_for_clone(response)
         updated_name = updated_item['name'] + " cloned!"
         updated_item['name'] = updated_name
-        response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
-        # most_recent = self.itemType.objects.order_by('-created').first()
-        most_recent = response.context[-1]['object']  # Get the item back to check
-        self.assertTrue(perms.user_can_view(self.editor, most_recent))
+        updated_item.update(utils.get_management_forms(self.item1, identifiers=True, slots=True))
 
+
+        response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
+        most_recent = response.context[-1]['object']  # Get the item back to check
+
+        self.assertTrue(perms.user_can_view(self.editor, most_recent))
         self.assertRedirects(response, url_slugify_concept(most_recent))
         self.assertEqual(most_recent.name, updated_name)
 
@@ -1333,6 +1336,9 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         updated_name = "CLONE" + updated_item['name'] + " cloned with no WG!"
         updated_item['name'] = updated_name
         updated_item['workgroup'] = ''  # no workgroup this time
+        updated_item.update(utils.get_management_forms(self.item1, identifiers=True, slots=True))
+
+
         response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), updated_item)
 
         self.assertTrue(response.status_code == 302)  # make sure its saved ok
@@ -1360,7 +1366,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             return utils.model_to_dict(item)
         else:
             weak_formsets = response.context['weak_formsets']
-
             weak = item.serialize_weak_entities
 
             # Serialize the on-field models
@@ -1412,10 +1417,10 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                                         # add a copy
                                         data.update({"%s-%d-%s" % (pre, i + 1, field): added_value})
                     data.pop("%s-%d-id" % (pre, i), None)
-
                 data.update({
                     "%s-TOTAL_FORMS" % pre: num_vals, "%s-INITIAL_FORMS" % 0: num_vals, "%s-MAX_NUM_FORMS" % pre: 1000,
                 })
+                # Add the management forms for each formset
             return data
 
     def test_help_page_exists(self):

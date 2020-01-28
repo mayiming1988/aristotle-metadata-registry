@@ -1,0 +1,154 @@
+name: Python
+on:
+  pull_request:
+    paths:
+      - 'python/**'
+      - 'Pipfile.lock'
+      - 'Pipfile'
+      - '.github/workflows/python.yaml' # Run on every change to itself
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  python_lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v1
+      - name: Setup Python 3.6
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - name: Install flake8
+        run: pip install flake8
+      - name: Lint
+        run: flake8
+
+  python_typing:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v1
+      - name: Setup Python 3.6
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - name: Install mypy
+        run: pip install mypy
+      - name: Type checking
+        shell: bash
+        run: |
+          mypy $(find ./python/ -maxdepth 3 -name '__init__.py' -printf '%h\n')
+
+  main_testing:
+    needs:
+      - python_lint
+      - python_typing
+    name: Main Testing
+    strategy:
+      matrix:
+        python_module:
+          - 'Aristotle Metadata Registry'
+          - 'Dataset Extensions'
+          - 'Comet Indicator Registry'
+          - 'GraphQL'
+          - 'API'
+
+        include:
+          - python_module: 'Aristotle Metadata Registry'
+            TOX_MODULE: amr
+
+          - python_module: 'Dataset Extensions'
+            TOX_MODULE: dse
+
+          - python_module: 'Comet Indicator Registry'
+            TOX_MODULE: cir
+
+          - python_module: 'GraphQL'
+            TOX_MODULE: gql
+
+          - python_module: 'API'
+            TOX_MODULE: api
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aristotle_db
+      SEARCH: elastic
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Restart elasticsearch
+      run: |
+        sudo sysctl -w vm.max_map_count=262144
+        docker restart $(docker ps --all --quiet)
+
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+    - name: Install tox
+      run: pip install "tox>=3.0"
+
+    - name: Install npm dependencies
+      run: |
+        set -ev
+        cd ./assets
+        npm install
+        npm run devbuild
+
+    - name: Install postgres dependencies
+      run: |
+        sudo apt-get --allow-releaseinfo-change update || true
+        sudo apt-get install libpq-dev -y
+
+    - name: Run tests
+      run: tox -e dj-test-linux-db-postgres-search-elastic-module_${{ matrix.TOX_MODULE }}
+
+    services:
+      postgres:
+        image: postgres:10.10
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aristotle_db
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:latest
+
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
+        ports:
+          - 9200:9200
+  
+  deploy:
+    name: PyPi Deployment
+    needs:
+      - python_lint
+      - python_typing
+      - main_testing
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    env:
+      ASSET_ENDPOINT: d3obyunbje7zuy.cloudfront.net
+      STORAGE_BUCKET_NAME: ${{ secrets.STORAGE_BUCKET_NAME }}
+      TWINE_USERNAME: hwhite4
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      AWS_DEFAULT_REGION: ap-southeast-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - name: Deploy
+        run: ./scripts/buildandcopy.sh --pypi

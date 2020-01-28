@@ -114,7 +114,6 @@ class IssueUpdateAndCommentView(IssueAPIView):
 
 
 class IssueApproveView(IssueAPIView):
-
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
 

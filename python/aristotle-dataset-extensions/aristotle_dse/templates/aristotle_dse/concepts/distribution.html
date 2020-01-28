@@ -14,53 +14,36 @@
 
 {% endblock %}
 
-{% block asideContent %}
-    <dl>
-        {% if item.custodian %}
-            <dt>Data Custodian</dt>
-            <dd>{{ item.custodian }}</dd>
-        {% endif %}
-    </dl>
-{% endblock %}
-
 {% block objSpecific %}
-    For more details on how to access this data contact the data custodian listed below.
+    For more details on how to access this data contact the publishing organisation.
 
     <h2>Data source details</h2>
     <dl class="">
-        <dt>Contained in</dt><dd>
-        {% if item.dataset %}
-            <a href="{{item.dataset.get_absolute_url}}">{{item.dataset.name}}</a>
-        {% else %}
-            This distributions is not linked to a dataset
-        {% endif %}
-    </dd>
-        {% if item.license %}
-            <dt style="float:left">Licence</dt> <dd>{{ item.license }}</dd>
-        {% endif %}
+        <dt>Contained in dataset</dt>
+            <dd>
+                {% if item.dataset %}
+                    <a href="{{item.dataset.get_absolute_url}}">{{item.dataset.name}}</a>
+                {% else %}
+                    This distribution is not linked to a dataset
+                {% endif %}
+            </dd>
+        <dt>Format type</dt>
+            <dd>{% firstof distribution.format_type "Unknown format type" %}</dd>
+        <dt style="float:left">Licence</dt>
+            <dd>{% firstof distribution.license "Unknown" %}</dd>
         {% if item.rights %}
             <dt style="float:left">Rights</dt> <dd>{{ item.rights }}</dd>
         {% endif %}
 
         <div class="well">
-            <span class="file_type">{{item.format_type}}</span>
-            {% include "aristotle_mdr/helpers/itemLink.html" with item=item %}
             {% if item.download_URL %}
                 <a href='{{item.download_URL}}' class='btn btn-default'>
                     <i class='fa fa-download'></i>
                     Download
                 </a>
             {% endif %}
-            {% if item.distributiondataelementpath_set.exists or item|can_edit:request.user %}
-                <p>
-                    <strong>Data Elements in this distribution</strong>
-                    <a href="{% url 'aristotle_dse:add_column_to_distribution' iid=item.id %}"
-                       data-toggle="modal" data-target="#edit_distribution"
-                       class="btn btn-default btn-sm pull-right">
-                        <i class="fa fa-plus"></i>
-                        Edit columns
-                    </a>
-                </p>
+            {% with columns=item.distributiondataelementpath_set.all %}
+            {% if columns %}
                 <table class='table table-striped'>
                     <thead>
                     <tr>
@@ -73,11 +56,10 @@
                         <th>
                             Format
                         </th>
-                        <th title='Number of datasets using this data element'>#</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for column in item.distributiondataelementpath_set.all %}
+                    {% for column in columns %}
                         <tr>
                             <td>
                                 <tt>{{column.logical_path}}</tt>
@@ -105,20 +87,16 @@
                             <td>
                                 {% firstof column.data_element.valueDomain.format "-" %}
                             </td>
-                            <td>
-                                {{column.data_element.distributiondataelementpath_set.count}}
-                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+            {% else %}
+                <p>No data elements have been specified for this distribution.</p>
             {% endif %}
+            {% endwith %}
         </div>
 
     </dl>
-
-    {% if item|can_edit:request.user %}
-        {% bootstrap_modal 'edit_distribution' size='lg' %}
-    {% endif %}
 
 {% endblock %}

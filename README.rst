@@ -4,7 +4,7 @@ Aristotle Metadata Registry Mono-repo
 
 |aristotle-logo|
 
-|tci-build-status| |docs| |coveralls| |demoserver| |codeclimate| |wcagzoo|
+|actions-python| |actions-javascript| |docs| |coveralls| |demoserver| |codeclimate| |wcagzoo|
 
 Introduction and mission statement
 ----------------------------------
@@ -54,7 +54,8 @@ or reviewing the `documentation <http://docs.aristotlemetadata.com/>`_ and `wiki
 
 About the badges (plus some extras):
 ++++++++++++++++++++++++++++++++++++
-* |tci-build-status| - Travis-CI, showing the details of the continuous testing suite
+* |actions-python| - Github actions, showing the details of the python continuous testing suite
+* |actions-javascript| - Github actions, showing the details of the javascript continuous testing suite
 * |docs| - Read the docs, with details on installing, configuring and extending Aristotle-MDR
 * |coveralls| - Coveralls, showing in-depth code coverage
 * |codecov| - Codecov.io, showing even greater in-depth code coverage with branch coverage
@@ -63,8 +64,13 @@ About the badges (plus some extras):
 * |codeclimate| - Code Climate - additional code metrics
 * |wcagzoo| - Web Content Accessibility Guidelines AA Compliant
 
-.. |tci-build-status| image:: https://travis-ci.org/aristotle-mdr/aristotle-metadata-registry.svg?branch=master
-    :alt: Travis-CI build status
+.. |actions-python| image:: https://github.com/aristotle-mdr/aristotle-metadata-registry/workflows/Python/badge.svg
+    :alt: Github actions python workflow
+    :scale: 100%
+    :target: https://travis-ci.org/aristotle-mdr/aristotle-metadata-registry
+
+.. |actions-javascript| image:: https://github.com/aristotle-mdr/aristotle-metadata-registry/workflows/JavaScript/badge.svg
+    :alt: Github actions javascript workflow
     :scale: 100%
     :target: https://travis-ci.org/aristotle-mdr/aristotle-metadata-registry
 

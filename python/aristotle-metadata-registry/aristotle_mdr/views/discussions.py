@@ -14,8 +14,9 @@ from aristotle_mdr import perms
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 
 from braces.views import LoginRequiredMixin
-from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
+from django.views.generic import TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 
 class All(LoginRequiredMixin, TemplateView):
@@ -30,23 +31,11 @@ class All(LoginRequiredMixin, TemplateView):
 
 
 class Workgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, TemplateView):
-    # Show all discussions for a workgroups
+    """ Show all discussions for a particular workgroup """
     template_name = "aristotle_mdr/discussions/workgroup.html"
     permission_required = "aristotle_mdr.can_view_discussions_in_workgroup"
     raise_exception = True
     redirect_unauthenticated_users = True
-
-    def get(self, request, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        wg = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
-
-        if not perms.user_in_workgroup(request.user, wg):
-            raise PermissionDenied
-
-        context['workgroup'] = wg
-        context['discussions'] = wg.discussions.all()
-
-        return render(request, self.template_name, context)
 
     def check_permissions(self, request):
         """
@@ -54,6 +43,20 @@ class Workgroup(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Template
         """
         wg = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
         return request.user.has_perm(self.get_permission_required(request), wg)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.workgroup = get_object_or_404(MDR.Workgroup, pk=self.kwargs['wgid'])
+        if not perms.user_in_workgroup(request.user, self.workgroup):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update({
+            'workgroup': self.workgroup,
+            'discussions': self.workgroup.discussions.all()
+            })
+        return context_data
 
 
 class New(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):
@@ -214,6 +217,12 @@ class DeletePost(LoginRequiredMixin, ConfirmDeleteView):
 
         return reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk])
 
+    def get_breadcrumbs(self):
+        return [
+            ReversibleBreadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.item.pk]),
+            Breadcrumb(name="Delete post", active=True),
+        ]
+
 
 class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, UpdateView):
     model = MDR.DiscussionPost
@@ -255,29 +264,36 @@ class CommentMixin(object):
 
         return comment
 
+    def dispatch(self, request, *args, **kwargs):
+        self.comment = self.get_object()
+        self.discussion_post = self.comment.post
+        return super().dispatch(request, *args, **kwargs)
 
-class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, DeleteView):
-    model = MDR.DiscussionComment
+
+class DeleteComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, ConfirmDeleteView):
+    model_base = MDR.DiscussionComment
+    permission_checks = [perms.can_delete_comment]
     permission_required = "aristotle_mdr.can_delete_comment"
     raise_exception = True
     redirect_unauthenticated_users = True
+    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+    item_kwarg = "cid"
+    warning_text = _("You are about to delete this comment, confirm below, or click cancel to return to the post.")
 
     def get_success_url(self):
         # TODO: How does this work, is it even tested?
-        from django.utils.functional import lazy
-        success_url = lazy(reverse, self)('aristotle:discussionsPost', args=self.kwargs['cid'])
+        success_url = reverse('aristotle:discussionsPost', args=[self.discussion_post.pk])
         return success_url
 
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+    def get_breadcrumbs(self):
+        return [
+            ReversibleBreadcrumb(name="Post", url_name="aristotle:discussionsPost", url_args=[self.discussion_post.pk]),
+            Breadcrumb(name="Delete comment", active=True),
+        ]
 
-    def delete(self, request, *args, **kwargs):
-        comment = self.get_object()
-        post = comment.post
-
-        comment.delete()
-
-        return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
+    def perform_deletion(self):
+        self.comment.delete()
+        return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[self.discussion_post.pk]))
 
 
 class EditComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, CommentMixin, UpdateView):

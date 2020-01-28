@@ -1,15 +1,11 @@
-from typing import Optional
-
 from django.http import Http404
 from django.db.models import Q
 from django.views.generic import TemplateView
-from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue, IssueLabel
-from aristotle_mdr.models import _concept
 from aristotle_mdr import perms
 
 import json
@@ -52,8 +48,8 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             'fields': json.dumps(Issue.get_propose_fields()),
             'field_data': json.dumps(field_data),
             'initial': json.dumps(data),
-            'config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
-            'allLabels': json.dumps(label_map)
+            'editor_config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
+            'all_labels': json.dumps(label_map)
         }
 
 
@@ -71,9 +67,13 @@ class IssueList(IssueBase, TemplateView):
         # Fetch issues for the item
         open_issues, closed_issues = self.get_issues()
         # Update context
+        stewardship_organisation_name = ""
+        if self.item.stewardship_organisation:
+            stewardship_organisation_name = self.item.stewardship_organisation.name
         context.update({
             'open_issues': open_issues,
             'closed_issues': closed_issues,
+            'stewardship_organisation_name': stewardship_organisation_name,
         })
         # Update context with modal data
         context.update(self.get_modal_data())
@@ -131,7 +131,9 @@ class IssueDisplay(IssueBase, TemplateView):
             'own_issue': own_issue,
             'can_approve': can_edit_item,
             'has_proposed_changes': has_proposed_changes,
-            'item_changed': item_changed
+            'item_changed': item_changed,
+            # Loaded by root component
+            'issue_data': {'isopen': self.issue.isopen},
         })
         # Add diff table
         diff_table = ''

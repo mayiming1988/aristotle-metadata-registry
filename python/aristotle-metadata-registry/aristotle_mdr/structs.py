@@ -1,6 +1,11 @@
-from typing import Optional, List, Dict, Tuple, Any, Union, Callable
+from aristotle_mdr.utils.text import truncate_words
+from typing import List, Dict, Tuple, Any, Union, Callable
 from django.conf import settings
+from django.urls import reverse
 from collections import defaultdict
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Node:
@@ -64,12 +69,13 @@ class Tree:
             # Create child nodes and add to stack
             children = relation_dict.get(next_node.data.id, [])
             for child_id, relation_info in children:
-                node_stack.append(
-                    (
-                        Node(next_node, datadict.get(child_id, None), relation_info),
-                        depth + 1
+                item = datadict.get(child_id, None)
+                if item:
+                    node_stack.append(
+                        (Node(next_node, item, relation_info), depth + 1)
                     )
-                )
+                else:
+                    logger.error(f'id {child_id} not found in datadict')
 
     def get_node_children(self, identifier, sort_by=None) -> List[Node]:
         children = [self.nodes[i] for i in self.children[identifier]]
@@ -122,3 +128,42 @@ class Tree:
 
     def __str__(self):
         return self.get_string(self.root)
+
+
+class Breadcrumb:
+    """Object representing a single breadcrumb"""
+    length: int = 9  # The number of words to display in the title
+
+    def __init__(self, name, url='', query_parameters=[], active=False):
+        if url:
+            self.url = url + self.add_query_parameters(query_parameters)
+        self._name = name
+        self.active = active
+
+    def add_query_parameters(self, query_parameters) -> str:
+        parameters = ''
+        if query_parameters:
+            parameters = '?'
+            for index, parameter in enumerate(query_parameters):
+                parameters = parameters + parameter
+                if not index == len(query_parameters) - 1:
+                    # If it's the end of the list, don't append an ampersand
+                    parameters = parameters + '&'
+        return parameters
+
+    @property
+    def name(self):
+        """Display name for breadcrumb"""
+        return truncate_words(self._name, self.length)
+
+
+class ReversibleBreadcrumb(Breadcrumb):
+    """Object representing a single reversible breadcrumb"""
+
+    def __init__(self, name: str, url_name='', url_args=[], query_parameters=[], active=False):
+        """Query parameters expects a list of strings containing parameters
+           e.g. ['status=5', 'letter=z']"""
+
+        if url_name:
+            self.url = reverse(url_name, args=url_args)
+        super().__init__(name, self.url, query_parameters, active)

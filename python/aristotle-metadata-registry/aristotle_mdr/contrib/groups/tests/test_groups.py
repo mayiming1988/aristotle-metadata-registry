@@ -86,7 +86,6 @@ class InviteUserToStewardGroup(BaseStewardOrgsTestCase, TestCase):
         accept_url = self.get_url_from_email(message)
         accept_response = self.client.get(accept_url)
 
-        print([accept_url,accept_response])
         self.assertEqual(accept_response.status_code, 200)
 
         accept_data = {

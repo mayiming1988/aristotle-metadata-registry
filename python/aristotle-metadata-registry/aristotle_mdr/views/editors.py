@@ -2,7 +2,9 @@ import reversion
 from django.http import HttpResponseRedirect
 from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
+from django.utils import timezone
 from django.db import transaction
+
 from reversion.models import Version
 
 from aristotle_mdr.utils import (
@@ -58,6 +60,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'model_name_plural': self.model._meta.verbose_name_plural.title,
+            'model_name': self.model._meta.verbose_name.title,
             'model': self.model._meta.model_name,
             'app_label': self.model._meta.app_label,
             'item': self.item,
@@ -163,17 +166,17 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if self.reference_links_active:
             from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
 
-            recordrelation_formset = self.get_referencelinks_formset()(
+            referencelinks_formset = self.get_referencelinks_formset()(
                 instance=self.item.concept,
                 data=postdata
             )
 
             # Override the queryset to restrict to the records the user has permission to view
-            for record_relation_form in recordrelation_formset:
+            for record_relation_form in referencelinks_formset:
                 record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(self.request.user).order_by("title")
 
             extra_formsets.append({
-                'formset': recordrelation_formset,
+                'formset': referencelinks_formset,
                 'type': 'reference_links',
                 'title': 'ReferenceLink',
                 'saveargs': None
@@ -214,6 +217,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         formsets_invalid = self.validate_formsets(extra_formsets)
 
         if form_invalid or formsets_invalid:
+            form.data = form.data.copy()
+            form.data['last_fetched'] = timezone.now()
             return self.form_invalid(form, formsets=extra_formsets)
         else:
             # Create the revision
@@ -242,23 +247,27 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-
-        invalid_tabs = set()
-        # We get formset passed on errors
         if 'formsets' in kwargs:
-            extra_formsets = kwargs['formsets']
-            for item in extra_formsets:
-                if item['formset'].errors:
-                    if item['type'] in ('weak', 'through'):
-                        invalid_tabs.add('Components')
-                    else:
-                        invalid_tabs.add(item['title'])
+            self.extra_formsets = kwargs['formsets']
         else:
-            extra_formsets = self.get_extra_formsets(self.item)
+            self.extra_formsets = self.get_extra_formsets(self.item, clone_item=False)
 
-        context['invalid_tabs'] = invalid_tabs
+        if self.request.POST:
+            form = self.get_form()
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
+            recently_edited = 'last_fetched' in form.errors
+            context['last_fetched_error'] = recently_edited
+            context['only_last_fetched_error'] = recently_edited and len(form.errors) == 1
 
-        fscontext = self.get_formset_context(extra_formsets)
+            if recently_edited:
+                recent_version_a, recent_version_b = (
+                    *Version.objects.get_for_object(self.item).all()[:2],
+                    None, None
+                )[:2]
+                context['recent_version_a'] = recent_version_a
+                context['recent_version_b'] = recent_version_b
+
+        fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
 
         context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
@@ -294,10 +303,41 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         })
         return kwargs
 
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=True):
+        extra_formsets = super().get_extra_formsets(item, postdata, clone_item)
+
+        if self.slots_active:
+            slot_formset = self.get_slots_formset()(
+                queryset=Slot.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': slot_formset,
+                'title': 'Slots',
+                'type': 'slot',
+                'saveargs': None
+            })
+
+        if self.identifiers_active:
+            id_formset = self.get_identifier_formset()(
+                queryset=ScopedIdentifier.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': id_formset,
+                'title': 'Identifiers',
+                'type': 'identifiers',
+                'saveargs': None
+            })
+
+        return extra_formsets
+
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        extra_formsets = self.get_extra_formsets(self.model, request.POST)
+        # Don't do the clone shenangians, we want to save
+        # TODO: eliminate formset hell.
+        extra_formsets = self.get_extra_formsets(self.model, request.POST, clone_item=False)
 
         item = None
         change_comments = None
@@ -327,19 +367,16 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 # Save item
                 form.save_custom_fields(item)
                 form.save_m2m()
-                # Copied from wizards.py - maybe refactor
+
                 final_formsets = []
                 for info in extra_formsets:
-                    if info['type'] != 'slot':
+                    if info['saveargs'] is not None:
                         info['saveargs']['item'] = item
                     else:
                         info['formset'].instance = item
                     final_formsets.append(info)
 
-                # This was removed from the revision below due to a bug with saving
-                # long slots, links are still saved due to reversion follows
                 self.save_formsets(final_formsets)
-
                 item.save()
 
             return HttpResponseRedirect(url_slugify_concept(item))
@@ -348,14 +385,23 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         context = super().get_context_data(*args, **kwargs)
 
         if 'formsets' in kwargs:
-            extra_formsets = kwargs['formsets']
+            self.extra_formsets = kwargs['formsets']
         else:
-            extra_formsets = self.get_extra_formsets(self.item, clone_item=True)
+            self.extra_formsets = self.get_extra_formsets(self.item, clone_item=True)
 
-        fscontext = self.get_formset_context(extra_formsets)
+        if self.request.POST:
+            form = self.get_form()
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, self.extra_formsets)
+
+        fscontext = self.get_formset_context(self.extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = context['form'].custom_fields
-        context['show_id_tab'] = self.identifiers_active
+        context.update({
+            'show_slots_tab': self.slots_active or context['form'].custom_fields,
+            'slots_active': self.slots_active,
+            'show_id_tab': self.identifiers_active,
+            'additional_records_active': self.additional_records_active,
+            'reference_links_active': self.reference_links_active
+        })
 
         return context

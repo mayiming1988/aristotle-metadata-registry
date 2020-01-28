@@ -18,8 +18,5 @@
 
 
 {% block userlinks %}
-    <!-- Documentation -->
-    {% url 'django-admindocs-docroot' as docsroot %}
     <a href="/account" title={% trans 'Return to Dashboard' %}>{% trans 'Return to Dashboard' %}</a>
-        <a href="{{ docsroot }}" title={% trans 'Browse live documentation' %}>{% trans 'Documentation' %}</a>
 {% endblock %}

@@ -3,10 +3,10 @@ from django_celery_results.models import TaskResult
 from django.conf import settings
 from django.urls import reverse
 
-class ExtraTaskInfo(models.Model):
 
+class ExtraTaskInfo(models.Model):
     class Meta:
-        app_label='aristotle_bg_workers'
+        app_label = 'aristotle_bg_workers'
 
     task = models.OneToOneField(
         TaskResult,

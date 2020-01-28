@@ -444,7 +444,7 @@ def bootstrap_modal(_id, size=None):
     elif size == 'sm':
         size_class = "modal-sm"
 
-    modal = '<div id="%s" class="modal fade"><div class="modal-dialog %s"><div class="modal-content"></div></div></div>'
+    modal = '<div id="%s" class="modal fade" data-backdrop="static"><div class="modal-dialog %s"><div class="modal-content"></div></div></div>'
     return mark_safe(modal % (_id, size_class))
 
 
@@ -456,7 +456,8 @@ def doc(item, field=None):
     If 2, returns the help_text for the field on the given model in the specified app.
     """
 
-    from aristotle_mdr.utils.doc_parse import parse_rst, parse_docstring
+    from aristotle_mdr.utils.doc_parse import parse_rst
+    from django.contrib.admindocs.utils import parse_docstring
 
     ct = item
     if field is None:
@@ -582,6 +583,11 @@ def render_difference(context, difference):
             'raw': raw}
 
 
+@register.inclusion_tag('aristotle_mdr/helpers/difference_url.html')
+def transform_difference(difference):
+    return {'difference': difference}
+
+
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
@@ -614,3 +620,20 @@ def get_status_from_dict(dictionary, current_status, key, with_icon=True):
 
     else:
         return ""
+
+
+@register.filter
+def append_asterisk_if_required(field):
+    """
+    Add an asterisk symbol to the required fields of a form.
+
+    Usage:
+
+        {{ field | append_asterisk_if_required }}
+
+    Thanks to Moses Koledoye: https://stackoverflow.com/questions/37389855/django-label-tag-required-asterisk
+    """
+    if field.field.required:
+        return field.label + ': *'
+    else:
+        return field.label + ':'

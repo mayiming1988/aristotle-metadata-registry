@@ -8,6 +8,7 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 
 import uuid
 import datetime
+from typing import List
 
 from model_utils.models import TimeStampedModel
 
@@ -185,6 +186,9 @@ class aristotleComponent(models.Model):
 
     # Parent is the parent item of the component
     parent_field_name: str = ''
+
+    # Description to use when rendering large components in a formset
+    inline_editor_description: List[str] = []
 
     class Meta:
         abstract = True

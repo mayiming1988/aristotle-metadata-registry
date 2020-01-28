@@ -2,7 +2,7 @@ import graphene
 from graphene_django.types import DjangoObjectType
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
-from aristotle_mdr.models import Status
+from aristotle_mdr.models import Status, SupersedeRelationship
 from aristotle_mdr_graphql import resolvers
 
 
@@ -34,3 +34,11 @@ class CustomValueNode(DjangoObjectType):
 
     def resolve_field_name(self):
         return self.field.name
+
+
+class SupersedeRelationshipNode(DjangoObjectType):
+    # field_name = graphene.String()
+
+    class Meta:
+        model = SupersedeRelationship
+        default_resolver = resolvers.aristotle_resolver

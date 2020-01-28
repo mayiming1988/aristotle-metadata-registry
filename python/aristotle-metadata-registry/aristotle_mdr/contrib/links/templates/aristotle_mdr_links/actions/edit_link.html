@@ -3,42 +3,36 @@
 {% load static from staticfiles %}
 {% load render_bundle from webpack_loader %}
 
-{% block title %}Edit link - {% endblock %}
+{% block title %}Edit link - {{link.root_item.name}}{% endblock %}
+
 {% block webpack_css_bundle %}
   {% render_bundle 'wizard' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
   {% render_bundle 'wizard' 'js' %}
+  {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block content %}
+    {% assign link.root_item as item %}
     <form method="post" action="">{% csrf_token %}
-    <div class="modal-body">
-        <h1></h1>
-            {% if form.errors %}
-                {{form.errors}}
-            {% endif %}
-    <ol class="breadcrumb">
-      <li class="active">Edit link</a></li>
-    </ol>
-    <div>
-        You are about to add concepts to the roles for the relation
-            <a href='{{link.relation.get_absolute_url}}'>{{ link.relation }}</a> for this link.
-        <div class='well'>
-        {{ link.relation.definition|bleach }}
-        </div>
-    </div>
-    <div>
-        <div>
-            {% include 'aristotle_mdr_links/actions/helpers/link_end_form.html' %}
-        </div>
-    </div>
+        <div class="modal-body">
+            {% breadcrumb_list breadcrumbs %}
 
-        <div class="modal-footer">
-            <a class="btn btn-default" href="{{ request.GET.next }}">Cancel</a>
-            <input type="submit" class="btn btn-primary" value="Save" />
+            <h1>Edit link for item {{item.name}}</h1>
+            {% include 'aristotle_mdr_links/actions/helpers/edit_link_relation_help.html' %}
+
+            <div>
+                <div>
+                    {% include 'aristotle_mdr_links/actions/helpers/link_end_form.html' %}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-default" href="{{ request.GET.next }}">Cancel</a>
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </div>
         </div>
-    </div>
     </form>
 {% endblock %}

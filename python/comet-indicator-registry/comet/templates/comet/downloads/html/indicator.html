@@ -41,7 +41,7 @@
         <div class="computation panel panel-info aristotle-display-panel">
             <header class="panel-heading">Computation</header>
             <div class="panel-body">
-                <div class="computation">
+                <div class="computation" name="computation">
                     {% if item.computation %}
                         {{ item.computation | bleach | truncatewords_html:80  }}
                     {% elif item.computation_description %}
@@ -66,6 +66,17 @@
         </div>
     </div>
 
+
+    {% if item.quality_statement %}
+        <h2>Quality Statement</h2>
+        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.quality_statement showType=False skip_can_view=True %}
+    {% endif %}
+
+    {% if item.reporting_information %}
+        <h2>Reporting Information</h2>
+        <p>{{ item.reporting_information | bleach }}</p>
+    {% endif %}
+
     {% if item.outcome_areas.all.exists %}
         <h2>Outcome Areas</h2>
         <ul>
@@ -76,12 +87,6 @@
             {% endfor %}
         </ul>
     {% endif %}
-
-    {% if item.quality_statement %}
-        <h2>Quality Statement</h2>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.quality_statement showType=False skip_can_view=True %}
-    {% endif %}
-
 
     {% if item.dimensions.exists %}
         <h2>Dimensions</h2>
@@ -105,7 +110,7 @@
     <div class="container">
         <div class="row" id="computation">
             <div class="col-sm-2">
-                <header class="h4">Computation Rule</header>
+                <header class="h4" name="computation">Computation Rule</header>
             </div>
             <div class="col-sm-9">
                 <dl>
@@ -124,7 +129,7 @@
         {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
             <div class="row" id="numerators">
                 <div class="col-sm-2">
-                    <header class="h4">Numerators</header>
+                    <header class="h4" name="numerators">Numerators</header>
                 </div>
                 <div class="col-sm-9">
                     {{ item.numerator_description | bleach  }}
@@ -135,7 +140,7 @@
         {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
             <div class="row" id="denominators">
                 <div class="col-sm-2">
-                    <header class="h4">Denominators</header>
+                    <header class="h4" name="denominators">Denominators</header>
                 </div>
                 <div class="col-sm-9">
                     {{ item.denominator_description | bleach }}
@@ -146,7 +151,7 @@
         {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
             <div class="row" id="disaggregation">
                 <div class="col-sm-2">
-                    <header class="h4">Disaggregation</header>
+                    <header class="h4" name="disaggregation">Disaggregation</header>
                 </div>
                 <div class="col-sm-9">
                     {{ item.disaggregation_description|bleach }}
@@ -154,7 +159,6 @@
                 </div>
             </div>
         {% endif %}
-
     </div>
 
 {% endblock %}

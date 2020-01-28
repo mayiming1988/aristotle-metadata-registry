@@ -7,9 +7,23 @@
         <form-field name="description">
             <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
         </form-field>
-        <form-field name="labels">
-            <select-tagger v-model="formdata.labels" :options="labelOptions" />
-        </form-field>
+        <template v-if="haslabelOptions">
+            <form-field name="labels">
+                <select-tagger v-model="formdata.labels" :options="labelOptions" />
+            </form-field>
+        </template>
+        <template v-if="!haslabelOptions">
+            <label>Labels</label>
+            <p><em>
+            <template v-if="hasStewardOrganisationName">
+                The Stewardship Organisation this item belongs to has not set up any
+                    issues labels.
+            </template>
+            <template v-else>
+                This item doesn't belong to a Stewardship Organisation, so no labels can be applied.
+            </template>
+            </em></p>
+        </template>
         <template v-if="isFields">
             <h3 class="divider">Proposed changes</h3>
             <template v-if="!edit">
@@ -33,8 +47,8 @@
         </template>
         <div slot="footer">
             <button type="button" class="btn btn-default" @click="emitClose">Close</button>
-            <saving v-if="loading" />
-            <button v-if="!loading" type="button" class="btn btn-primary" @click="saveIssue">
+            <saving v-if="saving" />
+            <button v-if="!saving" type="button" class="btn btn-primary" @click="saveIssue">
                 {{ actionText }}
             </button>
         </div>
@@ -101,10 +115,15 @@ export default {
         allLabelsJson: {
             type: String,
             required: true
+        },
+        // Name of the Stewardship Organisation this item belongs to - if any
+        stewardOrganisationName: {
+            type: String,
+            default: ''
         }
     },
     data: () => ({
-        html: 'Spicy',
+        html: '',
         // Proposed changes for different fields
         proposals: {},
         // Fields we can propose changes for
@@ -112,6 +131,8 @@ export default {
         // All labels that could be added to this issue
         // Array of options objects to be passed to selectTagger
         labelOptions: [],
+        // True when saving and redirecting to issue
+        saving: false,
         // Data to be posted
         formdata: {
             name: '',
@@ -156,7 +177,8 @@ export default {
             this.$emit('input', false)
         },
         saveIssue: function() {
-            if (!this.loading) {
+            if (!this.saving) {
+                this.saving = true
                 // Get data
                 let postdata = this.formdata
                 postdata['item'] = this.iid
@@ -186,6 +208,12 @@ export default {
     computed: {
         isFields: function() {
             return Array.isArray(this.fields)
+        },
+        haslabelOptions: function() {
+            return (Array.isArray(this.labelOptions) && this.labelOptions.length > 0)
+        },
+        hasStewardOrganisationName: function() {
+            return this.stewardOrganisationName != ""
         },
         actionText: function() {
             let action = 'Create'

@@ -34,7 +34,7 @@
 {% endif %}
 
     {% if item.submitting_organizations %}
-        <dt>Submitting Organizations</dt>
+        <dt>Submitting Organisations</dt>
         <dd>
         {% for rec in item.submitting_organizations %}
             {% if rec.organization_record|can_view:request.user %}
@@ -45,7 +45,7 @@
         </dd>
     {% endif %}
     {% if item.responsible_organizations %}
-        <dt>Responsible Organizations</dt>
+        <dt>Responsible Organisations</dt>
         <dd>
         {% for rec in item.responsible_organizations %}
         {% if rec.organization_record|can_view:request.user %}

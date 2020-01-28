@@ -1,45 +1,47 @@
 {% load humanize i18n %}
-{% load aristotle_tags %}
+{% load util_tags aristotle_tags %}
 
 {% spaceless %}
-<ul class="breadcrumb">
-  {% if item.stewardship_organisation %}
-  <li>
-    <a href="{{item.stewardship_organisation.get_absolute_url}}">
-      {{item.stewardship_organisation}}
-    </a>
-  </li>
-  <li>
-    <a href="{{item.stewardship_organisation.get_absolute_url}}">Metadata</a>
-  </li>
-  <li>
-          <a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
-              title="{% trans 'Learn about this metadata type' %}"
-              data-toggle="modal" data-target="#infobox_modal"
-          >{{ item.get_verbose_name_plural }}</a>
-  </li>
-  {% else %}
-    <li>
-      <a href="">
-        Sandboxed Item
-      </a>
-    </li>
-  {% endif %}
-  <li class="maybe-long-breadcrumb-item">
-    {{ item.name }}
-  </li>
-</ul>
+    {% if breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% else %}
+        <ul class="breadcrumb">
+            {% if item.stewardship_organisation %}
+                <li>
+                    <a href="{{item.stewardship_organisation.get_absolute_url}}">
+                        {{item.stewardship_organisation}}
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'aristotle:stewards:group:browse' item.stewardship_organisation.slug %}">Metadata</a>
+                </li>
+                <li>
+                    <a href="{% url 'aristotle:stewards:group:browse_app_metadata' item.stewardship_organisation.slug item.meta.app_label item.meta.model_name %}"
+                    >{{ item.get_verbose_name_plural }}</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="">
+                        Sandboxed Item
+                    </a>
+                </li>
+            {% endif %}
+            <li class="maybe-long-breadcrumb-item">
+                {{ item.name }}
+            </li>
+        </ul>
+    {% endif %}
 {% endspaceless %}
 <div class="col-xs-12">
 
-<h1 id="objectTitle" >
-    <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
-    {% if item.version %}
-    <em class="version" title="{% trans 'Version'%} {{ item.version }}">
-        {{ item.version }}
-    </em>
-    {% endif %}
-    {% comment %}
+    <h1 id="objectTitle" >
+        <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+        {% if item.version %}
+            <em class="version" title="{% trans 'Version'%} {{ item.version }}">
+                {{ item.version }}
+            </em>
+        {% endif %}
+        {% comment %}
     {% if not hide_help %}
       <small>
           (<a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
@@ -50,13 +52,13 @@
     {% endif %}
     {% endcomment %}
 
-    {% if not hide_item_actions %}
-      {# Screen reader quick links #}
-      {% if item|can_edit:request.user and request.user.is_staff and not hide_admin_edit %}
-          <a class="sr-only" accesskey="p" href="{% adminEdit item %}">{% trans 'Edit in admin'%}</a>
-      {% elif item|can_edit:request.user %}
-          <a class="sr-only" accesskey="e" href="{% url 'aristotle:edit_item' item.id %}">{% trans 'Open item editor'%}</a>
-      {% endif %}
-    {% endif %}
-</h1>
+        {% if not hide_item_actions %}
+            {# Screen reader quick links #}
+            {% if item|can_edit:request.user and request.user.is_staff and not hide_admin_edit %}
+                <a class="sr-only" accesskey="p" href="{% adminEdit item %}">{% trans 'Edit in admin'%}</a>
+            {% elif item|can_edit:request.user %}
+                <a class="sr-only" accesskey="e" href="{% url 'aristotle:edit_item' item.id %}">{% trans 'Open item editor'%}</a>
+            {% endif %}
+        {% endif %}
+    </h1>
 </div>

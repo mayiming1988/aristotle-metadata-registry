@@ -4,15 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-# Needed for procuction
+# Needed for production
 elasticsearch = ">=5.0.0,<6.0.0"
 django-haystack-elasticsearch = "*"
 django-redis = "*"
-
 # ---------- Pins --------
 django = "~=2.2.0"
 django-haystack = "~=2.8.0"
-psycopg2 = "~=2.7.0"
+psycopg2 = "*"
 redis = ">2.10,<3.0"
 celery = "==4.2.2"
 kombu = "~=4.3.0"
@@ -21,8 +20,7 @@ drf-yasg = "==1.16.0"
 # Pinning this until drf-yasg updates
 djangorestframework = "<3.10"
 django-filter = "~=2.2.0"
-
-pypandoc = {ref = "master",git = "https://github.com/harrywhite4/pypandoc",editable = true}
+pypandoc = {editable = true,git = "https://github.com/harrywhite4/pypandoc",ref = "master"}
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry",editable = true}
 aristotle-bg-workers = {path = "./python/aristotle-bg-workers",editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions",editable = true}
@@ -42,7 +40,6 @@ django-tools = "*"
 mock = "*"
 wcag-zoo = "*"
 django-impersonate = "*"
-psycopg2 = "*"
 boto3 = "*"
 mypy = "*"
 

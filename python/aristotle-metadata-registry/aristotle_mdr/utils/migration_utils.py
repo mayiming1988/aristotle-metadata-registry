@@ -69,7 +69,6 @@ class StewardMigration(migrations.Migration):
         from django.conf import settings
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
         so, _ = StewardOrganisation.objects.get_or_create(name=name)
-        from django.contrib.auth import get_user_model
         User = apps.get_model('aristotle_mdr_user_management', 'User')
 
         if settings.MIGRATION_PRINT:

@@ -41,21 +41,6 @@ urlpatterns = [
                 form_title=_('Change Columns')
             ), name='add_column_to_distribution'),
 
-        url(r'^add/dataset_to_catalog/(?P<iid>\d+)?/?$',
-            GenericAlterManyToManyView.as_view(
-                model_base=models.DataCatalog,
-                model_to_add=models.Dataset,
-                model_base_field='dataset_set',
-                form_title=_('Change Datasets')
-            ), name='add_dataset_to_catalog'),
-
-        url(r'^add/distribution_to_dataset/(?P<iid>\d+)?/?$',
-            GenericAlterManyToManyView.as_view(
-                model_base=models.Dataset,
-                model_to_add=models.Distribution,
-                model_base_field='distribution_set',
-                form_title=_('Change Distributions')
-            ), name='add_distribution_to_dataset'),
         ])
     )
 ]

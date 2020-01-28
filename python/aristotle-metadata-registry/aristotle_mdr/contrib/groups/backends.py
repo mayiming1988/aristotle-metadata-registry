@@ -12,6 +12,7 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
+from django.db.models import Q
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -26,9 +27,11 @@ from django.views.generic import (
     CreateView,
     RedirectView,
 )
+from django.views.generic.edit import FormMixin
 from organizations.backends.defaults import InvitationBackend
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
+from . import forms as group_forms
 from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
 
 logger = logging.getLogger(__name__)
@@ -138,6 +141,8 @@ class HasRoleMixin(PermissionRequiredMixin):
 
 
 class HasRolePermissionMixin(PermissionRequiredMixin):
+    """Check for a groups role permission
+    The inherited PermissionRequiredMixin overwrites dispatch"""
     role_permission: Optional[str] = None
     raise_exception = True
     redirect_unauthenticated_users = True
@@ -162,25 +167,56 @@ class GroupListAllView(SuperuserRequiredMixin, GroupListView):
     superuser_override = True
 
 
-class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, ListView):
+class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, FormMixin, ListView):
     fallback_template_name = "groups/group/members/list.html"
     role_permission = "edit_members"
     current_group_context = "members"
+    form_class = group_forms.UserFilterForm
 
     paginate_by = 50
+    has_filters = False
 
     def get_queryset(self):
-        # Get queryset of StewardOrganisationMemberships
+        # Get queryset of Group Memberships
         qs = super().get_queryset()
 
-        # Filter on StewardOrganisationMemberships that are part of the current Stewardship Organisation
+        # Filter on Memberships that are part of the current Group
         qs = qs.filter(group=self.get_group())
+        form = self.get_form()
+        if form.is_valid() and self.request.GET.get("reset", None) != "reset":
+            data = form.cleaned_data
+            user_filter = data['user_filter']
+            role_filter = data['role_filter']
+            if user_filter:
+                qs = qs.filter(
+                    Q(user__email__icontains=user_filter) |
+                    Q(user__short_name__icontains=user_filter) |
+                    Q(user__full_name__icontains=user_filter)
+                )
+            if role_filter:
+                qs = qs.filter(role=role_filter)
+            self.has_filters = user_filter or role_filter
 
         # Populate users to avoid bulk lookup in template
         qs = qs.select_related('user')
 
         # Sort alphabetically by user
         return qs.order_by('user__short_name')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['data'] = self.request.GET
+        kwargs['group'] = self.get_group()
+        kwargs['manager'] = self.manager
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['has_filters'] = self.has_filters
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 
 class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, FormView):
@@ -230,34 +266,11 @@ class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, Up
         return reverse("%s:%s" % (self.manager.namespace, "detail"), args=[self.object.slug])
 
 
-class MembershipUpdateForm(forms.Form):
-    def __init__(self, manager, group, member, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.manager = manager
-        self.group = group
-        self.member = member
-        if self.manager.group_class.allows_multiple_roles:
-            self.fields['role'] = forms.MultipleChoiceField(
-                choices=self.group.roles,
-                widget=forms.CheckboxSelectMultiple,
-                label=_("Roles"),
-                required=False,
-                initial=self.group.roles_for_user(member),
-            )
-        else:
-            self.fields['role'] = forms.ChoiceField(
-                choices=self.group.roles,
-                label=_("Role"),
-                required=True,
-                initial=self.group.roles_for_user(member),
-            )
-
-
 class GroupMembershipFormView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, DetailView, FormView):
     template_name = "groups/group/members/update.html"
     role_permission = "edit_members"
     membership_class = None
-    form_class = MembershipUpdateForm
+    form_class = group_forms.MembershipUpdateForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -341,8 +354,6 @@ class GroupURLManager(InvitationBackend):
     update_fields: List = attr.ib(default=[])
     url_path = ""
     template_base_directory = None
-
-    # form_class = forms.AristotleUserRegistrationForm
 
     def group_meta(self):
         return self.group_class._meta
@@ -551,7 +562,6 @@ class GroupURLManager(InvitationBackend):
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
         extend this method as it only checks the `email` attribute for Users.
-
         """
         users = []
         for email in emails:
@@ -574,7 +584,6 @@ class GroupURLManager(InvitationBackend):
     def email_message(self, user, subject_template, body_template, message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
-
         This can be easily overridden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
         and attach the additional component.
@@ -614,7 +623,6 @@ class GroupURLManager(InvitationBackend):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
-
         We're currently not sending emails to users already part of the registry
          because we're using a different View to add users
         to Stewardship Organisations for the time being.

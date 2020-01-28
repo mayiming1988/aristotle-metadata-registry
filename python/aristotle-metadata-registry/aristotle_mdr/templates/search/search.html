@@ -106,18 +106,18 @@
                             <a href="#" class="dropdown-toggle"
                                data-toggle="dropdown">
                                 <i class="fa fa-calendar fa-fw"></i>
-                                {% trans 'Modified' context 'Modified date' %} <span class="caret"></span>
+                                {% trans 'Updated' context 'Updated date' %} <span class="caret"></span>
                                 <small class="details"></small>
                             </a>
                             <ul class="dropdown-menu fancy_checkbox_list" role="menu">
                                 {{ form.mq }}
                                 <li role="presentation" class="divider"></li>
                                 <li role="presentation">
-                                    <label role="menuitem" for='id_{{form.mds.name}}'>Modified after...</label>
+                                    <label role="menuitem" for='id_{{form.mds.name}}'>Updated after...</label>
                                     {{ form.mds }}
                                 </li>
                                 <li role="presentation">
-                                    <label role="menuitem" for='id_{{form.mde.name}}'>Modified before...</label>
+                                    <label role="menuitem" for='id_{{form.mde.name}}'>Updated before...</label>
                                     {{ form.mde }}
                                 </li>
                             </ul>
@@ -179,22 +179,23 @@
                 </ul>
             </div>
         {% endif %}
-
-        <div class="col-xs-12 results_header">
+        <div class="results_header">
             {% if query or form.filter_search %}
                 <div class="row">
-                    <h3 class="col-sm-3">Results</h3>
-                    {% if form.auto_broaden_search %}
-                        <div class="alert alert-warning" role="alert">
-                            <p>
-                                There were no results for "{{ form.q.value }}" with your requested filters.
-                            </p>
-                            <p>
-                                We've automatically removed the filters and re-run your search.
-                            </p>
-                        </div>
-                    {% endif %}
-                    <div class="col-sm-9">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        {% if form.auto_broaden_search and page.object_list %}
+                            <div class="alert alert-warning" role="alert">
+                                <p>
+                                    There were no results for "{{ form.q.value }}" with your requested filters.
+                                </p>
+                                <p>
+                                    We ran your search without any filters and got the results below.
+                                </p>
+                                <p>
+                                    Your filters and original search are still available above if you want to update them and try again.
+                                </p>
+                            </div>
+                        {% endif %}
                         {% if form.applied_filters %}
                             <div>
                                 Showing only items where
@@ -204,21 +205,21 @@
 
                         <p class="results_count">
                             {% if page.has_other_pages %}
-                                Showing {{ page.start_index }} - {{ page.end_index }} of <span class="count">{{ page.paginator.count }}</span>
+                                Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }}
                                 results.
                             {% else %}
-                                Showing <span class="count">{{ page.paginator.count }}</span> results.
+                                Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
                             {% endif %}
                         </p>
 
                         {# ----- If there are spelling suggestions, show them. ----- #}
                         {% if form.auto_correct_spell_search or form.has_spelling_suggestions %}
                             {% if form.auto_correct_spell_search %}
-                                <div id="spelling" class="col-md-10 col-md-offset-1">
+                                <div id="spelling">
                                     {% if page.object_list %}
                                         <p><strong>No results for:</strong> {{ form.original_query }}
                                         </p>
-                                        <strong>Searching instead for:</strong>
+                                        <strong>Showing results for:</strong>
                                         <span>
                                             <a href="?q={{form.suggested_query}}">
                                                 {% for word,suggestion in form.spelling_suggestions %}
@@ -236,12 +237,11 @@
                                         <strong>Tried searching instead for:</strong>
                                         <span>
                                             {% for word,suggestion in form.spelling_suggestions %}
-                                                {% if suggestion %}
-                                                    <em>{{ suggestion }}</em>
+                                            {% if suggestion %}<em>{{ suggestion }}</em>,
                                                 {% else %}
-                                                    {{ word }}
+                                                    {{ word }},
                                                 {% endif %}
-                                            {% endfor %}, but no results were found.
+                                            {% endfor %} but no results were found.
                                         </span>
                                     {% endif %}
                                 </div>
@@ -494,8 +494,9 @@
                     </div>
                 </div>
             {% else %}
-                <h3>No results found.</h3>
+                {# The search returned no results #}
                 {% if form.auto_broaden_search %}
+                    {# Search that was broadened because of overly restrictive filters #}
                     <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for "{{ form.q.value }}" with your requested filters.
@@ -505,16 +506,23 @@
                         </p>
                     </div>
                 {% endif %}
-                {% if form.attempted_filter_search %}
+                {% if form.filter_search %}
+                    {# Searching only using filters and no query text #}
                     <div class="alert alert-warning" role="alert">
                         <p>
                             There were no results for your requested filters.
                         </p>
                         <p>
-                            Please change your search parameters and try again.
+                            Please change your selected filters and try again.
                         </p>
                     </div>
                 {% endif %}
+                <h3>Suggestions:</h3>
+                <ul>
+                    <li>Make sure that all words are spelled correctly.</li>
+                    <li>Try different keywords.</li>
+                    <li>Try more general keywords.</li>
+                </ul>
             {% endif %}
         {% elif form.errors %}
         {% else %}

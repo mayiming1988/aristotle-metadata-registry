@@ -1,0 +1,48 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n bootstrap3 %}
+{% block title %}Editing Superseding relationship for {{ item.name }}{% endblock %}
+
+{% block content %}
+    <h1>
+        {% if proposed %}
+            Edit a Proposed superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% else %}
+            Edit a Superseding relationship for {{ item.name }} ({{ item.item_type_name }})
+        {% endif %}
+    </h1>
+    {% block breadcrumbs %}
+        {% breadcrumb_list breadcrumbs %}
+    {% endblock %}
+    {% block review_content %}
+
+        <form action="" method="POST">
+            {% csrf_token %}
+            <table class="table">
+                {% for field in form %}
+                    <tr>
+                        <td>
+                            {{ field.errors }}
+                            {{ field | append_asterisk_if_required }}
+                        </td>
+                        <td>
+                            {% bootstrap_field field show_label=False placeholder="" layout="horizontal" horizontal_field_class="col-md-12" %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {% if proposed %}
+                <a class="btn btn-default" href="{% url 'aristotle:proposed_supersede' item.id %}">
+                    <i class="fa fa-times"></i> Cancel
+                </a>
+            {% else %}
+                <a class="btn btn-default" href="{% url 'aristotle:supersede' item.id %}">
+                    <i class="fa fa-times"></i> Cancel
+                </a>
+            {% endif %}
+
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+
+    {% endblock %}
+
+{% endblock %}

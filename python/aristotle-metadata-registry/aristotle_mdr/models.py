@@ -1,14 +1,13 @@
 import uuid
-import reversion  # import revisions
+import reversion
 from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -17,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
-from aristotle_mdr.contrib.async_signals.utils import fire
 from aristotle_mdr.utils.model_utils import (
     baseAristotleObject,
     ManagedItem,
@@ -32,7 +30,6 @@ from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 from aristotle_mdr import perms
 from aristotle_mdr.utils import (
     fetch_aristotle_settings,
-    fetch_metadata_apps,
     url_slugify_concept,
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
@@ -40,6 +37,8 @@ from aristotle_mdr.utils import (
     strip_tags,
 )
 from aristotle_mdr.utils.text import truncate_words
+from aristotle_mdr.constants import visibility_permission_choices
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 from jsonfield import JSONField
 from .fields import (
@@ -55,8 +54,9 @@ from .managers import (
     StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet,
-    SupersedesManager,
-    ProposedSupersedesManager
+    SupersedesQueryset,
+    ApprovedSupersedesQueryset,
+    ProposedSupersedesQueryset
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -205,8 +205,11 @@ class Organization(registryGroup):
     template = "aristotle_mdr/organization/organization.html"
     uri = models.URLField(  # 6.3.6.2.5
         blank=True, null=True,
-        help_text="uri for Organization"
+        help_text="uri for Organisation"
     )
+
+    class Meta:
+        verbose_name = 'Organisation'
 
     def promote_to_registration_authority(self):
         ra = RegistrationAuthority(organization_ptr=self)
@@ -218,7 +221,10 @@ class Organization(registryGroup):
 
 
 class OrganizationRecord(ManagedItem):
-    """A record of an organization"""
+    """A record of an organisation"""
+
+    class Meta:
+        verbose_name = 'Organisation Record'
 
 
 RA_ACTIVE_CHOICES = Choices(
@@ -524,7 +530,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     visible, but the workgroup is hidden in lists and new items cannot be
     created in that workgroup.
     """
-    template = "aristotle_mdr/workgroup.html"
+    template = "aristotle_mdr/user/workgroups/workgroup.html"
     can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid", on_delete=models.CASCADE)
@@ -535,7 +541,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         verbose_name=_('Archived'),
     )
 
-    class Permissions:
+    class Permissions(AbstractGroup.Permissions):
         @classmethod
         def can_view_group(cls, user, group=None):
             return group.state in group.active_states and cls.is_member(user, group)
@@ -553,6 +559,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         "view_group": [Permissions.can_view_group],
         "edit_group_details": [roles.manager],
         "edit_members": [roles.manager],
+        "view_members": [Permissions.can_view_group],
         "invite_member": [roles.manager],
     }
     states = Choices(
@@ -592,6 +599,12 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         # Convenience class as we can't call functions in templates
         return self.items.select_subclasses()
 
+    @property
+    def issues(self):
+        """Return all issues for items in this workgroup"""
+        from aristotle_mdr.contrib.issues.models import Issue
+        return Issue.objects.filter(item__in=self.items.all()).order_by('-modified')
+
     def list_roles_for_user(self, user):
         return self.roles_for_user(user)
 
@@ -622,6 +635,10 @@ class Workgroup(AbstractGroup, TimeStampedModel):
 
     def can_edit(self, user):
         return user.is_superuser or self.has_role('manager', user.pk)
+
+    @property
+    def managers(self):
+        return self.users_for_role(self.roles.manager)
 
 
 class WorkgroupMembership(AbstractMembership):
@@ -974,14 +991,19 @@ class _concept(baseAristotleObject):
     def check_is_public(self, when=timezone.now()):
         """
         A concept is public if any registration authority
-        has advanced it to a public state in that RA.
+        has advanced it to a public state in that RA or if a publication record has been created for that object.
         """
+        # Check for public statuses
         statuses = self.statuses.all()
         statuses = self.current_statuses(qs=statuses, when=when)
         pub_state = True in [
             s.state >= s.registrationAuthority.public_state for s in statuses
         ]
-
+        # Check if published by a PublicationRecord
+        publication_details = self.publication_details.all()
+        published = publication_details.filter(permission=visibility_permission_choices.public,
+                                               publication_date__lte=timezone.now()).exists()
+        # Check for extra filtering
         q = Q()
         extra = False
         extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('public', None)
@@ -989,7 +1011,8 @@ class _concept(baseAristotleObject):
             for func in extra_q:
                 q |= import_string(func)()
             extra = self.__class__.objects.filter(pk=self.pk).filter(q).exists()
-        return pub_state or extra
+
+        return pub_state or extra or published
 
     def is_public(self):
         return self._is_public
@@ -1036,6 +1059,21 @@ class _concept(baseAristotleObject):
         When overriding, each entry in the list can be either an item or a queryset
         """
         return []
+
+    @property
+    def is_sandboxed(self) -> bool:
+        """ Returns whether the item is in a sandbox
+        A sandboxed item is
+            1. not registered, and
+            2. not under review or is for a review that has been revoked, and
+            3. has not been added to a workgroup
+            4. or a stewardship organisation"""
+        not_registered = not self.statuses.all()
+        not_reviewed = self.rr_review_requests.filter(~Q(status=REVIEW_STATES.revoked)).count() == 0
+        no_workgroup = self.workgroup is None
+        no_stewardship_org = self.stewardship_organisation is None
+
+        return not_registered and not_reviewed and no_workgroup and no_stewardship_org
 
 
 class concept(_concept):
@@ -1095,16 +1133,16 @@ class SupersedeRelationship(TimeStampedModel):
         on_delete=models.SET_NULL
     )
 
-    objects = models.Manager()
-    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
-    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
+    objects = SupersedesQueryset().as_manager()
+    approved = ApprovedSupersedesQueryset().as_manager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesQueryset().as_manager()  # Only proposed objects can be retrieved here
 
 
 class RecordRelation(TimeStampedModel):
-    """Link between a concept and an organization record"""
+    """Link between a concept and an organisation record"""
     TYPE_CHOICES = Choices(
-        ('s', 'Submitting Organization'),
-        ('r', 'Responsible Organization'),
+        ('s', 'Submitting Organisation'),
+        ('r', 'Responsible Organisation'),
     )
 
     concept = ConceptForeignKey(_concept, related_name='org_records', on_delete=models.CASCADE)
@@ -1113,14 +1151,6 @@ class RecordRelation(TimeStampedModel):
         choices=TYPE_CHOICES,
         max_length=1,
     )
-
-
-REVIEW_STATES = Choices(
-    (0, 'submitted', _('Submitted')),
-    (5, 'cancelled', _('Cancelled')),
-    (10, 'accepted', _('Accepted')),
-    (15, 'rejected', _('Rejected')),
-)
 
 
 class Status(TimeStampedModel):
@@ -1284,7 +1314,7 @@ class UnitOfMeasure(concept):
 
 class DataType(concept):
     """
-    set of distinct values, characterized by properties of those values and
+    Set of distinct values, characterized by properties of those values and
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"
@@ -1455,6 +1485,7 @@ class ValueDomain(concept):
         help_text=('Description or specification of a rule, reference, or '
                    'range for a set of all values for a Value Domain.')
     )
+
     @property
     def permissibleValues(self):
         return self.permissiblevalue_set.all()
@@ -1806,14 +1837,13 @@ class PossumProfile(models.Model):
             1. Submitted by the user
             2. That is not registered
             3. That is not under review or is for a review that has been revoked
-            4. That has not been added to a workgroup"""
-        from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+            4. That has not been added to a workgroup
+            5. That has not been put into a stewardship organisation """
         return _concept.objects.filter(
-            Q(submitter=self.user,
-              statuses__isnull=True
-              ) & Q(Q(rr_review_requests__isnull=True) |
-                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                    ) & Q(workgroup__isnull=True)
+            Q(submitter=self.user, statuses__isnull=True) &
+            Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)) &
+            Q(workgroup__isnull=True) &
+            Q(stewardship_organisation__isnull=True)
         )
 
     @property
@@ -1963,92 +1993,3 @@ class SandboxShare(models.Model):
                     'created': self.created,
                     'emails: ': self.emails
                     })
-
-
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        PossumProfile.objects.get_or_create(user=instance)
-
-
-post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
-
-
-@receiver(post_save)
-def concept_saved(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-
-    if not instance.non_cached_fields_changed:
-        # If the only thing that has changed is a cached public/locked status
-        # then don't notify.
-        return
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    kwargs['changed_fields'] = instance.changed_fields
-    # If the concept saved was not triggered by a superseding action:
-    if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
-        fire("concept_changes.concept_saved", obj=instance, **kwargs)
-
-
-@receiver(pre_save)
-def check_concept_app_label(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-    if instance._meta.app_label not in fetch_metadata_apps():
-        raise ImproperlyConfigured(
-            (
-                "Trying to save item <{instance_name}> when app_label <{app_label}> "
-                "is not enabled. Metadata apps at this point were <{metadata_apps}>."
-            ).format(
-                app_label=instance._meta.app_label,
-                instance_name=instance.name,
-                metadata_apps=str(fetch_metadata_apps())
-            )
-        )
-
-
-@receiver(pre_save)
-def update_org_to_match_workgroup(sender, instance, **kwargs):
-    """Enforces integrity between Stewardship Organisation and Workgroup"""
-    if not issubclass(sender, _concept):
-        return
-    if instance.workgroup is not None:
-        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
-
-
-@receiver(post_save, sender=DiscussionComment)
-def new_comment_created(sender, instance, **kwargs):
-    comment = instance
-    post = comment.post
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    if comment.author == post.author:
-        return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
-
-
-@receiver(post_save, sender=DiscussionPost)
-def new_post_created(sender, instance, **kwargs):
-    # Don't pass the instance to the JSONEncoder
-    post = instance
-    if kwargs.get('raw'):
-        # Don't run during loaddata
-        return
-    if not kwargs['created']:
-        return  # We don't need to notify a topic poster of an edit.
-    fire("concept_changes.new_post_created", obj=post, **kwargs)
-
-
-@receiver(post_save, sender=Status)
-def states_changed(sender, instance, *args, **kwargs):
-    fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=SupersedeRelationship)
-def new_superseded_relation(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("concept_changes.item_superseded", obj=instance, **kwargs)

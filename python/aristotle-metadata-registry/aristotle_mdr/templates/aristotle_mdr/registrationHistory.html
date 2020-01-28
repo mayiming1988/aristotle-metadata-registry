@@ -35,7 +35,8 @@
                             <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
                             <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
                             <td>{{ status.changeDetails }}</td>
-                            {% if item|can_edit:request.user %}
+                            {% if request.user.is_superuser %}
+                                {# Restrict alteration of statuses to superuser #}
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -47,16 +48,16 @@
                                                     <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Edit'%}
                                                 </a>
                                             </li>
-                                            {% if request.user|user_can_view_statuses_revisions:ra %}
                                                 <li>
                                                     <a href="{% url 'aristotle:statusHistory' status.id item.id ra.id %}">
                                                         <i class="fa fa-fw fa-clock-o"></i> {% trans 'Check Status History'%}
                                                     </a>
                                                 </li>
-                                            {% endif %}
+                                            <li class="divider"></li>
                                             <li>
-                                                <a href="{% url 'aristotle:deleteStatus' status.id item.id %}">
-                                                    <i class="fa fa-fw fa-trash"></i> {% trans 'Delete'%}
+                                                <a class="text-danger" href="{% url 'aristotle:deleteStatus' status.id item.id %}">
+                                                    <i class="fa fa-fw fa-trash text-danger"></i>
+                                                    <span class="text-danger">{% trans 'Delete'%}</span>
                                                 </a>
                                             </li>
                                         </ul>

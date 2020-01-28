@@ -1,0 +1,14 @@
+{% load aristotle_tags %}
+{% load aristotle_tags util_tags mptt_tags %}
+<li>
+    <a href="#dimension_{{node.pk}}">{{ node.name }}</a>
+    {% with children=node.get_children %}
+    {% if children %}
+        <ul>
+        {% for child in children %}
+        {% include "comet/helpers/dimension_toc_node.html" with node=child %}
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+</li>

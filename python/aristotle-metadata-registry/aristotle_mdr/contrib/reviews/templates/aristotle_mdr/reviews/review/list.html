@@ -6,21 +6,20 @@
 
 
 {% block webpack_bundle %}
-{% render_bundle 'review_items' 'js' %}
+    {% render_bundle 'review_items' 'js' %}
 {% endblock %}
 
 
 {% block title %}Review details - items {{ item.name }}{% endblock %}
 {% block tabpanel %}
     <api-errors :errors="errors"></api-errors>
+    <p class="margin-above">Items currently listed for this review</p>
     <div role="tabpanel" class="tab-pane active" id="review_items">
         <table class="table table-striped" id="item-table">
-            <caption>Items currently listed for this review</caption>
             <tr>
-                <th>
-                    Item Details
-                </th>
-                <th>Last Modified</th>
+                <th>Item Details</th>
+                <th>Last Updated</th>
+                <th></th>
             </tr>
             {% for concept in concepts %}
             <tr>
@@ -31,39 +30,38 @@
                     <time datetime="{{ concept.item.modified|isotime }}">{{ concept.item.modified }}</time>
                 </td>
                 <td>
-
                     {% if concept.remove %}
-                    <delete-button
-                            button-type="btn-danger"
-                            button-text="Remove"
-                            modal-text="Are you sure you want to remove {{ concept.item.name }} from this review? This is a permanent action."
-                            item-id="{{ concept.item.id }}"
-                            item-name="{{ concept.item.name }}"
-                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
-                            @click="deleteClicked">
-                    </delete-button>
+                        <delete-button
+                                button-type="btn-danger"
+                                button-text="Remove"
+                                modal-text="Are you sure you want to remove {{ concept.item.name }} from this review? This is a permanent action."
+                                item-id="{{ concept.item.id }}"
+                                item-name="{{ concept.item.name }}"
+                                url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                                @click="actionClicked">
+                        </delete-button>
                     {% else %}
-                    <delete-button
-                            modal-text="Are you sure you want to demote {{ concept.item.name }} to Impacts?"
-                            button-text="Demote"
-                            button-type="btn-warning"
-                            item-id="{{ concept.item.id }}"
-                            item-name="{{ concept.item.name }}"
-                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
-                            @click="deleteClicked">
-                    </delete-button>
+                        <delete-button
+                                modal-text="Are you sure you want to demote {{ concept.item.name }} to Impacts?"
+                                button-text="Demote"
+                                button-type="btn-warning"
+                                item-id="{{ concept.item.id }}"
+                                item-name="{{ concept.item.name }}"
+                                url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                                @click="actionClicked">
+                        </delete-button>
                     {% endif %}
                 </td>
 
             </tr>
             {% endfor %}
             <yesno-modal
-                    id="deleteTagModal"
-                    title="Delete Tag"
+                    id="demoteItemModal"
+                    title="Confirm demotion"
                     :text="modal_text"
-                    @yes="deleteConfirmed"
+                    @yes="actionConfirmed"
                     :visible="modal_visible"
-                    @no="deleteCancelled">
+                    @no="actionCancelled">
             </yesno-modal>
 
         </table>

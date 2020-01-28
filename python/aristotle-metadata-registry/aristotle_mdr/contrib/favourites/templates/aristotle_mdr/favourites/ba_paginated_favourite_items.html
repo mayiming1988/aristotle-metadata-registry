@@ -39,7 +39,7 @@
                     {{ item.item_type_name }}
                 </div>
             </td>
-            <td>{{ item.definition|striptags|truncatewords:"50" }}</td>
+            <td>{{ item.short_definition|safe }}</td>
             {% if tags_list %}
             <td>
                 <ul class="taggle_list">

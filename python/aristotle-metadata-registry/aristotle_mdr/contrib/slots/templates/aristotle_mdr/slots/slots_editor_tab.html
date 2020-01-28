@@ -27,8 +27,15 @@
           </td>
           {% for field in slot_form.visible_fields %}
             <td>
-              {{ field.errors.as_ul }}
-              {{ field }}
+                {% if field.errors %}
+                    <div class="alert alert-danger">
+                    {{ field.errors }}
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                    </div>
+                {% endif %}
+
             </td>
           {% endfor %}
       </tr>

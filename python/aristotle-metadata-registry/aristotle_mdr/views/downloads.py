@@ -14,7 +14,7 @@ from aristotle_mdr.forms.downloads import DownloadOptionsForm
 
 import logging
 from django.http import JsonResponse
-
+from django.shortcuts import get_object_or_404
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -164,7 +164,6 @@ class DownloadStatusView(View):
             context['is_ready'] = True
             context['is_expired'] = False
 
-        # job.forget()
         return JsonResponse(context)
 
 
@@ -245,6 +244,21 @@ class DownloadOptionsView(DownloadOptionsViewBase):
         kwargs = super().get_form_kwargs()
         kwargs['wrap_pages'] = self.download_class.allow_wrapper_pages
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        if len(self.items) == 1:
+            # It's for a single item, we can add breadcrumbs
+            item_id = self.items[0]
+            try:
+                item_id = int(item_id)
+            except ValueError:
+                raise Http404
+            item = get_object_or_404(MDR._concept, pk=item_id)
+            context_data.update({"item_name": item.name,
+                                 "item_url": item.get_absolute_url()
+                                 })
+        return context_data
 
     def form_valid(self, form):
         cleaned_data = form.cleaned_data

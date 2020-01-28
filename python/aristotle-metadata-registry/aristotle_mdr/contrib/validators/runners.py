@@ -1,14 +1,12 @@
 from typing import List, Iterable, Dict
 
 import attr
-import json
 import jsonschema
 import logging
 import yaml
 
 from django.conf import settings
 from django.utils.module_loading import import_string
-from os import path
 
 from aristotle_mdr.contrib.validators import models
 from aristotle_mdr.contrib.validators.schema.load import load_schema

@@ -1,9 +1,33 @@
 {% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 
 {% block objSpecific %}
+    {% load aristotle_tags %}
 
-    {% if options.include_related %}
-        {% include "aristotle_mdr/downloads/html/helpers/relational_attrs.html" with item=item %}
-    {% endif %}
+    <h2>Components</h2>
+    <dl>
+        {% if item.classification_scheme|can_view:user %}
+            <dt>Classification Scheme</dt>
+            <dd>{{ item.classification_scheme }}</dd>
+        {% endif %}
+
+        {% if item.representation_class|can_view:user %}
+            <dt>Representation Class</dt>
+            <dd>{{item.representation_class }}</dd>
+        {% endif %}
+
+        {% with permissible_values=item.permissibleValues %}
+            {% if permissible_values %}
+                <dt>Permissible Values</dt>
+                {% include "aristotle_mdr/downloads/html/helpers/values.html" with values=permissible_values only %}
+            {% endif %}
+        {% endwith %}
+
+        {% with supplementary_values=item.supplementaryValues %}
+            {% if supplementary_values %}
+                <dt>Supplementary Values</dt>
+                {% include "aristotle_mdr/downloads/html/helpers/values.html" with values=supplementary_values only %}
+            {% endif %}
+        {% endwith %}
+    </dl>
 
 {% endblock %}

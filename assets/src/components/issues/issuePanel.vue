@@ -5,7 +5,7 @@
         <alert v-if="itemChanged" type="warning">{{ changedMessage }}</alert>
         <slot />
         <button v-if="canApprove" class="btn btn-success" @click="openConfirmDialog">
-            Approve Changes & Close
+            Accept Changes & Close
         </button>
       </collapse-panel>
       <!-- Confirm modal -->
@@ -51,7 +51,7 @@ export default {
     },
     data: () => ({
         message: 'Changes applied',
-        confirmMessage: 'Are you sure you want to approve these changes?',
+        confirmMessage: 'Are you sure you want to accept these changes? Accepting changes will save a new version of the item with these changes applied.',
         changedMessage: 'The item has been changed since this issue was created',
         confirmOpen: false
     }),

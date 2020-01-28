@@ -43,7 +43,7 @@
 {% endblock %}
 
 {% block objSpecific %}
-
+    <h2>Indicator Summary</h2>
     <div class="indicator_box">
         <div class="fraction panel panel-info aristotle-display-panel">
             <header class="panel-heading">Numerator</header>
@@ -105,6 +105,11 @@
             </div>
         </div>
     </div>
+
+    {% if item.reporting_information %}
+        <h2>Reporting Information</h2>
+        <p>{{ item.reporting_information | bleach }}</p>
+    {% endif %}
 
     {% if item.outcome_areas.all.exists %}
         <h2>Outcome Areas</h2>

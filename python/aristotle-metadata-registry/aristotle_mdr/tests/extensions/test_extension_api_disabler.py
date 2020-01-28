@@ -142,7 +142,7 @@ class ConfigDisableCheckTests(utils.LoggedInViewPages, TestCase):
         from haystack.query import SearchQuerySet
 
         from django.db.models.signals import pre_save
-        from aristotle_mdr.models import check_concept_app_label
+        from aristotle_mdr.signals import check_concept_app_label
         pre_save.disconnect(check_concept_app_label)
 
         unindexed_item = Question.objects.create(

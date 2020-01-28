@@ -8,7 +8,14 @@
 {% endblock %}
 
 {% block page %}
-    <h1>{% trans "My Recent Actions" %}</h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href="{% url 'aristotle:userProfile' %}">My Profile</a>
+        </li>
+        <li class="active">My Recent Actions</li>
+    </ol>
+
+<h1>{% trans "My Recent Actions" %}</h1>
     {% if page %}
         {% include "aristotle_mdr/helpers/paginated_reversion_list.html" with page=page %}
     {% else %}

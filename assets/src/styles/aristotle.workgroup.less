@@ -1,0 +1,31 @@
+@screen-sm-min:600px;
+@screen-sm-max:760px;
+@screen-md-regular:992px;
+
+#workgroup_infobox {
+    > header {
+        font-size:110%;
+        font-weight:bold;
+        border-bottom:1px solid gray;
+        text-align:center;
+    }
+    font-size:90%;
+    padding:5px;
+    margin-top: 10px;
+    dl {
+        margin-bottom:0px;
+        dt {clear:both;
+            float:left;
+            &.large {float:none;}
+        }
+        dd {
+            margin-left:100px;
+            &.large {
+                margin-left:0px;
+                ul {
+                    padding-left:30px;
+                }
+            }
+        }
+    }
+}

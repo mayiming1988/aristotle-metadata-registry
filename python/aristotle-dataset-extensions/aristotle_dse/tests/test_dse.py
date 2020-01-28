@@ -11,6 +11,7 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from django.urls import reverse
 from django.test import TestCase, tag
+from django.utils import timezone
 
 
 def setUpModule():
@@ -191,6 +192,19 @@ class DataCatalogViewPage(LoggedInViewConceptPages, TestCase):
 class DatasetViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'dataset'
     itemType = models.Dataset
+
+    def create_public_dataset(self) -> models.Dataset:
+        """Helper method that creates a public dataset"""
+        dataset = models.Dataset.objects.create(name="Dataset",
+                                                definition="A dataset",
+                                                submitter=self.editor)
+        MDR.Status.objects.create(
+            concept=dataset,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=MDR.STATES.standard
+        )
+        return dataset
 
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
