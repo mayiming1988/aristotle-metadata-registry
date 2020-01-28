@@ -8,6 +8,9 @@ from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.contrib.stewards.tests.test_perms import BaseStewardOrgsTestCase
 from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.publishing.models import PublicationRecord
+from aristotle_mdr.contrib.aristotle_backwards.models import RepresentationClass
+from aristotle_mdr.contrib.identifiers.models import Namespace
+
 
 User = get_user_model()
 
@@ -282,8 +285,143 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class ManagedItemTestCase:
+class ManagedItemTestCase(BaseStewardOrgsTestCase, TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        # Create some test managed items
+        self.namespace = Namespace.objects.create(
+            name='Test Namespace',
+            definition='For testing',
+            stewardship_organisation=self.steward_org_1,
+        )
+        self.metres = mdr_models.Measure.objects.create(
+            name='Metres',
+            definition='Like, pretty long aye',
+            stewardship_organisation=self.steward_org_1,
+        )
+        self.centimetres = mdr_models.Measure.objects.create(
+            name='Centimetres',
+            definition='Like metres but smaller',
+            stewardship_organisation=self.steward_org_1,
+        )
+        self.time = RepresentationClass.objects.create(
+            name='Time',
+            definition='A point in spacetime',
+            stewardship_organisation=self.steward_org_1,
+        )
+
+    def test_load_managed_item_create(self):
+        self.login_oscar()
+        response = self.client.get(
+            reverse('aristotle:stewards:group:create_managed_item',
+                    args=[self.steward_org_1.slug, 'measure'])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('form' in response.context)
+
+    def test_load_managed_item_create_anon(self):
+        response = self.client.get(
+            reverse('aristotle:stewards:group:create_managed_item',
+                    args=[self.steward_org_1.slug, 'measure'])
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_managed_item_create(self):
+        """Test that an SO manager can create an item"""
+        self.login_oscar()
+        definition = 'Like metres but bigger'
+        data = {
+            'name': 'Kilometres',
+            'definition': definition,
+            'stewardship_organisation': self.steward_org_1.uuid
+        }
+
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:create_managed_item',
+                args=[self.steward_org_1.slug, 'measure']
+            ),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        measure = mdr_models.Measure.objects.filter(name='Kilometres')
+        self.assertEqual(measure.count(), 1)
+
+        kilometres = measure[0]
+        self.assertEqual(kilometres.definition, definition)
+        self.assertEqual(kilometres.stewardship_organisation, self.steward_org_1)
+
+    def test_load_managed_item_edit(self):
+        """Test that a SO manager can edit a managed item"""
+        self.login_oscar()
+        response = self.client.get(
+            reverse(
+                'aristotle:stewards:group:edit_managed_item',
+                args=[self.steward_org_1.slug, 'measure', self.centimetres.id]
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('form' in response.context)
+
+    def test_load_managed_item_edit_anon(self):
+        """Test that an anonymous user cannot load the edit managed item form"""
+        response = self.client.get(
+            reverse(
+                'aristotle:stewards:group:edit_managed_item',
+                args=[self.steward_org_1.slug, 'measure', self.centimetres.id]
+            )
+        )
+        self.assertEqual(response.status_code, 403)
 
     def test_managed_item_edit(self):
-        # TODO addtest: create test for editing a managed items
-        pass
+        """Test that a SO manager can edit a managed item"""
+        self.login_oscar()
+        new_definition = 'Like real small'
+        data = {
+            'name': self.centimetres.name,
+            'definition': new_definition,
+            'stewardship_organisation': self.centimetres.stewardship_organisation
+        }
+
+        response = self.client.post(
+            reverse(
+                'aristotle:stewards:group:edit_managed_item',
+                args=[self.steward_org_1.slug, 'measure', self.centimetres.id]
+            ),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.centimetres.refresh_from_db()
+        self.assertEqual(self.centimetres.name, 'Centimetres')
+        self.assertEqual(self.centimetres.definition, new_definition)
+        self.assertEqual(self.centimetres.stewardship_organisation, self.steward_org_1)
+
+    def test_view_managed_item_types(self):
+        """Test that an anonymous user can view managed item types"""
+        response = self.client.get(
+            reverse('aristotle:stewards:group:managed_item_list_types', args=[self.steward_org_1.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check that there are types in list
+        self.assertTrue(len(response.context['object_list']) > 1)
+
+    def test_view_managed_item_list(self):
+        """Test that a SO manager can view managed item list"""
+        self.login_oscar()
+        response = self.client.get(
+            reverse(
+                'aristotle:stewards:group:managed_item_list_items',
+                args=[self.steward_org_1.slug, 'measure']
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+
+        expected = [
+            self.centimetres,
+            self.metres
+        ]
+        self.assertCountEqual(response.context['object_list'], expected)
