@@ -453,14 +453,7 @@ class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
         )
 
     @tag('docx')
-    @skip('pandoc isnt installed on all test environments')
-    # TODO: stop skipping this since we moved to Github Actions
     def test_docx_downloader_generates_file(self):
         downloader = DocxDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)
-
-class DataDictionaryTestCase:
-    def test_data_dictionary_download(self):
-        return True
-        # TODO: complete

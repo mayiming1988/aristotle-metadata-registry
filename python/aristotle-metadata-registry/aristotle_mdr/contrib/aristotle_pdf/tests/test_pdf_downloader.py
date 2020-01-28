@@ -1,5 +1,4 @@
 from django.test import TestCase, tag, override_settings
-from unittest import skip
 
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models
