@@ -11,7 +11,7 @@ def duplicate_model_foreign_key(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0035_copy_and_paste_dssdeinclusion_group'),
+        ('aristotle_dse', '0036_copy_and_paste_dssdeinclusion_group'),
     ]
 
     operations = [

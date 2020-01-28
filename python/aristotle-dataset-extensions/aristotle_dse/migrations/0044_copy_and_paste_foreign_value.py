@@ -31,7 +31,7 @@ def duplicate_models_foreign_keys_reverse(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0042_add_temp_field'),
+        ('aristotle_dse', '0043_add_temp_field'),
     ]
 
     operations = [

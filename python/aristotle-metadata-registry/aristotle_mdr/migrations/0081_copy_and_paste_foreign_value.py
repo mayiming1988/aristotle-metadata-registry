@@ -11,7 +11,7 @@ def duplicate_models_foreign_keys(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('aristotle_mdr', '0079_add_temp_field'),
+        ('aristotle_mdr', '0080_add_temp_field'),
     ]
     operations = [
         migrations.RunPython(duplicate_models_foreign_keys, reverse_code=migrations.RunPython.noop),

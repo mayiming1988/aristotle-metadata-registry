@@ -19,7 +19,7 @@ def duplicate_models_foreign_keys(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0045_add_foreign_key_field'),
+        ('aristotle_dse', '0046_add_foreign_key_field'),
     ]
 
     operations = [

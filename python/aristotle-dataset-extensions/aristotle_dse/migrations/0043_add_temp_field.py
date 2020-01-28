@@ -6,8 +6,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0041_change_pk_to_uuid_for_non_referenced_dse_models'),
-        ('aristotle_mdr', '0085_auto_20191024_0100')
+        ('aristotle_dse', '0042_change_pk_to_uuid_for_non_referenced_dse_models'),
+        ('aristotle_mdr', '0086_auto_20191024_0100')
     ]
 
     operations = [

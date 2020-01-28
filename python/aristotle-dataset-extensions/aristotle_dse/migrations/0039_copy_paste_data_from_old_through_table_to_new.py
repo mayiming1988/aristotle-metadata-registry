@@ -40,7 +40,7 @@ def copy_and_paste_data_from_new_through_table_to_old(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0037_create_new_through_tables'),
+        ('aristotle_dse', '0038_create_new_through_tables'),
     ]
 
     operations = [

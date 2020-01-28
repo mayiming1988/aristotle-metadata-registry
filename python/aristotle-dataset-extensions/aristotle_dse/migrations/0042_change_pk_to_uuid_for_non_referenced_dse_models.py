@@ -7,7 +7,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0040_auto_20191008_2030'),
+        ('aristotle_dse', '0041_auto_20191008_2030'),
     ]
     operations = [
         migrations.RemoveField(

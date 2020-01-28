@@ -7,7 +7,7 @@ import aristotle_mdr.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0039_remove_dssgrouping_linked_group'),
+        ('aristotle_dse', '0040_remove_dssgrouping_linked_group'),
     ]
 
     operations = [

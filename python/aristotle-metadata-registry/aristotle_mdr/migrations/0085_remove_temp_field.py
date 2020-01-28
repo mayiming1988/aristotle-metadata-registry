@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0083_copy_and_paste_to_foreign_key'),
+        ('aristotle_mdr', '0084_copy_and_paste_to_foreign_key'),
     ]
 
     operations = [

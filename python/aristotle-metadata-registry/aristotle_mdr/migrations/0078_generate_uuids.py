@@ -42,7 +42,7 @@ def generate_uuids_for_valuemeaning(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0076_auto_20190918_1524'),
+        ('aristotle_mdr', '0077_add_uuid_fields'),
     ]
 
     operations = [

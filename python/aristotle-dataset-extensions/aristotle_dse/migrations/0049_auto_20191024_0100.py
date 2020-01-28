@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0047_remove_temp_field'),
+        ('aristotle_dse', '0048_remove_temp_field'),
     ]
 
     operations = [

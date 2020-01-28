@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0038_copy_paste_data_from_old_through_table_to_new'),
+        ('aristotle_dse', '0039_copy_paste_data_from_old_through_table_to_new'),
     ]
 
     operations = [

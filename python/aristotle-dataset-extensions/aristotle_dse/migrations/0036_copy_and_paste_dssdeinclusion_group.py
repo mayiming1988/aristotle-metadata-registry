@@ -17,7 +17,7 @@ def duplicate_model_foreign_key_reverse(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0034_dssdeinclusion_group_new'),
+        ('aristotle_dse', '0035_dssdeinclusion_group_new'),
     ]
 
     operations = [

@@ -35,7 +35,7 @@ def generate_uuids_for_dssgrouping(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0031_auto_20190918_1524'),
+        ('aristotle_dse', '0032_auto_20190918_1524'),
     ]
 
     operations = [

@@ -8,7 +8,7 @@ import aristotle_mdr.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_dse', '0036_remove_rename_and_alter'),
+        ('aristotle_dse', '0037_remove_rename_and_alter'),
     ]
 
     operations = [
