@@ -501,8 +501,6 @@ class ManagedItemQuerySet(PublishedItemQuerySet):
     def visible(self, user):
         # Should be filtered based on role within stewardship organisation
         # admin and steward can view
-        from aristotle_mdr.models import StewardOrganisation
-
         if user.is_superuser:
             return self.all()
 
