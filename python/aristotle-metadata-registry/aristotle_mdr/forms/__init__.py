@@ -1,3 +1,4 @@
+# flake8: noqa
 from .forms import *  # type: ignore
 from . import creation_wizards as wizards
 from . import search

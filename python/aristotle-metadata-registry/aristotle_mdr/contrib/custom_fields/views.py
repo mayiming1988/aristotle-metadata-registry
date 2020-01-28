@@ -8,8 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
-from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
+from aristotle_mdr.contrib.custom_fields.utils import get_name_of_edited_model
 from aristotle_mdr.contrib.slots.models import Slot
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
@@ -17,20 +17,8 @@ from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.utils.utils import get_concept_name_to_content_type, get_content_type_to_concept_name
 
 import json
-
-
-class CustomFieldListView(IsSuperUserMixin, BootTableListView):
-    template_name='aristotle_mdr/custom_fields/list.html'
-    model=models.CustomField
-    paginate_by=20
-    model_name='Custom Field'
-    headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
-    attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
-    blank_value = {
-        'allowed_model': 'All'
-    }
-
-    delete_url_name = 'aristotle_custom_fields:delete'
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CustomFieldListCreateView(IsSuperUserMixin, ListView):
@@ -40,61 +28,82 @@ class CustomFieldListCreateView(IsSuperUserMixin, ListView):
         metadata_types = {'all': 'All'}
         metadata_types.update(get_content_type_to_concept_name())
 
-        return list(metadata_types.items())
+        return list(sorted(metadata_types.items()))
 
 
 class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
-    """ View to edit the values for all custom fields """
+    """
+    View to edit the values for all custom fields
+    """
     template_name = 'aristotle_mdr/custom_fields/multiedit.html'
     form_class = CustomFieldForm
     non_write_fields = ['hr_type', 'hr_visibility']
 
-    def get_custom_fields(self) -> Iterable[models.CustomField]:
+    def dispatch(self, request, *args, **kwargs):
+        self.metadata_type = kwargs.get('metadata_type')
+        return super().dispatch(request, args, kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        self.content_type = get_name_of_edited_model(self.metadata_type)
+
+        try:
+            edited_model_id = ContentType.objects.get(model=self.metadata_type).pk
+        except ContentType.DoesNotExist:
+            edited_model_id = None
+
+        context.update({
+            'vue_edited_model': self.content_type,
+            'vue_edited_model_id': edited_model_id,
+            'vue_formset_add_button_message': "Add Custom Field for {}".format(self.content_type),
+        })
+
+        vue_initial = json.loads(context["vue_initial"])
+
+        # Add delete button urls for vue delete button component:
+        for serialised_custom_field in vue_initial:
+            serialised_custom_field.update({
+                "delete_button_url": reverse('aristotle_custom_fields:delete', args=[serialised_custom_field["id"]])
+            })
+
+        context.update({
+            "vue_initial": json.dumps(vue_initial)
+        })
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super(CustomFieldEditCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'content_type': self.metadata_type
+        })
+        return kwargs
+
+    def get_vue_initial(self) -> List[Dict[str, str]]:
+        fields = self.get_custom_field_objects()
+        serializer = CustomFieldSerializer(fields, many=True)
+        return serializer.data
+
+    def get_custom_field_objects(self) -> Iterable[models.CustomField]:
+        """
+        Get a Queryset of CustomField objects.
+        :return: Queryset
+        """
         content_type_mapping = get_concept_name_to_content_type()
 
-        metadata_type = self.kwargs['metadata_type']
-
-        if metadata_type in content_type_mapping:
-            content_type = content_type_mapping[metadata_type]
+        if self.metadata_type in content_type_mapping:
+            content_type = content_type_mapping[self.metadata_type]
             return models.CustomField.objects.filter(allowed_model=content_type)
-        elif metadata_type == 'all':
+        elif self.metadata_type == 'all':
             return models.CustomField.objects.filter(allowed_model=None)
         else:
             raise Http404
 
-    def get_vue_initial(self) -> List[Dict[str, str]]:
-        fields = self.get_custom_fields()
-        serializer = CustomFieldSerializer(fields, many=True)
 
-        return serializer.data
-
-    def get_allowed_models(self):
-        allowed_models: Dict = {}
-        # We don't need to do any form of permission checking because this is a super user only view
-        for allowed_model in ContentType.objects.all():
-            allowed_models[allowed_model.pk] = allowed_model.name.title()
-
-        return allowed_models
-
-    def get_name_of_edited_model(self, metadata_type):
-        mapping = get_content_type_to_concept_name()
-        if metadata_type in mapping:
-            return mapping[metadata_type]
-        return 'All Models'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-        context['edited_model'] = self.get_name_of_edited_model(self.kwargs['metadata_type'])
-
-        context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
-        return context
-
-
-class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
-    model=models.CustomField
-    form_class=CustomFieldDeleteForm
-    template_name='aristotle_mdr/custom_fields/delete.html'
-    cancel_url_name='aristotle_custom_fields:list'
+class CustomFieldDeleteView(IsSuperUserMixin, SingleObjectMixin, FormView):
+    model = models.CustomField
+    form_class = CustomFieldDeleteForm
+    template_name = 'aristotle_mdr/custom_fields/delete.html'
+    cancel_url_name = 'aristotle_custom_fields:edit'
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -129,4 +138,22 @@ class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin,
             return self.migrate()
 
     def get_success_url(self) -> str:
-        return reverse('aristotle_custom_fields:list')
+        if self.object.allowed_model:
+            return reverse('aristotle_custom_fields:edit', args=[self.object.allowed_model.model])
+        else:
+            return reverse('aristotle_custom_fields:edit', args=["all"])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if self.object.allowed_model:
+            cf_allowed_model = get_name_of_edited_model(self.object.allowed_model.model)
+            cancel_url = reverse('aristotle_custom_fields:edit', args=[self.object.allowed_model.model])
+        else:
+            cf_allowed_model = "All Models"
+            cancel_url = reverse('aristotle_custom_fields:edit', args=["all"])
+        context.update({
+            "cf_allowed_model": cf_allowed_model,
+            "cancel_url": cancel_url,
+        })
+        return context
