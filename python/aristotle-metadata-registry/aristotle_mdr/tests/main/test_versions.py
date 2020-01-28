@@ -547,21 +547,59 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
         self.login_regular_user()
 
         with reversion.revisions.create_revision():
-            self.sandbox_item = MDR.ObjectClass.objects.create(
+            sandbox_item = MDR.ObjectClass.objects.create(
                 name="A published item",
                 definition="Concept with no permissions",
                 submitter=self.regular)
 
-        response = self.client.get(reverse('aristotle:item_history', args=[self.sandbox_item.id]))
+        response = self.client.get(reverse('aristotle:item_history', args=[sandbox_item.id]))
         self.assertEqual((len(response.context['versions'])), 1)
 
     def test_change_author_displayed_in_versions(self):
-        return True
-        # TODO: complete
+        """Test that the author that made the change is displayed in the List Versions view"""
+        self.login_superuser()
+
+        item = MDR.ObjectClass.objects.create(
+            name="An item",
+            definition="This is an object class",
+            submitter=self.regular
+        )
+        with reversion.revisions.create_revision():
+            item.name = 'An edited item'
+            reversion.revisions.set_user(self.su)
+            item.save()
+
+        response = self.client.get(reverse('aristotle:item_history', args=[item.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContainsHtml(response, 'super@example.com')
+
+    def test_change_comment_displayed_in_version(self):
+        """Test that a supplied change comment is displayed in the List Versions view"""
+        self.login_superuser()
+
+        # Create an item
+        item = MDR.ObjectClass.objects.create(
+            name="A new item",
+            definition="This really is an object class",
+            submitter=self.regular
+        )
+
+        # Edit the item, provide a change comment
+        with reversion.revisions.create_revision():
+            item.name = "This is item is so different now"
+            reversion.revisions.set_comment("I don't have to tell you why I changed this")
+
+        # Check that it appears in the item history page
+        response = self.client.get(reverse('aristotle:item_history', args=[item.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContainsHtml(response, "I don't have to tell you why I changed this")
 
 
 class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
     def test_newly_created_version_permissions_default_to_workgroup(self):
+        """Integration test to check that when an item is edited:
+           1) A version is created
+           2) That an associated VersionPermission is created with the permission defaulting to workgroup"""
         # ///Arrange
 
         self.login_editor()

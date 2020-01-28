@@ -618,7 +618,6 @@ class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
 class UserProfileTests(TestCase):
 
     def setUp(self):
-
         self.newuser = get_user_model().objects.create_user(
             email='newuser@example.com',
             password='verysecure',
@@ -635,17 +634,17 @@ class UserProfileTests(TestCase):
         return response
 
     def post_with_profile_picture(self, formdata, code=302):
+        """Util function to post to profile edit form with profile function"""
+        profile_picture_path = os.path.join(self.basedir, 'fixtures/aristotle.png')
 
-        path_to_pic = os.path.join(self.basedir, 'fixtures/aristotle.png')
-
-        with open(path_to_pic, mode='br') as fp:
-            formdata.update({'profile_picture': fp})
+        with open(profile_picture_path, mode='br') as profile_picture:
+            formdata.update({'profile_picture': profile_picture})
             response = self.client.post(reverse('aristotle_mdr:userEdit'), formdata)
             self.assertEqual(response.status_code, code)
 
         return response
 
-    def get_initial(self):
+    def get_initial_form_data(self):
         response = self.client.get(reverse('aristotle_mdr:userEdit'))
         self.assertEqual(response.status_code, 200)
 
@@ -654,7 +653,6 @@ class UserProfileTests(TestCase):
         return initial
 
     def test_load_profile(self):
-
         self.login_newuser()
         response = self.client.get(reverse('aristotle_mdr:userProfile'))
         self.assertEqual(response.status_code, 200)
@@ -671,7 +669,6 @@ class UserProfileTests(TestCase):
         self.assertEqual(len(response.context['sessions']), 1)
 
     def test_load_edit_page(self):
-
         self.login_newuser()
         response = self.client.get(reverse('aristotle_mdr:userEdit'))
         self.assertEqual(response.status_code, 200)
@@ -684,14 +681,26 @@ class UserProfileTests(TestCase):
         self.assertFalse('profilePicture' in initial)
 
     def test_edit_user_profile(self):
-        return True
-        # TODO: complete
-
-    def test_profile_upload(self):
-
+        """Test that email, short_name, and full_name can be edited"""
         self.login_newuser()
 
-        initial = self.get_initial()
+        # Modify the initial form data
+        initial = self.get_initial_form_data()
+        initial['short_name'] = 'Oscar'
+        initial['full_name'] = 'Oscar the Cat'
+
+        self.post_with_profile_picture(initial)
+
+        # Check that the modifications have gone in the database
+        user = get_user_model().objects.get(email='newuser@example.com')
+        self.assertEqual(user.short_name, 'Oscar')
+        self.assertEqual(user.full_name, 'Oscar the Cat')
+
+    def test_profile_upload(self):
+        """Test that a profile picture can be uploaded via the Profile Edit Page"""
+        self.login_newuser()
+
+        initial = self.get_initial_form_data()
         self.post_with_profile_picture(initial)
 
         user = get_user_model().objects.get(email='newuser@example.com')
@@ -702,24 +711,22 @@ class UserProfileTests(TestCase):
         self.assertTrue(user.profile.profilePictureHeight)
 
     def test_profile_upload_with_clear(self):
-
         self.login_newuser()
-
-        initial = self.get_initial()
-
+        initial = self.get_initial_form_data()
         initial.update({'profile_picture-clear': 'on'})
-
         response = self.client.post(reverse('aristotle_mdr:userEdit'), initial)
 
-    def test_save_without_changes(self):
+        self.assertEqual(response.status_code, 302)
 
+    def test_save_without_changes(self):
+        """Test profile edit form can be submitted without changes"""
         self.login_newuser()
 
-        initial = self.get_initial()
+        initial = self.get_initial_form_data()
         response = self.post_with_profile_picture(initial)
 
         # Post form again, with no changes
-        complete_initial = self.get_initial()
+        complete_initial = self.get_initial_form_data()
         response = self.client.post(reverse('aristotle_mdr:userEdit'), complete_initial)
         self.assertEqual(response.status_code, 302)
 
@@ -737,14 +744,14 @@ class UserProfileTests(TestCase):
             full_name='new user'
         )
 
-        # check page load
+        # Confirm page loads
         response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_a.pk]))
         self.assertEqual(response.status_code, 200)
 
         three_toga_color = response.context['toga_color']
         three_headshot_color = response.context['headshot_color']
 
-        # check diffent args returns new colors
+        # Check different args returns new colors
         response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_b.pk]))
         self.assertEqual(response.status_code, 200)
 
