@@ -26,15 +26,9 @@ class GenericAutocomplete(autocomplete.Select2QuerySetView):
     template_name: str = "autocomplete_light/item.html"
 
     def get_queryset(self):
-        """Get queryset used to produce list, override for custom filtering
+        """Get queryset used to produce list
         Should be doing permission checks here"""
-        # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated:
-            return self.model.objects.none()
-
-        qs = self.model.objects.all()
-        qs = self.text_filter_query(qs)
-        return qs
+        raise NotImplementedError
 
     def text_filter_query(self, qs):
         """Filter query based on 'q' query param"""
