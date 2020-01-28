@@ -1,6 +1,6 @@
 from typing import Iterable
 from django.db import models
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import Q, Subquery
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.core.exceptions import ObjectDoesNotExist
@@ -132,7 +132,7 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
         if user.is_superuser:
             return self.all()
 
-        from aristotle_mdr.models import StewardOrganisation, Workgroup
+        from aristotle_mdr.models import StewardOrganisation
         WG_STATES = StewardOrganisation.states
 
         if user.is_superuser:
@@ -273,7 +273,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
-        from aristotle_mdr.models import StewardOrganisation, Workgroup
+        from aristotle_mdr.models import StewardOrganisation
         if user.is_superuser:
             return self.all()
         if user.is_anonymous:

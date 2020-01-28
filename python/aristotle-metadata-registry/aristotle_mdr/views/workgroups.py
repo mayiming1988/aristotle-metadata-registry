@@ -2,7 +2,6 @@ import logging
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.contrib.groups.backends import GroupURLManager
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr.perms import user_is_workgroup_manager
 from aristotle_mdr.views.utils import (

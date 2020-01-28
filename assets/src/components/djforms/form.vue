@@ -4,9 +4,12 @@
         :fields="fields" 
         :errors="errors" 
         :showLabels="showLabels" 
-        :fe_errors="getValidationErrors('formData')">
+        :fe_errors="getValidationErrors('formData')"
+    >
         <template slot="after">
-            <button class="btn btn-primary" @click="emitData">Submit</button>
+            <button class="btn btn-primary" @click="emitData">
+                Submit
+            </button>
         </template>
     </baseForm>
 </template>

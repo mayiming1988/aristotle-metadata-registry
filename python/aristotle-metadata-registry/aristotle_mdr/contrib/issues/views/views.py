@@ -1,15 +1,11 @@
-from typing import Optional
-
 from django.http import Http404
 from django.db.models import Q
 from django.views.generic import TemplateView
-from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue, IssueLabel
-from aristotle_mdr.models import _concept
 from aristotle_mdr import perms
 
 import json

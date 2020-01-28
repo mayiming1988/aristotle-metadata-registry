@@ -86,8 +86,6 @@ def register_concept_search_index(concept_class, *args, **kwargs):
 
 
 def create(cls, set_search_category=None):
-    from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
-
     if hasattr(settings, 'HAYSTACK_BASE_INDEX_CLASS'):
         base_index_class = import_string(settings.HAYSTACK_BASE_INDEX_CLASS)
     else:
