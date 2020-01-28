@@ -28,27 +28,27 @@ class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
     def test_upload_of_cover_page_to_download(self):
         """Test that a cover page can be included in the download"""
 
-        # Submit the cover page
+        # Create a file with a cover page
         downloader = PDFDownloader([self.item.id],
                                    self.editor.id,
                                    {'front_page': os.path.join(self.basedir, 'fixtures/cover_page.pdf')})
         pdf_file = downloader.create_file()
 
-        # pdf = PyPDF2.PdfFileReader(pdf_file)
-        # first_page = pdf.getPage(0)
-        # page_content = first_page.extractText()
-        #
-        # raise ValueError(page_content.encode('utf-8'))
+        # Load the file
+        pdf = PyPDF2.PdfFileReader(pdf_file)
+        first_page = pdf.getPage(0)
+        page_content = first_page.extractText()
+
+        # Assert that cover page text appears in the download
+        self.assertTrue('Cover page' in str(page_content.encode('utf-8')))
 
     @tag('pdf')
-    @skip('wkhtmltopdf not installed on travis')
     def test_pdf_download_generates_file(self):
         downloader = PDFDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)
 
     @tag('pdf_su')
-    @skip('wkhtmltopdf not installed on travis')
     def test_pdf_download_generates_file_superuser(self):
         downloader = PDFDownloader([self.item.id], self.su.id, {})
         fileobj = downloader.create_file()
