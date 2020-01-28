@@ -84,7 +84,7 @@ class TestDSSGroupingLinkedGroupThroughTable(MigrationsTestCase, TestCase):
         ('aristotle_mdr', '0085_remove_temp_field'),
         ('aristotle_dse', '0038_create_new_through_tables'),
     ]
-    migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
+    migrate_to = '0039_copy_paste_data_from_old_through_table_to_new'
 
     def setUpBeforeMigration(self, apps):
         DSSGrouping = apps.get_model('aristotle_dse', 'DSSGrouping')
@@ -169,7 +169,7 @@ class TestDSSDEInclusionSpecialisationClassesThroughTable(MigrationsTestCase, Te
         ('aristotle_mdr', '0085_remove_temp_field'),
         ('aristotle_dse', '0038_create_new_through_tables'),
     ]
-    migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
+    migrate_to = '0039_copy_paste_data_from_old_through_table_to_new'
 
     def setUpBeforeMigration(self, apps):
         DataElement = apps.get_model('aristotle_mdr', 'dataelement')
@@ -246,7 +246,7 @@ class TestDistributionDataElementPathSpecialisationClassesThroughTable(Migration
         ('aristotle_mdr', '0085_remove_temp_field'),
         ('aristotle_dse', '0038_create_new_through_tables'),
     ]
-    migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
+    migrate_to = '0039_copy_paste_data_from_old_through_table_to_new'
 
     def setUpBeforeMigration(self, apps):
         DataElement = apps.get_model('aristotle_mdr', 'dataelement')
