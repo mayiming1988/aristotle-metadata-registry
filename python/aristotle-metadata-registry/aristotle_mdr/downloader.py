@@ -9,12 +9,10 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.mail.message import EmailMessage
 from django.db.models.query import QuerySet
-from django.db.models import Q
 from django.http.request import QueryDict
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.module_loading import import_string
-from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
