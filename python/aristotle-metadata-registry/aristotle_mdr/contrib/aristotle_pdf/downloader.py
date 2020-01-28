@@ -3,7 +3,7 @@ from io import BytesIO
 
 from django.conf import settings
 from django.template.loader import select_template, get_template, render_to_string
-from django.core.files.base import File, ContentFile
+from django.core.files.base import File
 
 from aristotle_mdr.downloader import HTMLDownloader
 from aristotle_mdr.utils import fetch_aristotle_settings
@@ -190,13 +190,17 @@ class PDFDownloader(GenericPDFDownloader):
         if table_of_contents:
             # Add toc option so toc is generated
             toc_options['--toc-header-text'] = 'Table Of Contents'
+
             # Render preamble string
             preamble_string = render_to_string(self.preamble_template, context=context)
+
             # Write preamble temp file
             title_temp_file = NamedTemporaryFile(suffix='.html')
             title_temp_file.write(preamble_string.encode('utf-8'))
+
             # Set cover
             cover = title_temp_file.name
+
             # Set options for fixing page numbers with 2 page cover
             final_options['--page-offset'] = -1
             final_options['--footer-html'] = self.cover_footer_path

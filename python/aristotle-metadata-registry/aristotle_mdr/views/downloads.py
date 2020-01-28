@@ -259,26 +259,3 @@ class DownloadOptionsView(DownloadOptionsViewBase):
                                  "item_url": item.get_absolute_url()
                                  })
         return context_data
-
-    def form_valid(self, form):
-        cleaned_data = form.cleaned_data
-        logger.debug('Cleaned data: {}'.format(cleaned_data))
-
-        if form.wrap_pages:
-            storage_class = get_storage_class()
-            storage = storage_class()
-
-            if self.request.user.is_authenticated:
-                prefix = str(self.request.user.id)
-            else:
-                prefix = 'anon'
-
-            for file_field in ['front_page', 'back_page']:
-                uploaded_file = cleaned_data[file_field]
-                if uploaded_file:
-                    path = '{uid}/{fname}'.format(uid=prefix, fname=uploaded_file.name)
-                    saved_fname = storage.save(path, uploaded_file)
-                    cleaned_data[file_field] = saved_fname
-
-        self.request.session[self.session_key] = cleaned_data
-        return super().form_valid(form)

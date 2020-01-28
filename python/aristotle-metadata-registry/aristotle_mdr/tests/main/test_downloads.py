@@ -14,6 +14,8 @@ import datetime
 from unittest.mock import patch, MagicMock
 from unittest import skip
 
+from typing import Dict
+import os
 
 @override_settings(
     ARISTOTLE_SETTINGS={
@@ -53,19 +55,22 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
             definition='A pokemons defense',
             submitter=self.editor
         )
+        self.basedir = os.path.dirname(os.path.dirname(__file__))
 
     def setupFakeTaskCreator(self, mock_task_creator):
         fakeResult = AsyncResultMock(20)
         mock_task_creator.return_value = fakeResult
 
-    def post_dl_options(self, querystring):
+    def post_dl_options(self, querystring, additional_options: Dict, follow=False):
+        """Util function to assist with posting to download options view"""
         url = reverse('aristotle:download_options', args=['fake']) + querystring
         postdata = {
             'include_supporting': True,
             'email_copy': True
         }
+        postdata.update(additional_options)
 
-        response = self.client.post(url, postdata)
+        response = self.client.post(url, postdata, follow=follow)
         return response
 
     @patch('aristotle_bg_workers.tasks.get_download_class')
@@ -81,8 +86,15 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         fake_dl_class().download.assert_called_once()
 
     def test_upload_of_cover_page_to_download(self):
-        return True
-        # TODO: complete
+        """Test that a cover page can be included in the download"""
+
+        # Submit the cover page
+        with open(os.path.join(self.basedir, 'fixtures/cover_page.pdf'), 'rb') as cover_page:
+            response = self.post_dl_options(f'?items={self.item.id}',
+                                            {'front_page': cover_page},
+                                            follow=True)
+            self.assertEqual(response.status_code, 200)
+            import pdb; pdb.set_trace()
 
     def test_dl_options_get_no_items(self):
         url = reverse('aristotle:download_options', args=['fake'])
