@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from unittest.mock import patch, MagicMock
 
 import aristotle_mdr.tests.utils as utils
-
+from aristotle_mdr.models import ObjectClass
 
 class UserManagementPages(utils.LoggedInViewPages, TestCase):
     def setUp(self):
@@ -523,6 +523,48 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
 
-    def test_adding_view_all_metadata_permission_to_user(self):
-        return True
-        # TODO: complete
+    @tag('view_all_permissions')
+    def test_administrator_can_give_view_all_permission_to_user(self):
+        """Test whether an administrator can add view all permissions to a user"""
+        regular_user = self.user_model.objects.create_user(
+            'average@example.com',
+            'verysecure'
+        )
+        self.login_superuser()
+        url = reverse('aristotle-user:update_another_user_site_perms', args=[regular_user.pk])
+        response = self.client.get(url)
+        self.assertResponseStatusCodeEqual(response=response, code=200)
+
+        data = response.context['form'].initial
+        data['perm_view_all_metadata'] = True
+        response = self.client.post(url, data)
+        self.assertResponseStatusCodeEqual(response=response, code=302)
+        regular_user.refresh_from_db()
+        self.assertEqual(regular_user.perm_view_all_metadata, True)
+
+    @tag('view_all_permission')
+    def test_view_all_permission_allows_regular_user_to_view_all_metadata(self):
+        """Test that a regular user that has been given the view all permission can view all items"""
+        regular_user = self.user_model.objects.create_user(
+            'average@example.com',
+            'verysecure'
+        )
+        regular_user.perm_view_all_metadata = True
+        regular_user.save()
+
+        login_url = reverse('friendly_login')
+
+        response = self.client.post(
+            login_url,
+            {'username': 'average@example.com', 'password': 'verysecure'}
+        )
+        self.assertEqual(response.status_code, 302)
+
+        object_class = ObjectClass.objects.create(name="Object Class",
+                                                  definition="Object Class")
+        response = self.client.get(object_class.get_absolute_url())
+        self.assertResponseStatusCodeEqual(response=response, code=200)
+
+
+
+
