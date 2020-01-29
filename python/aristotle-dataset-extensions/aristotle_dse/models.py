@@ -70,12 +70,6 @@ class Dataset(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('Date of formal issuance (e.g., publication) of the catalog.'),
         )
-    # publisher_record = models.ForeignKey(
-    #     aristotle.models.OrganizationRecord,
-    #     verbose_name=_("Publisher"),
-    #     blank=True, null=True,
-    #     help_text=_('An entity responsible for making the dataset available.'),
-    #     )
     frequency = models.TextField(
         blank=True, null=True,
         help_text=_('The frequency at which dataset is published.'),
@@ -176,6 +170,8 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
     parent_field_name = 'distribution'
+    inline_field_layout = 'list'
+
 
     # TODO: Set this to NOT NULL
     distribution = models.ForeignKey(
@@ -193,7 +189,8 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         )
     logical_path = models.CharField(
         max_length=256,
-        help_text=_("A text expression that specifies how to identify which series of data in the distribution maps to this data element")
+        help_text=_("A text expression that specifies how to identify which series of data in the distribution maps "
+                    "to this data element")
         )
     order = models.PositiveSmallIntegerField(
         "Position",

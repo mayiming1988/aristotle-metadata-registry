@@ -1,6 +1,6 @@
 import json
-from typing import Optional
 from reversion.models import Version
+from typing import Optional
 
 from django.db.models import Model
 from django.utils.functional import cached_property
@@ -13,15 +13,15 @@ from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.views.tools import AristotleMetadataToolView
 from aristotle_mdr.views.versions import ConceptVersionCompareBase
 
+
 class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
     template_name = 'aristotle_mdr/actions/compare/compare_items.html'
     context: dict = {}
 
     def get_form(self):
-        data = self.request.GET
         user = self.request.user
         qs = _concept.objects.visible(user)
-        return CompareConceptsForm(data, user=user, qs=qs)  # A form bound to the POST data
+        return CompareConceptsForm(self.request.GET, user=user, qs=qs)
 
     def load_version_json(self, first_version, second_version):
         versions = {'first': first_version, 'second': second_version}
@@ -45,7 +45,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         }
 
     @cached_property
-    def has_same_base_model(self) -> Optional:
+    def has_same_base_model(self) -> Optional[bool]:
         concept_1 = self.get_version_1_concept()
         concept_2 = self.get_version_2_concept()
         if concept_1 and concept_2:
@@ -102,6 +102,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         concept_2 = self.get_version_2_concept()
 
         if not concept_1 or not concept_2:
+            self.context['not_all_versions_selected'] = True
             return None, None
 
         try:
@@ -119,7 +120,6 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
             # Not all concepts selected
             self.context['form'] = self.get_form()
-            self.context['not_all_versions_selected'] = True
             return self.context
 
         self.context.update({
