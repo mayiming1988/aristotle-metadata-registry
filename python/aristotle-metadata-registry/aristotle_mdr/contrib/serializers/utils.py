@@ -62,6 +62,6 @@ def get_relation_fields(model_class):
 def get_relation_field_names(model_class, whitelisted_fields=None):
     fields = get_relation_fields(model_class)
     if whitelisted_fields:
-        return tuple([get_field_name(field) for field in fields if field in whitelisted_fields])
+        return tuple([get_field_name(field) for field in fields if get_field_name(field) in whitelisted_fields])
     else:
         return tuple([get_field_name(field) for field in fields])

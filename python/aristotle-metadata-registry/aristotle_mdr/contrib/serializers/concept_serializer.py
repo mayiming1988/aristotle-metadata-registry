@@ -222,13 +222,6 @@ class ConceptSerializerFactory:
         Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
         return Serializer
 
-    def generate_deserializer(self, json):
-        """ Generate the deserializer """
-        concept_model = get_class_for_deserializer(json)
-
-        Deserializer = self._generate_serializer_class(concept_model)
-        return Deserializer
-
 
 class Serializer(BaseDjangoSerializer):
     """This is a django serializer that has a 'composed' DRF Serializer inside. """
