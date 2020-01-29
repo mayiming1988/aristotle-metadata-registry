@@ -61,7 +61,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         fakeResult = AsyncResultMock(20)
         mock_task_creator.return_value = fakeResult
 
-    def post_dl_options(self, querystring, additional_options: Dict, follow=False):
+    def post_dl_options(self, querystring, additional_options={}, follow=False):
         """Util function to assist with posting to download options view"""
         url = reverse('aristotle:download_options', args=['fake']) + querystring
         postdata = {
@@ -84,17 +84,6 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.assertIsNotNone(result)
         fake_dl_class.assert_called_once_with([self.item.id], self.editor.id, {})
         fake_dl_class().download.assert_called_once()
-
-    def test_upload_of_cover_page_to_download(self):
-        """Test that a cover page can be included in the download"""
-
-        # Submit the cover page
-        with open(os.path.join(self.basedir, 'fixtures/cover_page.pdf'), 'rb') as cover_page:
-            response = self.post_dl_options(f'?items={self.item.id}',
-                                            {'front_page': cover_page},
-                                            follow=True)
-            self.assertEqual(response.status_code, 200)
-            import pdb; pdb.set_trace()
 
     def test_dl_options_get_no_items(self):
         url = reverse('aristotle:download_options', args=['fake'])

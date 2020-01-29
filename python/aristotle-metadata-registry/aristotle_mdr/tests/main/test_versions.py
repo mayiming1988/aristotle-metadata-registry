@@ -587,12 +587,13 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
         # Edit the item, provide a change comment
         with reversion.revisions.create_revision():
             item.name = "This is item is so different now"
+            item.save()
             reversion.revisions.set_comment("I don't have to tell you why I changed this")
 
         # Check that it appears in the item history page
         response = self.client.get(reverse('aristotle:item_history', args=[item.id]))
         self.assertEqual(response.status_code, 200)
-        self.assertContainsHtml(response, "I don't have to tell you why I changed this")
+        self.assertContainsHtml(response, "I don&#39;t have to tell you why I changed this")
 
 
 class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
