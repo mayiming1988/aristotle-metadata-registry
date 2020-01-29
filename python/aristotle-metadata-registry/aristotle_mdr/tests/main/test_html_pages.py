@@ -1846,6 +1846,12 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(response.status_code, 404)
 
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
+        """Test updating weak entities to the model through edit page formsets
+
+        The test attempts to make an edit to any weak item, but does fail on some types
+        Over time we would like to have specific tests on each type instead of this general one
+        """
+
         if hasattr(self.item1, 'serialize_weak_entities'):
             self.login_editor()
             value_url = 'aristotle:edit_item'

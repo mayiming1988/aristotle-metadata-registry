@@ -6,12 +6,13 @@ from aristotle_dse import models
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
-from aristotle_mdr.tests.utils import ManagedObjectVisibility
+from aristotle_mdr.tests.utils import ManagedObjectVisibility, model_to_dict_with_change_time
 from aristotle_mdr.utils import url_slugify_concept
 
 from django.urls import reverse
 from django.test import TestCase, tag
 from django.utils import timezone
+from django.forms.models import model_to_dict
 
 
 def setUpModule():
@@ -43,28 +44,37 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
 
     # TODO: Add test for dss groupings
 
-    @skip('Weak editing currently disabled on this model')
-    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
-        # TODO addtest: enable this test or a test with equivalent functionality
-        oc = MDR.ObjectClass.objects.create(
-            name="a very nice object class"
-        )
-        oc.save()
+    def serialize_inclusion(self, inc):
+        """Serialize inclusion for submission through formset"""
+        excluded = ['dss', 'order']
+        data = model_to_dict(inc, exclude=excluded)
+        data['ORDER'] = inc.order
+        if 'group' in data and data['group'] is None:
+            del data['group']
+        return data
 
+    def bulk_serialize_inclusions(self, inclusions):
+        datalist = []
+        for inc in inclusions:
+            datalist.append(self.serialize_inclusion(inc))
+
+        return datalist
+
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
+        """Test editing of dss inclusions, through edit page formsets
+
+        overrides general weak editor test"""
+        self.login_editor()
+        # Setup objects
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",
         )
         de.save()
 
-        for i in range(4):
-            models.DSSDEInclusion.objects.create(
-                data_element=de,
-                specific_information="test info",
-                conditional_inclusion="test obligation",
-                order=i,
-                dss=self.item1
-            )
+        inclusions = []
+        clusters = []
+
         for i in range(4):
             inc = models.DSSDEInclusion.objects.create(
                 data_element=de,
@@ -73,6 +83,8 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
                 order=i,
                 dss=self.item1
             )
+            inclusions.append(inc)
+
             clust = models.DSSClusterInclusion.objects.create(
                 specific_information="test info",
                 conditional_inclusion="test obligation",
@@ -80,14 +92,61 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
                 dss=self.item1,
                 child=self.item1
             )
-        default_fields = {
-            'specialisation_classes': oc.id,
-            'data_element': de.id,
-            'child': self.item1.id
-        }
+            clusters.append(clust)
 
-        super().test_weak_editing_in_advanced_editor_dynamic(updating_field='specific_information',
-                                                             default_fields=default_fields)
+        # Serialize objects
+        data = model_to_dict_with_change_time(self.item1)
+
+        # Add modified inclusion data
+        incdata = self.bulk_serialize_inclusions(inclusions)
+        for item in incdata:
+            item['specific_information'] = 'dssde specific'
+
+        data.update(
+            self.get_formset_postdata(
+                incdata,
+                'data_elements',
+                4
+            )
+        )
+
+        # Add cluster data
+        clustdata = self.bulk_serialize_inclusions(clusters)
+        for item in clustdata:
+            item['specific_information'] = 'cluster specific'
+
+        data.update(
+            self.get_formset_postdata(
+                clustdata,
+                'clusters',
+                4
+            )
+        )
+
+        # Make changes
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item1.id]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Check updates
+        self.assertEqual(self.item1.dssdeinclusion_set.count(), 4)
+        for inc in self.item1.dssdeinclusion_set.all():
+            # Check old values
+            self.assertEqual(inc.data_element, de)
+            self.assertEqual(inc.conditional_inclusion, 'test obligation')
+            # Check new values
+            self.assertEqual(inc.specific_information, 'dssde specific')
+
+        self.assertEqual(self.item1.dssclusterinclusion_set.count(), 4)
+        for inc in self.item1.dssclusterinclusion_set.all():
+            # Check old values
+            self.assertEqual(inc.child, self.item1)
+            self.assertEqual(inc.conditional_inclusion, 'test obligation')
+            # Check new values
+            self.assertEqual(inc.specific_information, 'cluster specific')
+
 
     def test_add_data_element(self):
         de, created = MDR.DataElement.objects.get_or_create(name="Person-sex, Code N",
