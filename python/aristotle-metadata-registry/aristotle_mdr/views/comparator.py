@@ -1,4 +1,6 @@
 import json
+from typing import Optional
+from reversion.models import Version
 
 from django.db.models import Model
 from django.utils.functional import cached_property
@@ -8,11 +10,8 @@ from aristotle_mdr.forms import CompareConceptsForm
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 
-from reversion.models import Version
-
-from .tools import AristotleMetadataToolView
-from .versions import ConceptVersionCompareBase
-
+from aristotle_mdr.views.tools import AristotleMetadataToolView
+from aristotle_mdr.views.versions import ConceptVersionCompareBase
 
 class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
     template_name = 'aristotle_mdr/actions/compare/compare_items.html'
@@ -46,11 +45,11 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         }
 
     @cached_property
-    def has_same_base_model(self):
+    def has_same_base_model(self) -> Optional:
         concept_1 = self.get_version_1_concept()
         concept_2 = self.get_version_2_concept()
-
-        return concept_1._meta.model == concept_2._meta.model
+        if concept_1 and concept_2:
+            return concept_1._meta.model == concept_2._meta.model
 
     def get_subitem_key(self, subitem_model):
         field_names = [f.name for f in subitem_model._meta.get_fields()]
@@ -115,13 +114,13 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         return version_1, version_2
 
     def get_context_data(self, **kwargs):
+        self.context = super().get_context_data(**kwargs)
+
         if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
             # Not all concepts selected
-            self.context['not_all_versions_selected'] = True
             self.context['form'] = self.get_form()
+            self.context['not_all_versions_selected'] = True
             return self.context
-
-        self.context = super().get_context_data(**kwargs)
 
         self.context.update({
             "form": self.get_form(),

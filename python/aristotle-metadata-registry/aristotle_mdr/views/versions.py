@@ -475,8 +475,9 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         field = self.get_field_or_none(field_name, model)
         if field is not None:
             if (self.is_concept_fk(field) or self.is_reference_doc_fk(field)) and value:
-                if not value.isdigit():
-                    return value
+                if not type(value) == int:
+                    if not value.isdigit():
+                        return value
                 item_model = self.get_model_from_foreign_key_field(model, field_name)
                 item = item_model.objects.get(pk=value)
                 item_dict = {
