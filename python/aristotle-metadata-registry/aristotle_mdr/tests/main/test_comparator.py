@@ -9,17 +9,16 @@ from django.conf import settings
 import reversion
 
 
-def build_compare_url(a: _concept, b: _concept) -> str:
-    query_params = f'?item_a={a.pk}&item_b={b.pk}'
-    return reverse('aristotle:compare_concepts') + query_params
-
-
 class ComparatorTester(utils.LoggedInViewPages, TestCase):
     def setUp(self):
         super().setUp()
         self.steward_org_1 = MDR.StewardOrganisation.objects.create(name="Test SO")
         self.ra = MDR.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
         self.wg = MDR.Workgroup.objects.create(name="Setup WG", stewardship_organisation=self.steward_org_1)
+
+    def build_compare_url(self, a: _concept, b: _concept) -> str:
+        query_params = f'?item_a={a.pk}&item_b={b.pk}'
+        return reverse('aristotle:compare_concepts') + query_params
 
     def test_compare_with_no_selections_shows_please_select_item_prompt(self):
         """Test that when the compare page has no selections a prompt is given"""
@@ -66,7 +65,7 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
 
         self.login_superuser()  # We're not testing permissions
 
-        response = self.client.get(build_compare_url(data_set_specification_1, data_set_specification_2))
+        response = self.client.get(self.build_compare_url(data_set_specification_1, data_set_specification_2))
 
         self.assertResponseStatusCodeEqual(response=response, code=200)
         self.assertContainsHtml(response, 'first')
@@ -103,7 +102,7 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
                 distribution_2.save()
 
         self.login_superuser()
-        response = self.client.get(build_compare_url(distribution_1, distribution_2))
+        response = self.client.get(self.build_compare_url(distribution_1, distribution_2))
 
         self.assertResponseStatusCodeEqual(response=response, code=200)
         self.assertContainsHtml(response, 'first')

@@ -478,6 +478,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 if not type(value) == int:
                     if not value.isdigit():
                         return value
+
                 item_model = self.get_model_from_foreign_key_field(model, field_name)
                 item = item_model.objects.get(pk=value)
                 item_dict = {
