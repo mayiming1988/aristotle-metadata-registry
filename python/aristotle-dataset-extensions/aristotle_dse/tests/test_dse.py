@@ -12,7 +12,6 @@ from aristotle_mdr.utils import url_slugify_concept
 from django.urls import reverse
 from django.test import TestCase, tag
 from django.utils import timezone
-from django.forms.models import model_to_dict
 
 
 def setUpModule():
@@ -44,26 +43,11 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
 
     # TODO: Add test for dss groupings
 
-    def serialize_inclusion(self, inc):
-        """Serialize inclusion for submission through formset"""
-        excluded = ['dss', 'order']
-        data = model_to_dict(inc, exclude=excluded)
-        data['ORDER'] = inc.order
-        if 'group' in data and data['group'] is None:
-            del data['group']
-        return data
-
-    def bulk_serialize_inclusions(self, inclusions):
-        datalist = []
-        for inc in inclusions:
-            datalist.append(self.serialize_inclusion(inc))
-
-        return datalist
-
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
         """Test editing of dss inclusions, through edit page formsets
 
-        overrides general weak editor test"""
+        overrides general weak editor test
+        """
         self.login_editor()
         # Setup objects
         de = MDR.DataElement.objects.create(
@@ -98,30 +82,18 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
         data = model_to_dict_with_change_time(self.item1)
 
         # Add modified inclusion data
-        incdata = self.bulk_serialize_inclusions(inclusions)
+        incdata = self.bulk_serialize_inclusions(inclusions, ['dss'])
         for item in incdata:
             item['specific_information'] = 'dssde specific'
 
-        data.update(
-            self.get_formset_postdata(
-                incdata,
-                'data_elements',
-                4
-            )
-        )
+        data.update(self.get_formset_postdata(incdata, 'data_elements', 4))
 
         # Add cluster data
-        clustdata = self.bulk_serialize_inclusions(clusters)
+        clustdata = self.bulk_serialize_inclusions(clusters, ['dss'])
         for item in clustdata:
             item['specific_information'] = 'cluster specific'
 
-        data.update(
-            self.get_formset_postdata(
-                clustdata,
-                'clusters',
-                4
-            )
-        )
+        data.update(self.get_formset_postdata(clustdata, 'clusters', 4))
 
         # Make changes
         response = self.client.post(
