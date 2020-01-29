@@ -1,3 +1,4 @@
+import reversion
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
@@ -10,43 +11,46 @@ from . import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class IssueView(generics.RetrieveUpdateAPIView):
     """Retrieve and update and issue"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.IssueSerializer
-    queryset=Issue.objects.all()
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.IssueSerializer
+    queryset = Issue.objects.all()
 
 
 class IssueCreateView(generics.CreateAPIView):
     """Create a new issue"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.IssueSerializer
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.IssueSerializer
 
 
 class IssueCommentCreateView(generics.CreateAPIView):
     """Create a comment against an issue"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.IssueCommentSerializer
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.IssueCommentSerializer
 
 
 class IssueCommentRetrieveView(generics.RetrieveAPIView):
     """Retrieve an issue comment"""
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    serializer_class=serializers.IssueCommentSerializer
-    queryset=IssueComment.objects.all()
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.IssueCommentSerializer
+    queryset = IssueComment.objects.all()
 
 
 class IssueAPIView(APIView):
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
-    pk_url_kwarg='pk'
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    pk_url_kwarg = 'pk'
 
-    issue_serializer=serializers.IssueSerializer
+    issue_serializer = serializers.IssueSerializer
 
     def get_object(self):
         pk = self.kwargs[self.pk_url_kwarg]
@@ -74,8 +78,8 @@ class IssueAPIView(APIView):
 
 class IssueUpdateAndCommentView(IssueAPIView):
     """Open or close an issue, with optional comment"""
-    issue_serializer=serializers.IssueSerializer
-    comment_serializer=serializers.IssueCommentSerializer
+    issue_serializer = serializers.IssueSerializer
+    comment_serializer = serializers.IssueCommentSerializer
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -129,7 +133,7 @@ class IssueApproveView(IssueAPIView):
             raise PermissionDenied
 
         # Make changes
-        obj.apply()
+        obj.apply(request.user)
         issue_serializer.save()
 
         return Response(status=status.HTTP_200_OK)
