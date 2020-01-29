@@ -1,12 +1,9 @@
 from typing import Iterable, List, Dict, Set
 from django import forms
-from django.contrib.contenttypes.models import ContentType
-from django.forms.widgets import HiddenInput
 
 from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.models import _concept
-from aristotle_mdr.utils.utils import get_concept_content_types
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 
 import csv
