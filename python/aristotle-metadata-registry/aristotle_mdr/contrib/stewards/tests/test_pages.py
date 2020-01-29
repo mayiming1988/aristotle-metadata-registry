@@ -112,21 +112,6 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             publisher=self.new_org_member,
         )
 
-    def test_creation_of_managed_item(self):
-        """Util function to test the creation of all managed items"""
-        return True
-        # TODO: finish
-
-    def test_creation_of_data_source(self):
-        """Test that a registrar can create and store a Data Source"""
-        return True
-        # TODO: finish
-
-    def test_creation_of_framework(self):
-        """Test that a registrar can create and store a framework"""
-        return True
-        # TODO: finish
-
     def test_creation_of_stewardship_organisation(self):
         """Test that a registrar can create a stewardship organisation"""
         return True
