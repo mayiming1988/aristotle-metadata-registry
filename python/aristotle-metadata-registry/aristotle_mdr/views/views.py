@@ -1,29 +1,29 @@
 import json
 import logging
+from collections import Counter
 from typing import Any, Tuple, List
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.urls import reverse
-from django.db.models.query import QuerySet
-from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView, RedirectView, DeleteView, UpdateView
-from django.utils.module_loading import import_string
-from django.utils.functional import SimpleLazyObject
-from django.utils import timezone
+from typing import Dict
 from formtools.wizard.views import SessionWizardView
+from reversion import revisions as reversion
+from reversion.models import Version
 
+from aristotle_bg_workers.tasks import register_items
+from aristotle_bg_workers.utils import run_task_on_commit
+from aristotle_mdr import forms as MDRForms
+from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
+from aristotle_mdr.contrib.slots.models import Slot
+from aristotle_mdr.mixins import IsSuperUserMixin
+from aristotle_mdr.models import concept_visibility_updated
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
     user_can_publish_object,
     user_can_supersede,
     user_can_add_status,
     user_can_view_statuses_revisions,
+    user_is_registrar
 )
-from aristotle_mdr import forms as MDRForms
-from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
     cascade_items_queryset,
     get_concepts_for_apps,
@@ -34,22 +34,24 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
-    TagsMixin
+    TagsMixin,
+    get_item_breadcrumbs
 )
-from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
-from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
-from aristotle_bg_workers.tasks import register_items
-from aristotle_bg_workers.utils import run_task_on_commit
-from aristotle_mdr.mixins import IsSuperUserMixin
-from aristotle_mdr.models import concept_visibility_updated
+from aristotle_mdr.views.utils import get_lazy_viewable_ids
 
-from reversion.models import Version
-from reversion import revisions as reversion
-from typing import Dict
+from django.apps import apps
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.db.models.query import QuerySet
+from django.http import HttpResponseRedirect, Http404
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.module_loading import import_string
+from django.views.generic import TemplateView, RedirectView, DeleteView, UpdateView
 
 
-from collections import Counter
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -306,29 +308,28 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'statuses': self.item.current_statuses,
             'discussions': self.item.relatedDiscussions.all(),
             'activetab': 'item',
+            'relational_attributes': self.item.relational_attributes,
             'has_links': links_from or links_to,
             'links_from': links_from,
             'links_to': links_to,
             'custom_values': self.get_custom_values(),
             'submitting_organizations': self.item.submitting_organizations,
             'responsible_organizations': self.item.responsible_organizations,
-            'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME']
+            'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME'],
+            'breadcrumbs': get_item_breadcrumbs(self.item, self.request.user, last_active=True)
         })
-
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
         # Since its lazy we can do this every time :)
-        lazy_viewable_ids = SimpleLazyObject(
-            lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
-        )
-        context['viewable_ids'] = lazy_viewable_ids
+        context['viewable_ids'] = get_lazy_viewable_ids(self.user)
 
         # Permissions (so they are looked up once)
         context.update({
             'can_edit': user_can_edit(self.user, self.item),
             'can_publish': user_can_publish_object(self.user, self.item),
             'can_supersede': user_can_supersede(self.user, self.item),
-            'can_add_status': user_can_add_status(self.user, self.item)
+            'can_add_status': user_can_add_status(self.user, self.item),
+            'is_registrar': user_is_registrar(self.user)
         })
 
         return context
@@ -446,11 +447,12 @@ def create_list(request):
     )
 
 
-def get_app_config_list():
+def get_app_config_list(apps_list=None):
     out = {}
-    aristotle_apps = fetch_metadata_apps()
+    if not apps_list:
+        apps_list = fetch_metadata_apps()
 
-    for m in get_concepts_for_apps(aristotle_apps):
+    for m in get_concepts_for_apps(apps_list):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
 
@@ -465,7 +467,8 @@ def get_app_config_list():
                 app_models['app'] = app
         app_models['models'].append({
             "content_type": m,
-            "class": m.model_class()
+            "class": m.model_class(),
+            "queryset": m.model_class().objects.all(),
         })
         out[m.app_label] = app_models
 

@@ -3,7 +3,8 @@ import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
 import { buildElement } from 'src/lib/html.js'
 
-function buildDialogHtml(item_label, select_id, dalurl) {
+// Build html content to go inside the glossay item dialog
+function buildGlossaryDialogHtml(item_label, select_id, dalurl) {
     let final_label = item_label + ':'
     let div = document.createElement('div')
     let select2box = buildElement('select', {
@@ -31,22 +32,25 @@ function buildDialogHtml(item_label, select_id, dalurl) {
     return div.outerHTML
 }
 
-function addDialog(editor, dialogname, dialogtitle, dialoghtml, select_id) {
-    // Add the dialog
+// Add the glossary item dialog to an editor
+function addGlossaryDialog(editor, dialogname, dialogtitle, select_id) {
     editor.dialog.add(dialogname, function(editor) {
         return {
-            title : dialogtitle,
-            minWidth : 400,
-            minHeight : 200,
-            contents :
-            [
+            title: dialogtitle,
+            minWidth: 400,
+            minHeight: 200,
+            contents: [
                 {
                     id: 'general',
                     label: 'Settings',
                     elements: [
                         {
-                            type : 'html',
-                            html : dialoghtml,
+                            type: 'html',
+                            html: buildGlossaryDialogHtml(
+                                'Glossary Item', 
+                                'id_glossary',
+                                '/ac/concept/aristotle_glossary-glossaryitem'
+                            )
                         }
                     ]
                 }
@@ -86,6 +90,7 @@ function addDialog(editor, dialogname, dialogtitle, dialoghtml, select_id) {
 }
 
 export function addPlugins(editor) {
+    addGlossaryDialog(editor, 'glossaryListDialog', 'Glossary search', 'id_glossary')
     editor.plugins.add('aristotle_glossary', {
         icons: 'glossary',
         init: function( editor ) {
@@ -97,12 +102,4 @@ export function addPlugins(editor) {
             });
         }
     });
-    let html = buildDialogHtml(
-        'Glossary Item', 
-        'id_glossary',
-        '/ac/concept/aristotle_glossary-glossaryitem'
-    )
-    addDialog(editor, 'glossaryListDialog', 'Glossary search', html, 'id_glossary')
 }
-
-

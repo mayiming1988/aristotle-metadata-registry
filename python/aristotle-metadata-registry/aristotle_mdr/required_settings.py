@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import dj_database_url
-from typing import List, Tuple
+from typing import List
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
@@ -176,7 +176,7 @@ MIDDLEWARE = [
 SESSION_ENGINE = 'user_sessions.backends.db'
 
 ROOT_URLCONF = 'aristotle_mdr.urls'
-LOGIN_REDIRECT_URL = '/account/home'
+LOGIN_REDIRECT_URL = '/account/home/'
 LOGOUT_REDIRECT_URL = '/home'
 LOGIN_URL = '/login'
 LOGOUT_URL = '/logout'
@@ -231,13 +231,13 @@ ARISTOTLE_SETTINGS = {
             'app_label': 'aristotle_mdr',
             'model': 'DataElement',
             'class': 'aristotle_mdr.views.wizards.DataElementWizard',
-            'link': 'create/wizard/aristotle_mdr/dataelement',
+            'link': 'wizard/aristotle_mdr/dataelement',
         },
         {
             'app_label': 'aristotle_mdr',
             'model': 'DataElementConcept',
             'class': 'aristotle_mdr.views.wizards.DataElementConceptWizard',
-            'link': 'create/wizard/aristotle_mdr/dataelementconcept',
+            'link': 'wizard/aristotle_mdr/dataelementconcept',
         }
     ],
     "DOWNLOAD_OPTIONS": {
@@ -268,8 +268,8 @@ CKEDITOR_CONFIGS = {
         ],
         'width': "",
         'disableNativeSpellChecker': False,
-        # 'extraPlugins': 'aristotle_glossary',
-        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection',
+        'extraPlugins': 'aristotle_glossary,divarea',
+        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection,elementspath',
         'extraAllowedContent': 'a[data-aristotle-concept-id]'
     },
 }
@@ -407,7 +407,7 @@ GRAPHQL_ENABLED = False
 # Allows migrations to print text on success (disabled during testing)
 MIGRATION_PRINT = True
 
-MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
+MAXIMUM_NUMBER_OF_NODES_IN_GRAPHS = 200
 
 # List of import strings for additional graphql query objects
 EXTRA_GRAPHQL_QUERY_OBJS: List[str] = []

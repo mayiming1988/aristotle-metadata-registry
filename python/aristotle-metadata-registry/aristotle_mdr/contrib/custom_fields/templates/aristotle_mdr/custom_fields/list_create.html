@@ -1,36 +1,45 @@
 {% extends 'aristotle_mdr/user/base.html' %}
 {% block page %}
-<h1>Select a model to edit Custom Fields for</h1>
-<div class="container">
-    <div class="col-md-8">
-        <table class="table table-striped">
-            <caption>Allowed Models</caption>
-            <tbody>
-            <tr>
-                <th scope="col">
-                    Model
-                </th>
-                <th scope="col">
-                    Edit
-                </th>
 
-            </tr>
-            {% for url_string, name in object_list %}
-            <tr>
-                <td>
-                    <em>{{ name }}</em>
-                </td>
-                <td>
-                    <a href="{% url 'aristotle_custom_fields:edit' url_string %}" class="btn btn-default">
+    <ol class="breadcrumb">
+        <li class="active">
+            <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+        </li>
+        <li class="active">Manage Custom Fields</li>
+    </ol>
+
+    <h1>Select a model to edit Custom Fields for</h1>
+    <div class="container">
+        <div class="col-md-8">
+            <table class="table table-striped">
+                <caption>Allowed Models</caption>
+                <tbody>
+                <tr>
+                    <th scope="col">
+                        Model
+                    </th>
+                    <th scope="col">
                         Edit
-                    </a>
-                </td>
+                    </th>
 
-            </tr>
-            {% endfor %}
+                </tr>
 
-            </tbody>
-        </table>
+                {% for content_type, name in object_list %}
+                    <tr>
+                        <td>
+                            <em>{{ name }}</em>
+                        </td>
+                        <td>
+                            <a href="{% url 'aristotle_custom_fields:edit' content_type %}" class="btn btn-default">
+                                Edit
+                            </a>
+                        </td>
+
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 {% endblock %}

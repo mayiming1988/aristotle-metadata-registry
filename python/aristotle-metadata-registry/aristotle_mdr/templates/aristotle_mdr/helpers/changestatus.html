@@ -1,54 +1,56 @@
-{% load util_tags %}
+{% load util_tags bootstrap3 %}
 
-<section>
-    <div class="changeStatusDiv container">
-        <div class="col-sm-4 col-md-2">
-            <label for="id_registrationDate">{{ form.registrationDate.label }}</label>:
-            <span class="text-danger">{{ form.registrationDate.errors }}</span>
-        </div>
-        <div class="col-sm-7 col-md-4">
-            {{ form.registrationDate }}
-            <div>
-                Date the registration state will be active from.
+<div class="row">
+    {% bootstrap_field form.registrationDate placeholder="" layout="horizontal" horizontal_field_class="col-md-5" %}
+</div>
+
+<div class="row">
+    <div class="form-group">
+        {% bootstrap_label form.cascadeRegistration.label label_for="id_change_state-cascadeRegistration_0" label_class="col-md-3 control-label" %}
+        <div class="col-md-9">
+            {% bootstrap_field form.cascadeRegistration show_label=False form_group_class="" show_help=False %}
+            <div class="help-block">
+                {{ form.cascadeRegistration.help_text }}
+                <a tabindex="0"
+                   class="aristotle-popover"
+                   role="button"
+                   data-toggle="popover"
+                   title=""
+                   data-placement="bottom"
+                   data-content="Associated items can be components of another piece of metadata, or other items that
+                   have been linked together by a user.<br><br> For example, the associated metadata for a Data Element
+                   would be its Data Element Concept, Value Domain, Object Class and Property<br><br>You can review what
+                   other metadata items will be changed by clicking 'Review Changes' button"
+                   data-html="true"
+                   data-original-title="Help about Cascaded Registration">
+                    <i class="fa fa-question-circle"></i>
+                </a>
             </div>
         </div>
     </div>
-    <div class="changeStatusDiv">
-    <span>
-        <label for="id_cascadeRegistration">
-        {{ form.cascadeRegistration.label }}
-        <a tabindex="0"
-           class="aristotle-popover"
-           role="button"
-           data-toggle="popover"
-           title="Associated Items Help"
-           data-content="Associated items can be components of another piece of metadata, or other items that have been linked together by a user.<br><br>
-        For example, the associated metadata for a Data Element would be its Data Element Concept, Value Domain, Object Class and Property<br><br>
-        You can review what other metadata items will be changed by clicking 'Review Changes' button"
-           data-html="true">
-        <i class="fa fa-2x fa-question-circle"></i>
-        </a>
-        </label>
-        <span class="text-danger">{{ form.cascadeRegistration.errors }}</span>
-    </span>
-        <span class="pull-right">
-        {{ form.cascadeRegistration }}
-    </span>
-    </div>
-    <div id="changeStatus">
-        <div>
-        <span>
-            {{ form.state.label }}
-            <span class="text-danger">{{ form.state.errors }}</span>
-        </span>
-            <span>
-            {{ form.registrationAuthorities.label }}
-            <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
-        </span>
+</div>
+
+<div class="row">
+    {% bootstrap_field form.state placeholder="" layout="horizontal" required_css_class="required" horizontal_field_class="col-md-7" %}
+</div>
+
+<div class="row">
+    <div class="form-group">
+        <div class="col-md-3 control-label">
+            {% bootstrap_label form.registrationAuthorities.label label_for="registration-authorities-id" label_class="required" %}
         </div>
-        <div>
-            {{ form.state }}
-            <ul>
+        <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
+        <div class="col-md-7">
+            <ul id="registration-authorities-id" class="registration-authorities-list">
+                {% if not form.registrationAuthorities.field.choices %}
+                  <p>
+                    No registration authorities exist in this registry. A registration authority is <b>required</b>
+                    to change the status of items.
+                    {% if perms.aristotle_mdr.access_aristotle_dashboard %}
+                        To create a registration authority, click <a href="{% url 'aristotle:registrationauthority_create'%}" target="_blank">here</a>.
+                    {% endif %}
+                  </p>
+                {% else %}
                 {% for val,label_text in form.registrationAuthorities.field.choices %}
                     {% if val %}
                         <li>
@@ -60,11 +62,12 @@
                         </li>
                     {% endif %}
                 {% endfor %}
+                {% endif %}
             </ul>
         </div>
     </div>
-    <div class="status_change_description">
-        {{ form.changeDetails.label }}
-        {{ form.changeDetails }}
-    </div>
-</section>
+</div>
+
+<div class="row">
+    {% bootstrap_field form.changeDetails placeholder="" layout="horizontal" horizontal_field_class="col-md-7" %}
+</div>

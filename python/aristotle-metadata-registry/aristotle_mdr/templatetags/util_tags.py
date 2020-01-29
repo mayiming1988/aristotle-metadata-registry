@@ -1,11 +1,13 @@
 from typing import Union, List
 from django import template
-from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
+from django.db.models import Model
 
 from aristotle_mdr.utils.text import pretify_camel_case
+from aristotle_mdr.structs import Breadcrumb
+from dateutil.parser import parse
 
 import bleach
 import json
@@ -30,8 +32,8 @@ def startswith(string, substr):
 
 
 @register.filter
-def visible_count(ct, user):
-    return ct.model_class().objects.all().visible(user).count()
+def visible_count(model, user):
+    return type(model).objects.all().visible(user).count()
 
 
 @register.filter
@@ -60,29 +62,6 @@ def distinct(iterable, attr_name):
             seen.append(attr)
 
     return filtered
-
-
-@register.filter
-def json_script(value, element_id):
-    """
-    Taken from Django 2.1
-
-    Escape all the HTML/XML special characters with their unicode escapes, so
-    value is safe to be output anywhere except for inside a tag attribute. Wrap
-    the escaped JSON in a script tag.
-    """
-
-    _json_script_escapes = {
-        ord('>'): '\\u003E',
-        ord('<'): '\\u003C',
-        ord('&'): '\\u0026',
-    }
-
-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
-    return format_html(
-        '<script id="{}" type="application/json">{}</script>',
-        element_id, mark_safe(json_str)
-    )
 
 
 @register.filter(name='bleach')
@@ -121,9 +100,7 @@ def iso_time(dt: Union[datetime, date, None]):
         return '-'
 
     dtype = type(dt)
-    if dtype == datetime:
-        return dt.isoformat()
-    elif dtype == date:
+    if dtype in (datetime, date):
         return dt.isoformat()
     else:
         # If we got a non datetime or date object don't do anything
@@ -152,13 +129,39 @@ def as_str(item):
     return str(item)
 
 
+def format_time(dt, html_format):
+    """Format html with dates inserted
+    Helper function used by timetag and timefromtag"""
+    if dt is None:
+        return '-'
+
+    elif type(dt) in (datetime, date):
+        # ISO format to be parsed by js
+        isotime = dt.isoformat()
+        # Format to use when js replacement fails
+        nicetime = dt.strftime('%d %B %Y')
+
+        return format_html(
+            html_format,
+            isotime=isotime,
+            time=nicetime
+        )
+
+    # If we got an invalid type return initial value
+    return dt
+
+
 @register.simple_tag
 def timetag(dt: Union[datetime, date, None]):
-    isotime = iso_time(dt)
-    return format_html(
-        '<time datetime="{isotime}">{isotime}</time>',
-        isotime=isotime
-    )
+    """Render time element for use with js local time replacement"""
+    return format_time(dt, '<time datetime="{isotime}">{time}</time>')
+
+
+@register.simple_tag
+def timefromtag(dt: Union[datetime, date, None]):
+    """Same as timetag above, but will show time from now
+    e.g. 4 Days Ago"""
+    return format_time(dt, '<time datetime="{isotime}" data-time-from="true">{time}</time>')
 
 
 @register.simple_tag(name='lookup')
@@ -185,3 +188,49 @@ def dict_lookup(mapping, *keys):
                 return ''
 
     return result
+
+
+@register.simple_tag(name='lookup_or')
+def dict_lookup_or(mapping, key, default):
+    """Return value in mapping or a default
+    Useful when using a mapping of cached values"""
+    if key in mapping:
+        return mapping[key]
+
+    return default
+
+
+@register.inclusion_tag('aristotle_mdr/helpers/breadcrumbs.html')
+def breadcrumb_list(crumbs: List[Breadcrumb]):
+    return {'breadcrumbs': crumbs}
+
+
+@register.filter
+def pluralize_model(count: int, model: Model):
+    """Return verbose name or plural verbose name, depending on a count"""
+    if count > 1:
+        return model._meta.verbose_name_plural.title()
+
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name(model):
+    return model._meta.verbose_name.title()
+
+
+@register.filter
+def model_verbose_name_plural(model):
+    return model._meta.verbose_name_plural.title()
+
+
+@register.simple_tag()
+def assign(string):
+    return string
+
+
+@register.filter
+def parse_date(date: str) -> datetime:
+    """Parse iso 8601 date string into datetime object"""
+    # Can be replaced with .fromisoformat in python 3.7
+    return parse(date)

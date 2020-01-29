@@ -39,7 +39,7 @@
                 {% if post.comments.last %}
                     <a href="{% url 'aristotle:discussionsPost' post.id %}#comment_{{post.comments.last.id}}"
                        title="Jump to last comment">
-                        {{ post.comments.last.author }}, {{ post.comments.last.created|naturaltime }}</a>
+                        {{ post.comments.last.author.display_name }}, {{ post.comments.last.created|naturaltime }}</a>
                 {% else %}
                     -
                 {% endif %}
@@ -49,3 +49,7 @@
     {% endfor %}
     </tbody>
 </table>
+{% if discussions.count > 15 %}
+    {# If there a lot of discussions, we're nice and put one on the button, so a user doesn't need to scroll up #}
+    <a class="btn btn-default pull-right" href="{% url 'aristotle:discussionsNew' %}?workgroup={{ workgroup.id }}">New discussion</a>
+{% endif %}

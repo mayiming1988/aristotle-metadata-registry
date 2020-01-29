@@ -55,7 +55,7 @@ class AristotleResolver(object):
             # Can safely return restricted queryset
             queryset = retval.get_queryset()
 
-            # We need to check permissions for Organizations depending on the authentication of the user:
+            # We need to check permissions for Organisations depending on the authentication of the user:
             if queryset.model == mdr_models.RecordRelation:
                 return queryset
 
@@ -81,6 +81,7 @@ class AristotleResolver(object):
 
             if issubclass(queryset.model, mdr_models.aristotleComponent):
                 return queryset
+
             return queryset.none()
 
         elif isinstance(retval, QuerySet):

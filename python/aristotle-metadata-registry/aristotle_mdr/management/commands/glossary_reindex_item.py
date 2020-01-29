@@ -1,7 +1,4 @@
 from django.core.management.base import BaseCommand
-from django.apps import apps
-
-from aristotle_mdr.utils.cache import recache_types
 
 
 class Command(BaseCommand):
@@ -36,7 +33,7 @@ class Command(BaseCommand):
             print("Processing all")
             # print(".", end="", flush=True)
             total = _concept.objects.count()
-            for i, instance in enumerate(_concept.objects.all()):
+            for i, instance in enumerate(_concept.objects.all().select_subclasses()):
                 if i % 1000 == 0:
                     percent = int(i / total * 100)
                     print('\r' + (' ' * 70), end="", flush=True)

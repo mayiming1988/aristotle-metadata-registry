@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
@@ -16,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 import bleach
 import logging
 import re
-from pypandoc import _ensure_pandoc_path
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -180,13 +179,10 @@ def construct_change_message(form, formsets):
         for formset in formsets:
             if formset.model:
                 for added_object in formset.new_objects:
-                    messages_list.append(
-                        _('Added %(name)s "%(object)s".').format(
-                            name=force_text(added_object._meta.verbose_name),
-                            object=force_text(added_object),
-                        )
-                    )
-
+                    # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been created in the registry.
+                    messages_list.append(_('Added %(name)s "%(object)s".')
+                                         % {'name': force_text(added_object._meta.verbose_name),
+                                            'object': force_text(added_object)})
                 for changed_object, changed_fields in formset.changed_objects:
                     messages_list.append(
                         _('Changed %(list)s for %(name)s "%(object)s".').format(
@@ -196,18 +192,16 @@ def construct_change_message(form, formsets):
                     )
 
                 for deleted_object in formset.deleted_objects:
-                    messages_list.append(
-                        _('Deleted {name} "{object}s".').format(
-                            name=force_text(deleted_object._meta.verbose_name),
-                            object=force_text(deleted_object)),
-                    )
+                    # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been deleted from the registry.
+                    messages_list.append(_('Deleted %(name)s "%(object)s".')
+                                         % {'name': force_text(deleted_object._meta.verbose_name),
+                                            'object': force_text(deleted_object)})
 
     change_message = ', '.join(messages_list)
     return change_message or _('No fields changed.')
 
 
 def construct_change_message_extra_formsets(form, extra_formsets):
-
     messages_list = [construct_change_message_for_form(form)]
 
     for info in extra_formsets:
@@ -225,8 +219,7 @@ def get_concepts_for_apps(app_labels):
     concepts = [
         m
         for m in models
-        if m.model_class() and issubclass(m.model_class(), MDR._concept) and
-        not m.model.startswith("_")
+        if m.model_class() and issubclass(m.model_class(), MDR._concept) and not m.model.startswith("_")
     ]
     return concepts
 
@@ -275,9 +268,9 @@ def validate_aristotle_settings(aristotle_settings, strict_mode):
         # ("USER_EMAIL_RESTRICTIONS", "user_email_restrictions_failed")
     ]:
         try:
-            check_settings=aristotle_settings.get(sub_setting, [])
-            assert(type(check_settings) is list)
-            assert(all(type(f) is str for f in check_settings))
+            check_settings = aristotle_settings.get(sub_setting, [])
+            assert (type(check_settings) is list)
+            assert (all(type(f) is str for f in check_settings))
         except Exception as e:
             logger.error(e)
             if strict_mode:
@@ -323,7 +316,10 @@ def is_active_extension(extension_name):
 def pandoc_installed() -> bool:
     installed = True
     try:
+        from pypandoc import _ensure_pandoc_path
         _ensure_pandoc_path(quiet=True)
+    except ModuleNotFoundError:
+        installed = False
     except OSError:
         installed = False
 
@@ -364,7 +360,6 @@ def fetch_aristotle_downloaders() -> List:
 # Given a models label, id and name, Return a url to that objects page
 # Used to avoid a database hit just to use get_absolute_url
 def get_aristotle_url(label, obj_id, obj_name=None):
-
     label_list = label.split('.')
 
     app = label_list[0]
@@ -453,7 +448,15 @@ def get_concept_name_to_content_type() -> Dict[str, ContentType]:
 
 
 def get_content_type_to_concept_name() -> Dict[str, str]:
-    return {str(content_type).replace(" ", ""): content_type.name.title()
+    """
+    This function returns a Dictionary object containing key value pairs of the content types (in lowercase and without
+    blank spaces) and their corresponding concept name (capitalised and with blank spaces).
+    :return: Dict
+
+        e.g.: {'datacatalog': 'Data Catalog', 'dataset': 'Dataset', 'qualitystatement': 'Quality Statement', ... }
+
+    """
+    return {str(content_type).replace(" ", "").lower(): content_type.name.title()
             for content_type in get_concept_content_types().values()}
 
 
@@ -514,7 +517,6 @@ def get_cascaded_ids(items=[]):
             cascade = item.registry_cascade_items
 
         cascaded_ids = [item.id for item in cascade]
-
         all_cascaded_ids.extend(cascaded_ids)
 
     return all_cascaded_ids
@@ -609,3 +611,8 @@ def is_postgres() -> bool:
 def cloud_enabled():
     from django.conf import settings
     return "aristotle_cloud" in settings.INSTALLED_APPS
+
+
+def item_is_visible_to_user(user, item) -> bool:
+    """Returns whether or not an item is visible to the user"""
+    return type(item).objects.filter(pk=item.pk).visible(user).exists()

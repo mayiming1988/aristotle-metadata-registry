@@ -119,23 +119,20 @@ a {
     color: #224;
 }
 
-table.dss_inclusions {
+table.justified {
     border: 1px dotted lightgray;
     width: 100%;
     margin-top: 30px;
     border-collapse: collapse;
 }
 
-table.dss_inclusions td, table.dss_inclusions th {
+table.justified td, table.justified th {
     /*border: 1px dotted lightgray;*/
     border-bottom: 1px solid lightgray;
     text-align: left;
     padding:3px;
 }
 
-table.dss_inclusions td {
-    /*font-size:8pt;*/
-}
 
 .dss_inclusion_name {
     margin-left: 10px;
@@ -148,42 +145,42 @@ table.dss_inclusions td {
 .dss_inclusion_html {
     width: 20%;
 }
-.dss_inclusions .ref {
+.justified .ref {
     padding-right: 10px;
 }
-.dss_inclusions .padding-0 {
+.justified .padding-0 {
     padding-left: 10px !important;
 }
 
-.dss_inclusions .padding-1 {
+.justified .padding-1 {
     padding-left: 25px !important;
 }
 
-.dss_inclusions .padding-2 {
+.justified .padding-2 {
     padding-left: 40px !important;
 }
 
-.dss_inclusions .padding-3 {
+.justified .padding-3 {
     padding-left: 55px !important;
 }
 
-.dss_inclusions .padding-4 {
+.justified .padding-4 {
     padding-left: 70px !important;
 }
 
-.dss_inclusions .padding-5 {
+.justified .padding-5 {
     padding-left: 85px !important;
 }
 
-.dss_inclusions .padding-6 {
+.justified .padding-6 {
     padding-left: 100px !important;
 }
 
-.dss_inclusions .padding-7 {
+.justified .padding-7 {
     padding-left: 115px !important;
 }
 
-.dss_inclusions .padding-8 {
+.justified .padding-8 {
     padding-left: 130px !important;
 }
 

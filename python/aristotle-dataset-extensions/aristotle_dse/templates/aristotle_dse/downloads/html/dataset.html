@@ -1,0 +1,72 @@
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
+{% load i18n aristotle_tags util_tags %}
+
+{% block objSpecific %}
+
+    <h2>Data source details</h2>
+    <dl class="">
+        <dt>Frequency</dt>
+        <dd>{% if item.frequency %}
+            {{ item.frequency }}
+        {% else %}
+            {% trans "No frequency stated" %}
+        {% endif %}
+        </dd>
+        <dt>Distribution files</dt>
+        <dd>
+            {% with distributions=item.distribution_set.all|can_view_iter:user %}
+            {% if distributions %}
+                <ol>
+                    {% for distribution in distributions %}
+                        <li class="well">
+                            <span class="file_type">{{distribution.format_type}}</span>
+                            {% include "aristotle_mdr/helpers/itemLink.html" with item=distribution %}
+                            {# TODO: How to add link in PDF {distribution.download_URL} #}
+
+                            <div>
+                                {{ distribution.definition|bleach }}
+                            </div>
+                            <dl>
+                                <dt style="float:left">Licence</dt><dd>{{ distribution.license }}</dd>
+                                <dt style="float:left">Rights</dt><dd>{{ distribution.rights }}</dd>
+                            </dl>
+                            {% comment %}
+                            {% if distribution.distributiondataelementpath_set.exists %}
+                                <strong>Data Elements in this dataset</strong>
+                                <table class='table table-striped'>
+                                    <thead>
+                                    <tr>
+                                        <th>Path name</th>
+                                        <th>Data Element</th>
+                                        <th>Definition</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for column in distribution.distributiondataelementpath_set.all %}
+                                        <tr>
+                                            <td>
+                                                <tt>{{column.logical_path}}</tt>
+                                            </td>
+                                            <td>
+                                                <a href="{{column.data_element.get_absolute_url}}">{{column.data_element.name}}</a>
+                                            </td>
+                                            <td>
+                                                {{column.data_element.definition|striptags}}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% endif %}
+                            {% endcomment %}
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <em>None</em>
+            {% endif %}
+            {% endwith %}
+        </dd>
+    </dl>
+
+{% endblock %}

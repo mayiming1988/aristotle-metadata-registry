@@ -34,8 +34,8 @@ from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers impo
 )
 from aristotle_mdr.required_settings import ARISTOTLE_SETTINGS
 from typing import Tuple
+from aristotle_mdr.utils.utils import cloud_enabled
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -132,7 +132,11 @@ class ConceptSerializerFactory:
             **get_dse_field_serializer_mapping(),
             **get_aristotle_ontology_serializer_mapping(),
         )
-
+        if cloud_enabled():
+            from aristotle_cloud.contrib.serializers.serializers import ReferenceLinkSerializer
+            self.field_subserializer_mapping.update({
+                'metadatareferencelink_set': ReferenceLinkSerializer(many=True)
+            })
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
@@ -227,7 +231,6 @@ class ConceptSerializerFactory:
                     else:
                         # Just a normal field
                         related_fields.append(self.get_field_name(field))
-
         return tuple([field for field in related_fields if field in self.whitelisted_fields])
 
     def _get_concept_foreign_keys(self, model_class) -> Tuple:

@@ -90,7 +90,7 @@ class ConceptHelpView(AppHelpViewer):
 
         context['custom_help'] = custom_help
 
-        context['custom_fields'] = CustomField.objects.filter(allowed_model=ct)
+        context['custom_fields'] = CustomField.objects.filter(allowed_model=ct).exclude(help_text_long="")
 
         return context
 

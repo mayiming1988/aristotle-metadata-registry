@@ -1,4 +1,4 @@
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+from braces.views import PermissionRequiredMixin
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -6,12 +6,10 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 
-from aristotle_mdr.contrib.generic.views import GenericWithItemURLFormView
 from aristotle_mdr.views.utils import CreateUpdateView
 from aristotle_mdr import perms
 
-from .forms import VersionPublicationForm
-from .models import VersionPublicationRecord, PublicationRecord
+from .models import PublicationRecord
 
 import logging
 logger = logging.getLogger(__name__)

@@ -1,0 +1,66 @@
+{% load aristotle_tags aristotle_help util_tags %}
+
+<table class="metadata_browse table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th title="Number of visible items of this metadata type">#</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    {% if browse_all_metadata_url %}
+    <tbody>
+         <tr>
+          <td>
+            <a href="{{browse_all_metadata_url}}"
+                >All metadata
+            </a>
+          </td>
+          <td>
+              {{ count }}
+          </td>
+          <td>Browse all metadata under this Stewardship Organisation</td>
+        </tr>
+    </tbody>
+    {% endif %}
+    {% for app in apps %}
+    <tbody>
+        {% if not hide_app_head %}
+        <tr>
+            <th colspan="2">
+            </th>
+            <th>
+            <strong>
+                <a href="{{app.url}}">
+                    {% firstof app.app.create_page_name app_models.app.verbose_name %}
+                </a>
+            </strong>
+            </th>
+        </tr>
+        {% endif %}
+        {% for model in app.models %}
+            {% with count=model.class|visible_count:request.user %}
+              {% if count or show_empty %}
+                  <tr>
+                  <td>
+                      {% if count %}
+                      <a href="{{model.url}}">
+                          {{ model.class.get_verbose_name_plural }}
+                      </a>
+                      {% elif show_empty %}
+                      <span title="There are no {{ model.class.get_verbose_name_plural }} you have permission to browse.">
+                          {{ model.class.get_verbose_name_plural }}
+                      </span>
+                      {% endif %}
+                  </td>
+                  <td>
+                      {{ count }}
+                  </td>
+                  <td>{% help_doc model.class 'brief' %}</td>
+                  </tr>
+              {% endif %}
+            {% endwith %}
+        {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>

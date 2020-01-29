@@ -1,12 +1,12 @@
 {% load i18n aristotle_tags %}
 
 <ul class="nav nav-pills nav-stacked nav-collapse dashMenu">
-    <li class="dashboard_link {% ifequal activeTab "home" %}active{% endifequal %}">
+    <li class="{% ifequal activeTab "home" %}active{% endifequal %}">
         <a class="main" href="{% url 'aristotle:userHome' %}">
             <i class="fa fa-th fa-fw"></i> My Dashboard
         </a>
     </li>
-    <li class="dashboard_link {% ifequal activeTab "profile" %}active{% endifequal %}">
+    <li class="{% ifequal activeTab "profile" %}active{% endifequal %}">
         <a href="{% url 'aristotle:userProfile' %}">
             <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="">
             {% trans "My Profile" %}
@@ -109,7 +109,7 @@
     {% endif %}
     {% if request.user.is_staff %}
         <li class="staff_action {% ifequal activeTab "djangoAdminTools" %}active{% endifequal %}">
-            <a href="{% url 'aristotle:django_admin' %}">
+            <a href="{% url 'admin:index' %}">
                 <i class="fa fa-user-md fa-fw"></i> {% trans "Django administration" %}
             </a>
         </li>

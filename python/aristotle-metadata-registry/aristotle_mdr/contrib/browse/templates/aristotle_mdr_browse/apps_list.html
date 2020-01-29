@@ -1,57 +1,13 @@
 {% extends "aristotle_mdr_browse/base.html" %}
 {% load aristotle_tags aristotle_help util_tags %}
 
-{% block title %}Concept browser{% endblock %}
-
 {% block breadcumbs %}
+    <li><a href="{% url 'aristotle_mdr:home' %}">Home</a></li>
+    <li><a href="{% url 'browse' %}">Main browser</a></li>
     <li class="active">Metadata browser</li>
 {% endblock %}
+{% block title %}Concept browser{% endblock %}
 
 {% block object_list %}
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th title="Number of visible items of this metadata type">#</th>
-            <th>Details</th>
-        </tr>
-    </thead>
-
-    {% for app_models in apps %}
-    <tbody>
-        <tr>
-            <th colspan="2">
-            </th>
-            <th>
-            <strong>
-                <a href="{% url 'browse_models' app_models.app.label %}">
-                    {% firstof app_models.app.create_page_name app_models.app.verbose_name %}
-                </a>
-            </strong>
-            </th>
-        </tr>
-        {% for model in app_models.models %}
-          {% with ct=model.content_type model=model.class %}
-              {% with count=ct|visible_count:request.user %}
-              {% if count %}
-                  <tr>
-                  <td>
-                      <a href="{% url 'browse_concepts' ct.app_label ct.model %}">
-                          {{ model.get_verbose_name }}
-                      </a>
-                  </td>
-                  <td>
-                      {{ count }}
-                  </td>
-                  <td>{% help_doc model 'brief' %}</td>
-                  </tr>
-              {% endif %}
-              {% endwith %}
-          {% endwith %}
-        {% endfor %}
-    </tbody>
-    {% endfor %}
-</table>    
-
+    {% include "aristotle_mdr_browse/helpers/app_list_table.html" %}
 {% endblock %}

@@ -1,5 +1,54 @@
-{% extends 'aristotle_mdr/generic/boottablelist.html' %}
+{% extends 'aristotle_mdr/user/base.html' %}
 
-{% block extra_content %}
-    <a href="{% url 'aristotle_custom_fields:edit' %}" class="btn btn-primary pull-right">Create/Edit</a>
+{% block page %}
+
+    {% block breadcrumbs %}
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'aristotle:userAdminTools' %}">Registry Administrator tools</a>
+            </li>
+            <li>
+                <a href="{% url 'aristotle_custom_fields:edit' %}">Manage Custom Fields</a>
+            </li>
+            <li class="active">Custom Fields</li>
+        </ol>
+    {% endblock breadcrumbs%}
+
+    {% if create_url %}
+        <a class="btn btn-success pull-right" href="{{ create_url }}">{{ create_button_text }}</a>
+    {% endif %}
+
+    {% block extra_content %}
+        <a href="{% url 'aristotle_custom_fields:edit' %}" class="btn btn-primary pull-right">Create/Edit</a>
+    {% endblock %}
+
+    <table class="table">
+        <thead>
+        <tr>
+            {% for head in headers %}
+                <th>{{ head }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for itemdict in list %}
+            <tr>
+                {% for attr in itemdict.attrs %}
+                    <td>{{ attr|title }}</td>
+                {% endfor %}
+                {% if update_url_name %}
+                    <td><a class="btn btn-primary" href="{% url update_url_name itemdict.pk %}">Update</a></td>
+                {% endif %}
+                {% if delete_url_name %}
+                    <td><a class="btn btn-danger" href="{% url delete_url_name itemdict.pk %}">Delete</a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
+
+{% if page_obj %}
+    {% include 'aristotle_mdr/helpers/paginator.html' with page=page_obj %}
+{% endif %}
+

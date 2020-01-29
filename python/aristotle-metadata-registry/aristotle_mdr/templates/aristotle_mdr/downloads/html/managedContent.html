@@ -122,7 +122,7 @@
             {% endwith %}
 
             {% if item.submitting_organizations %}
-                <dt>Submitting Organizations</dt>
+                <dt>Submitting Organisations</dt>
                 <dd>
                 {% for rec in item.submitting_organizations %}
                     {% if rec.organization_record|can_view:user %}
@@ -133,7 +133,7 @@
                 </dd>
             {% endif %}
             {% if item.responsible_organizations %}
-                <dt>Responsible Organizations</dt>
+                <dt>Responsible Organisations</dt>
                 <dd>
                 {% for rec in item.responsible_organizations %}
                 {% if rec.organization_record|can_view:user %}
@@ -144,13 +144,14 @@
                 </dd>
             {% endif %}
 
-            {% block objSpecific %}
-            {% endblock %}
+            {% if aristotle_cloud_is_active %}
+                {% include "aristotle_cloud/downloads/concepts/helpers/reference_links_display.html" with item=item %}
+            {% endif %}
         </dl>
+        {% block objSpecific %}
+        {% endblock %}
 
-        {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
-
         {% if subitems %}
             <div class="break-before">
 
@@ -175,5 +176,8 @@
         {% endif %}
 
     </section>
+    {% if options.include_related %}
+        {% include "aristotle_mdr/downloads/html/helpers/relational_attrs.html" with item=item %}
+    {% endif %}
 
 {% endblock %}

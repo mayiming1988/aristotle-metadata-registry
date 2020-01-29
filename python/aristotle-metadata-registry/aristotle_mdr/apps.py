@@ -18,4 +18,5 @@ class AristotleMDRConfig(AristotleExtensionBaseConfig):
     create_page_priority = 0
 
     def ready(self):
-        from aristotle_mdr import checks
+        from aristotle_mdr import checks  # noqa: F401
+        from aristotle_mdr import signals  # noqa: F401

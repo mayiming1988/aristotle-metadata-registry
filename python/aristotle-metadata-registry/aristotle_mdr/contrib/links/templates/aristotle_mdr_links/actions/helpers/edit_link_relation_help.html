@@ -1,0 +1,37 @@
+{% load i18n util_tags %}
+
+<div>
+    This link is an instance of the relation
+    <a target="_blank" class="aristotle-concept-link" data-aristotle-concept-id="{{relation.id}}"
+       href="{% url 'aristotle:item' relation.id %}">{{ relation.name }}</a>.
+    <p>
+    This link is attached to the metadata item {{ root_item.name }}, and this link
+    can be seen by anyone with permission to view this item or
+    edited by anyone with permission to edit this item.
+    </p>
+</div>
+
+    {% if show_definition and relation.definition %}
+    Relation definition:
+      <div class='well'>
+        {{ relation.definition|bleach }}
+      </div>
+    {% endif %}
+
+{% if form.errors or form.non_field_errors %}
+<div class="alert alert-danger">
+    {% if form.non_field_errors %}
+    <p>
+        The following errors prevented the link from being saved:
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+    {% if form.errors %}
+    <p>
+        There were
+        {% if form.non_field_errors %} also other {% endif %}
+        problems saving this link, review the errors for the fields below.
+    </p>
+    {% endif %}
+</div>
+{% endif %}

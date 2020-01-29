@@ -1,36 +1,43 @@
 from typing import Iterable, List, Dict, Set
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.models import _concept
-from aristotle_mdr.utils.utils import get_concept_content_types
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 
 import csv
 import itertools
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class CustomFieldForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.content_type = kwargs.pop('content_type')
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.allowed_model = self.content_type
+        if commit:
+            obj.save()
+        return obj
+
     class Meta:
         model = CustomField
-        exclude = ['order']
+        exclude = ['order', 'allowed_model']
 
         help_texts = {
             'choices': "Enter a comma separated list of options."
         }
-
-    def get_concept_qs(self):
-        mapping = get_concept_content_types()
-        ids = [ct.id for ct in mapping.values()]
-        return ContentType.objects.filter(id__in=ids).order_by('model')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'allowed_model' in self.fields:
-            self.fields['allowed_model'].queryset = self.get_concept_qs()
-            self.fields['allowed_model'].empty_label = 'All'
+        widgets = {
+            'name': forms.Textarea(attrs={'rows': 1}),
+            'system_name': forms.Textarea(attrs={'rows': 1}),
+            'help_text': forms.Textarea(attrs={'rows': 5}),
+        }
 
 
 class CustomFieldDeleteForm(forms.Form):
@@ -82,9 +89,9 @@ class CustomValueFormMixin:
                 # Parse lines with csv reader
                 csvReader = csv.reader(values.split('\n'))
                 # Get a list of lists from csv reader
-                choice_lists = [v for v in csvReader]
+                choice_lists = [value for value in csvReader]
                 # Flatten into list of values
-                choice_values = itertools.chain(*choice_lists)
+                choice_values = list(itertools.chain(*choice_lists))
                 # Make into 2 tuple
                 choices = [('', '------')]
                 for val in choice_values:
@@ -92,8 +99,8 @@ class CustomValueFormMixin:
 
                 if custom_fname in self.initial:
                     value = self.initial[custom_fname]
-                    if value not in choice_values:
-                        # If there is an initial value that isnt in the option list
+                    if value and value not in choice_values:
+                        # If there is an initial value that isn't in the option list
                         # Add it as the last option
                         choices.append((value, value + ' (Old Value)'))
                         self.bad_value_custom_fields.add(custom_fname)

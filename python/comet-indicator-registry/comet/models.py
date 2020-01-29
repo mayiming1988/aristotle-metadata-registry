@@ -1,14 +1,19 @@
 from __future__ import unicode_literals
 from typing import List
-from mptt.models import MPTTModel, TreeForeignKey
-from model_utils.models import TimeStampedModel
 
 from django.db import models
+from django.db.models import Subquery
 from django.utils.translation import ugettext as _
+
+from mptt.models import MPTTModel, TreeForeignKey
+from model_utils.models import TimeStampedModel
 
 import aristotle_mdr.models as MDR
 import aristotle_dse.models as aristotle_dse
 from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
+from aristotle_mdr.utils import (
+    fetch_aristotle_settings,
+)
 from aristotle_mdr.utils.model_utils import (
     aristotleComponent,
 )
@@ -18,7 +23,7 @@ from comet.model_utils import IndicatorFrameworkDimensionsThrough
 
 class Framework(MDR.concept):
     template = "comet/framework.html"
-
+    clone_warning_template = "comet/clone_warning/framework.html"
     serialize_weak_entities = [
         ('dimensions', 'frameworkdimension_set'),
     ]
@@ -109,6 +114,35 @@ class Indicator(MDR.concept):
     clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordisaggregationdefinition']
 
     @property
+    def relational_attributes(self):
+        rels = {
+            "indicator_sets": {
+                "all": _("Indicator Sets that include this Indicator"),
+                "qs": IndicatorSet.objects.filter(indicatorinclusion__indicator=self)
+            },
+        }
+
+        if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_dse.models import DataSetSpecification, Dataset
+
+            numdefn_datasets = IndicatorNumeratorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dendefn_datasets = IndicatorDenominatorDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            dissagedefn_datasets = IndicatorDisaggregationDefinition.objects.filter(indicator_id=self.id).values('data_set_id')
+            datasets = Dataset.objects.filter(
+                id__in=Subquery(
+                    numdefn_datasets.union(dendefn_datasets).union(dissagedefn_datasets)
+                )
+            )
+
+            rels.update({
+                "data_sources": {
+                    "all": _("Data Sets that are used in this Indicator"),
+                    "qs": datasets
+                },
+            })
+        return rels
+
+    @property
     def numerators(self):
         return MDR.DataElement.objects.filter(
             indicatornumeratordefinition__indicator=self
@@ -165,7 +199,7 @@ class IndicatorDataElementBase(aristotleComponent):
     inline_field_layout = 'list'
 
     parent_field_name = 'indicator'
-    
+
     # Provide a specific field ordering for the advanced metadata editor.
     inline_field_order: List[str] = [
         "data_element",
@@ -175,6 +209,18 @@ class IndicatorDataElementBase(aristotleComponent):
         "guide_for_use",
         "order",
     ]
+
+    @property
+    def inline_editor_description(self):
+        fields = []
+        if self.data_element:
+            fields.append(f'Data element: {self.data_element.name}')
+        if self.data_set_specification:
+            fields.append(f'Data set specification: {self.data_set_specification}')
+        if self.data_set:
+            fields.append(f'Data set: {self.data_set}')
+
+        return fields
 
     class Meta:
         abstract = True
@@ -202,6 +248,16 @@ class IndicatorSet(MDR.concept):
         ('indicators', 'indicatorinclusion_set'),
     ]
     clone_fields = ['indicatorinclusion']
+
+    @property
+    def relational_attributes(self):
+        rels = {
+            "outcome_areas": {
+                "all": _("Outcome areas for Indicators in this Indicator Set"),
+                "qs": OutcomeArea.objects.filter(indicators__indicatorinclusion__indicator_set=self)
+            },
+        }
+        return rels
 
 
 class IndicatorInclusion(aristotleComponent):

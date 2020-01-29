@@ -69,6 +69,7 @@ def review_list(request):
 
 
 class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
+    """Mixin used for functionality common to all review tabs"""
     pk_url_kwarg = 'review_id'
     context_object_name = "review"
     user_form = True
@@ -80,7 +81,6 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
 
         perm_func = getattr(perms, self.perm_function)
         if not perm_func(self.request.user, self.review):
-            # TODO: make this use CBVs
             if self.request.user.is_anonymous:
                 return redirect(reverse('friendly_login') + '?next=%s' % self.request.path)
             else:
@@ -100,21 +100,33 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     def get_supersedes_context(self) -> List[Dict[str, Dict[str, Any]]]:
         supersedes = []
         qs = self.get_supersedes_qs()
-        for ss in qs:
+        for supersede in qs:
             supersedes.append({
-                'older': {'id': ss.older_item.id, 'name': ss.older_item.name},
-                'newer': {'id': ss.newer_item.id, 'name': ss.newer_item.name}
+                'older': {'id': supersede.older_item.id, 'name': supersede.older_item.name},
+                'newer': {'id': supersede.newer_item.id, 'name': supersede.newer_item.name},
+                'message': supersede.message,
+                'date_effective': supersede.date_effective
             })
         return supersedes
 
     def get_context_data(self, *args, **kwargs):
         kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['review'] = self.review
-        kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, self.review)
-        kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, self.review)
-        kwargs['can_edit_review'] = perms.user_can_edit_review(self.request.user, self.review)
+        kwargs.update({
+            'review': self.review,
+            'can_approve_review': perms.user_can_approve_review(self.request.user, self.review),
+            'can_open_close_review': perms.user_can_close_or_reopen_review(self.request.user, self.review),
+            'can_edit_review': perms.user_can_edit_review(self.request.user, self.review),
+            'is_registrar': perms.user_is_registrar(self.request.user)
+        })
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
+
+        if self.review.concepts.count() == 1:
+            # It's for a single item review, display in breadcrumbs
+            kwargs.update({
+                'single_item_review': True,
+                'item_under_review': self.review.concepts.first()
+            })
         return kwargs
 
     def get_object(self):
@@ -225,9 +237,11 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         return change_data
 
     def get_context_data(self, *args, **kwargs):
+        review = self.get_review()
         kwargs = super().get_context_data(*args, **kwargs)
         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
-        kwargs['review'] = self.get_review()
+        kwargs['review'] = review
+        kwargs['ra'] = review.registration_authority
         if self.show_supersedes:
             kwargs['supersedes'] = self.get_supersedes_context()
         kwargs['show_supersedes'] = self.show_supersedes
@@ -407,10 +421,14 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
         cascaded_ids = get_cascaded_ids(items=review.concepts.all())
 
         for concept in review.concepts.all():
-            if concept.id in cascaded_ids:
-                # Concept was added as a cascade
-                concepts.append({'item': concept, 'remove': False})
+            if review.cascade_registration:
+                if concept.id in cascaded_ids:
+                    # Concept was added as a cascade
+                    concepts.append({'item': concept, 'remove': False})
+                else:
+                    concepts.append({'item': concept, 'remove': True})
             else:
+                # If it's not a cascaded review, items are removed not demoted
                 concepts.append({'item': concept, 'remove': True})
 
         context['concepts'] = concepts
@@ -441,6 +459,7 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
             concept.info = extra_info[concept.id]
 
         context['statuses'] = queryset
+        context['cascaded_review'] = review.cascade_registration
 
         return context
 
@@ -532,7 +551,6 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
     active_tab_name = "checks"
 
     def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
 
         review = self.get_review()
@@ -551,6 +569,7 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         runner = runner_class(registration_authority=self.ra, state=self.get_review().state)
         total_results = runner.validate_metadata(metadata=review_items)
 
+        context['no_results'] = not bool([result['results'] for result in total_results if result['results']])
         context['total_results'] = total_results
         context['setup_valid'] = True
 

@@ -1,5 +1,13 @@
-from django.http import HttpResponse, Http404
-from django.conf import settings
+from django.http import HttpResponse
+import pypandoc
+from aristotle_mdr.downloader import PandocDownloader
+
+
+class PandocHTMLDownloader(PandocDownloader):
+    metadata_register = '__all__'
+
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'html', format='html', return_bytes=True)
 
 
 def download(request, dtype):
@@ -14,6 +22,8 @@ def download(request, dtype):
         DClass = DocxDownloader
     elif dtype == "html":
         DClass = HTMLDownloader
+    elif dtype == "pandochtml":
+        DClass = PandocHTMLDownloader
     elif dtype == "slow":
         DClass = PythonPDFDownloader
 
@@ -44,4 +54,7 @@ def download(request, dtype):
     output = maker.create_file()
 
     response = HttpResponse(output, content_type=DClass.mime_type)
+    filename = "download.{}".format(DClass.file_extension)
+    if DClass.file_extension != "html":
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
     return response

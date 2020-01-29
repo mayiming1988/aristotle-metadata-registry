@@ -1,6 +1,6 @@
 from django_filters.filterset import FilterSet
 import django_filters
-from aristotle_mdr.models import _concept
+from aristotle_mdr.models import _concept, SupersedeRelationship
 
 
 class AristotleIdFilterSet(FilterSet):
@@ -56,3 +56,16 @@ class CollectionFilterSet(AristotleIdFilterSet):
             return qs.public()
         else:
             return qs
+
+
+class SupersedeRelationshipFilterSet(FilterSet):
+    approved = django_filters.BooleanFilter(method='filter_approved') # Approved is the opposite of proposed
+
+    class Meta:
+        model = SupersedeRelationship
+        fields = {
+            'proposed': ['exact'],
+        }
+
+    def filter_approved(self, qs, name, value):
+        return qs.filter(proposed=not value)

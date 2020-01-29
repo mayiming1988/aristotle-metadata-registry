@@ -3,16 +3,24 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_edit
+from aristotle_mdr.structs import Breadcrumb
+from aristotle_mdr.views.utils import get_item_breadcrumbs
+
 from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 from formtools.wizard.views import SessionWizardView
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EditLinkFormView(FormView):
@@ -41,10 +49,16 @@ class EditLinkFormView(FormView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        breadcrumbs = get_item_breadcrumbs(item=self.link.root_item.item, user=self.request.user, last_active=False)
+        breadcrumbs.append(Breadcrumb("Edit Link"))
+
         context.update(
             {
                 'roles': self.link.relation.relationrole_set.all(),
-                'link': self.link
+                'link': self.link,
+                'breadcrumbs': breadcrumbs,
+                'relation': self.link.relation,
+                'root_item': self.link.root_item
             }
         )
         return context
@@ -87,17 +101,13 @@ class EditLinkFormView(FormView):
 
 class AddLinkWizard(SessionWizardView):
     form_list = base_form_list = [
-        link_forms.AddLink_SelectRelation_1,
-        link_forms.AddLink_SelectRole_2,
-        link_forms.AddLink_SelectConcepts_3,
-        link_forms.AddLink_Confirm_4,
+        link_forms.AddLink_SelectRelation_0,
+        link_forms.AddLink_SelectConcepts_1,
     ]
     base_form_count = len(form_list)
     template_names = [
-        "aristotle_mdr_links/actions/add_link_wizard_1_select_relation.html",
-        "aristotle_mdr_links/actions/add_link_wizard_2_select_role.html",
-        "aristotle_mdr_links/actions/add_link_wizard_3_select_concepts.html",
-        "aristotle_mdr_links/actions/add_link_wizard_4_confirm.html"
+        "aristotle_mdr_links/actions/add_link_wizard_0_select_relation.html",
+        "aristotle_mdr_links/actions/add_link_wizard_1_select_concepts.html",
     ]
 
     def dispatch(self, request, *args, **kwargs):
@@ -120,14 +130,12 @@ class AddLinkWizard(SessionWizardView):
         self.relation = self.get_cleaned_data_for_step('0')['relation']
         return self.relation.relationrole_set.order_by('ordinal', 'name')
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         kwargs = super().get_form_kwargs(step)
         istep = int(step)
         if istep == 0:
             kwargs['user'] = self.request.user
         elif istep == 1:
-            kwargs['roles'] = self.get_roles()
-        elif istep == 2:
             relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs.update({
                 'roles': relation.relationrole_set.all(),
@@ -141,8 +149,8 @@ class AddLinkWizard(SessionWizardView):
         initial = super().get_form_initial(step)
         istep = int(step)
 
-        if istep == 2:
-            role = self.get_cleaned_data_for_step('1')['role']
+        if istep == 1:
+            role = self.get_roles()[0]
             rolekey = 'role_{}'.format(role.pk)
             initial[rolekey] = self.root_item
 
@@ -150,26 +158,22 @@ class AddLinkWizard(SessionWizardView):
 
     def get_role_concepts(self):
         role_concepts = []
-        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('2').values()):
+        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('1').values()):
             if role.multiplicity == 1:
                 concepts = [concepts]
             role_concepts.append((role, concepts))
         return role_concepts
 
     def get_context_data(self, *args, **kwargs):
-        # Steps are 0 indexed, but the template is 1 indexed
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
-        if istep == 1:
+
+        # For steps after 1 pass relation
+        if istep > 0:
             context['relation'] = self.get_cleaned_data_for_step('0')['relation']
-            context['roles_exist'] = context['form'].fields['role'].queryset.exists()
-        elif istep == 2:
+
+        if istep == 1:
             context['roles'] = self.get_roles()
-        elif istep == 3:
-            context.update({
-                'relation': self.get_cleaned_data_for_step('0')['relation'],
-                'role_concepts': self.get_role_concepts()
-            })
 
         context['root_item'] = self.root_item
         return context
@@ -239,3 +243,43 @@ def link_json_for_item(request, iid):
         'nodes': nodes,
         'edges': edges,
     })
+
+
+class RemoveLinkView(ConfirmDeleteView):
+    confirm_template = "aristotle_mdr_links/actions/confirm_delete.html"
+    template_name = "aristotle_mdr_links/actions/confirm_delete.html"
+    model_base = link_models.Link
+    form_title = "Delete link"
+    form_delete_button_text = _("Delete link")
+    permission_checks = [perms.user_can_change_link]
+    item_kwarg = 'linkid'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.link = get_object_or_404(
+            link_models.Link, pk=self.kwargs['linkid']
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_warning_text(self):
+        return f"You are about to delete the link between {self.item.get_readable_concepts()}. Are you sure" \
+               f" you want to continue?"
+
+    def perform_deletion(self):
+        self.item.delete()
+        return HttpResponseRedirect(reverse('aristotle:item', args=[self.kwargs['iid']]))
+
+    def post(self, *args, **kwargs):
+        return self.perform_deletion()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        breadcrumbs = get_item_breadcrumbs(item=self.link.root_item.item, user=self.request.user, last_active=False)
+        breadcrumbs.append(Breadcrumb("Edit Link"))
+
+        context.update(
+            {
+                'links': [self.link],
+                'breadcrumbs': breadcrumbs
+            }
+        )
+        return context

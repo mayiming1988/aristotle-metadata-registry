@@ -22,7 +22,6 @@ from aristotle_mdr.widgets.bootstrap import (
     BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect,
     BootstrapDateTimePicker,
-    BootstrapDropdownSearchCategoriesSelect
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps
@@ -46,8 +45,8 @@ QUICK_DATES = Choices(
 # For dates and times, ascending means that earlier dates will precede later ones.
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
-    ('md', 'modified_descending', _('Most Recently Modified')),
-    ('ma', 'modified_ascending', _('Least Recently Modified')),
+    ('md', 'modified_descending', _('Most Recently Updated')),
+    ('ma', 'modified_ascending', _('Least Recently Updated')),
     ('ca', 'created_ascending', _('First Created')),
     ('cd', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
@@ -334,9 +333,6 @@ class TokenSearchForm(FacetedSearchForm):
         if not self.is_valid():
             return self.no_query_found()
 
-        if not self.cleaned_data.get('q'):
-            return self.no_query_found()
-
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
@@ -400,12 +396,12 @@ class PermissionSearchForm(TokenSearchForm):
     )
     mds = forms.DateField(
         required=False,
-        label="Modified after date",
+        label="Updated after date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
     mde = forms.DateField(
         required=False,
-        label="Modified before date",
+        label="Updated before date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
     cq=forms.ChoiceField(
@@ -535,6 +531,11 @@ class PermissionSearchForm(TokenSearchForm):
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
         sqs = super().search()
+
+        # If we got an empty search queryset, no need for further processing
+        if isinstance(sqs, EmptyPermissionSearchQuerySet):
+            return sqs
+
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
@@ -545,10 +546,8 @@ class PermissionSearchForm(TokenSearchForm):
             return self.no_query_found()
 
         if self.applied_filters and not self.query_text:
-            # If there is a filter, but no query, then we'll force some results.
-            sqs = self.searchqueryset.order_by('-modified')
+            # Set flag when filtering with no query (used in template)
             self.filter_search = True
-            self.attempted_filter_search = True
 
         # Get filter data from query
         states = self.cleaned_data.get('state', None)

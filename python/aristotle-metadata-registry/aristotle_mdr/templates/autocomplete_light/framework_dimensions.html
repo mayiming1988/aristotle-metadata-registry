@@ -8,7 +8,7 @@
             {% if url %}
                 <a class="ac_preview_link" href="{{ url }}#dimension_{{ choice.id }}" target="preview"
                    title="{% trans 'Open in a new window' %}"
-                   onclick="window.open('{{url}}#dimension_{{ choice.id }}', 'preview', 'height=600,width=595');return false;">
+                   onclick="window.open('{{url}}#dimension_{{ choice.id }}', 'preview', 'height=600,width=595,resizable=yes,scrollbars=yes');return false;">
                     <i class="fa fa-external-link-square"></i>
                 </a>
             {% endif %}

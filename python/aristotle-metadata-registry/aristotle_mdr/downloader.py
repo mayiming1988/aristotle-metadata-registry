@@ -9,12 +9,10 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.mail.message import EmailMessage
 from django.db.models.query import QuerySet
-from django.db.models import Q
 from django.http.request import QueryDict
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.module_loading import import_string
-from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
@@ -27,8 +25,9 @@ import pypandoc
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
-from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
+from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds, cloud_enabled
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
+from aristotle_mdr.views.utils import get_lazy_viewable_ids
 
 import logging
 logger = logging.getLogger(__name__)
@@ -189,7 +188,9 @@ class Downloader:
         # Build url to regenerate download
         query = QueryDict(mutable=True)
         query.setlist('items', self.item_ids)
-        regenerate_url = '{url}?{qstring}'.format(
+
+        regenerate_url = '{host}{url}?{qstring}'.format(
+            host=self.options['CURRENT_HOST'],
             url=reverse('aristotle:download_options', args=[self.download_type]),
             qstring=query.urlencode()
         )
@@ -341,8 +342,11 @@ class HTMLDownloader(Downloader):
             'user': self.user,
             'options': self.options,
             'config': aristotle_settings,
+            'aristotle_cloud_is_active': cloud_enabled(),
             'export_date': now(),
+            'viewable_ids': get_lazy_viewable_ids(self.user)
         }
+        context['CURRENT_CLIENT_BASE'] = getattr(settings, 'CURRENT_CLIENT_BASE', None)
         return context
 
     def get_download_context(self) -> Dict[str, Any]:
@@ -513,9 +517,11 @@ class HTMLDownloader(Downloader):
         return object_dict
 
     def get_caches(self, context: Dict) -> Dict:
+        """Fetch related objects for items in bulk to be used in template"""
         # Build set of all items & subitem id's
         all_ids: Set = {i.id for i in self.items}
 
+        # Fetch for subitems if they are avaliable
         if 'subitems' in context:
             subitems = context['subitems']
             # Add to all_ids
@@ -525,6 +531,7 @@ class HTMLDownloader(Downloader):
 
         # Bulk lookup current status
         status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
+
         # Bulk lookup custom values (with non empty content)
         custom_values = CustomValue.objects.filter(
             concept__in=all_ids
@@ -604,7 +611,7 @@ class DocxDownloader(PandocDownloader):
     file_extension = 'docx'
     label = 'Word'
     # Yep, the proper mime type for docx really is that long
-    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'
+    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     metadata_register = '__all__'
     icon_class = 'fa-file-word-o'
     description = 'Download as word document'

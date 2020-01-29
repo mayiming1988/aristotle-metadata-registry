@@ -27,7 +27,7 @@ from django.db.models.fields import (
 )
 
 from django.forms import EmailField as EmailFormField
-from django.contrib.contenttypes.fields import GenericRelation, ReverseGenericManyToOneDescriptor
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
 from constrainedfilefield.fields import ConstrainedImageField

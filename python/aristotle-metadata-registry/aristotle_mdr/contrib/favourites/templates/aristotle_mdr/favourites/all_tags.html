@@ -49,6 +49,8 @@
         {% endfor %}
         </tbody>
       </table>
+    {% else %}
+    <p>You have no tags to display.</p>
     {% endif %}
     <div v-pre>{% include "aristotle_mdr/helpers/paginator.html" with page=page %}</div>
     <yesno-modal 

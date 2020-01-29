@@ -7,8 +7,8 @@
             <alert v-if="error" type="danger">There was an error with your download. Please try again later</alert>
             <template v-else>
                 <p>Your document is ready to download</p>
-                <a class="btn btn-primary" :href="url">
-                    <i class="fa fa-download"></i> Download now
+                <a class="btn btn-primary" :href="url" target="_blank" rel="noreferrer">
+                    <i class="fa fa-external-link"></i> View download
                 </a>
             </template>
         </template>

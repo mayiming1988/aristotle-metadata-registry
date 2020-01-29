@@ -16,7 +16,7 @@ CKEDITOR_CONFIGS = {
         # Make sure you add the JS import to CkEditor plugins to actually import the additional plugin
         'extraPlugins': 'aristotle_glossary,justify',
         'customConfig' : '',
-        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection',
+        'removePlugins': 'contextmenu,liststyle,tabletools,tableselection,elementspath',
         'extraAllowedContent': 'a[data-aristotle-concept-id]'
     },
 }

@@ -23,6 +23,7 @@ from aristotle_mdr.utils import (
     is_active_module
 )
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
+from aristotle_mdr.structs import Breadcrumb, ReversibleBreadcrumb
 
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
@@ -84,6 +85,12 @@ class PermissionWizard(SessionWizardView):
         kwargs.update({'user': self.request.user})
         return kwargs
 
+    def get_breadcrumbs(self, model_name):
+        return [
+            ReversibleBreadcrumb('Create Metadata', 'aristotle_mdr:create_list'),
+            Breadcrumb(f'Create {model_name}', active=True),
+        ]
+
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         context.update({
@@ -106,12 +113,9 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         ("initial", MDRForms.wizards.Concept_1_Search),
         ("results", MDRForms.wizards.Concept_2_Results),
     ]
-
+    reference_links_active = cloud_enabled()
     additional_records_active = True
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
+    slots_active = is_active_module('aristotle_mdr.contrib.slots')
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:  # pragma: no cover
@@ -161,6 +165,24 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             'saveargs': None
         })
 
+        if self.reference_links_active:
+            from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
+
+            referencelinks_formset = self.get_referencelinks_formset()(
+                data=postdata
+            )
+            # Override the queryset to restrict to the records the user has permission to view
+            for record_relation_form in referencelinks_formset:
+                record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(
+                    self.request.user).order_by("title")
+
+            extra_formsets.append({
+                'formset': referencelinks_formset,
+                'title': 'ReferenceLink',
+                'type': 'reference_links',
+                'saveargs': None
+            })
+
         return extra_formsets
 
     def get_context_data(self, form, **kwargs):
@@ -182,16 +204,19 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             slots_active = is_active_module('aristotle_mdr.contrib.slots')
             context['slots_active'] = slots_active
             context['show_slots_tab'] = slots_active or form.custom_fields
+            self.item = self.model
 
             if 'extra_formsets' in kwargs:
                 fslist = kwargs['extra_formsets']
             else:
                 fslist = self.get_extra_formsets(item=self.model)
+            context['invalid_tabs'] = self.get_invalid_tab_context(form, fslist)
 
             fscontext = self.get_formset_context(fslist)
             context.update(fscontext)
 
-        context.update({'model_name': self.model._meta.verbose_name,
+        model_name = self.model._meta.verbose_name
+        context.update({'model_name': model_name,
                         'model_name_plural': self.model._meta.verbose_name_plural.title,
                         'help': ConceptHelp.objects.filter(
                             app_label=self.model._meta.app_label,
@@ -200,7 +225,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                         'model_class': self.model,
                         'template_name': self.template_name,
                         'current_step': self.steps.current,
-                        'additional_records_active': self.additional_records_active
+                        'additional_records_active': self.additional_records_active,
+                        'reference_links_active': self.reference_links_active
                         })
 
         if cloud_enabled():
@@ -211,6 +237,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                     content_type__model=self.model._meta.model_name,
                 ).first()
             })
+
+        context['breadcrumbs'] = self.get_breadcrumbs(model_name)
 
         return context
 
@@ -533,7 +561,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
     templates = {
         "component_search": "aristotle_mdr/create/dec_1_initial_search.html",
         "component_results": "aristotle_mdr/create/dec_2_search_results.html",
-        "make_oc": "aristotle_mdr/create/concept_wizard_2_results.html",
+        "make_oc": "aristotle_mdr/create/dec_2_5_make_oc.html",
         "make_p": "aristotle_mdr/create/concept_wizard_2_results.html",
         "find_dec_results": "aristotle_mdr/create/dec_3_dec_search_results.html",
         "completed": "aristotle_mdr/create/dec_4_complete.html",
@@ -646,6 +674,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         context.update({
             'template_name': self.template_name,
             })
+        context['breadcrumbs'] = self.get_breadcrumbs('Data Element Concept')
         return context
 
     @reversion.create_revision()
@@ -686,7 +715,7 @@ class DataElementWizard(MultiStepAristotleWizard):
     templates = {
         "component_search": "aristotle_mdr/create/de_1_initial_search.html",
         "component_results": "aristotle_mdr/create/de_2_search_results.html",
-        "make_oc": "aristotle_mdr/create/concept_wizard_2_results.html",
+        "make_oc": "aristotle_mdr/create/de_2_5_make_oc.html",
         "make_p": "aristotle_mdr/create/concept_wizard_2_results.html",
         "find_de_from_comp": "aristotle_mdr/create/de_3_de_search_results_from_components.html",
         "find_dec_results": "aristotle_mdr/create/de_3_dec_search_results.html",
@@ -937,6 +966,7 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'de_matches': self.get_data_elements(),
                 'made_de': self.get_cleaned_data_for_step('find_de_results'),
                 })
+        context['breadcrumbs'] = self.get_breadcrumbs('Data Element')
         return context
 
     def get_form_initial(self, step):

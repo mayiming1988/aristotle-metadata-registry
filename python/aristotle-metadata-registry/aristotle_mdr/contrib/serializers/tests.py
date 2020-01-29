@@ -1,7 +1,7 @@
 from django.test import TestCase, override_settings
 from django.conf import settings
 
-from aristotle_mdr.tests.utils import AristotleTestUtils, model_to_dict_with_change_time
+from aristotle_mdr.tests.utils import model_to_dict_with_change_time, AristotleTestUtils
 from aristotle_mdr.contrib.custom_fields.models import CustomValue, CustomField
 from aristotle_mdr.contrib.custom_fields.types import type_choices as TYPE_CHOICES
 import aristotle_mdr.models as MDR

@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static from staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load util_tags %}
 
 {% block title %}
 Create Data Element - Step {{ wizard.steps.step1 }}: {{step_title}}
@@ -19,6 +20,7 @@ Create Data Element - Step {{ wizard.steps.step1 }}: {{step_title}}
 {% endblock %}
 
 {% block content %}
+{% breadcrumb_list breadcrumbs %}
 <h1>Create Data Element - <span><em>Step {{ wizard.steps.step1 }}</em>: {{step_title}}</span></h1>
 
 <div class="progress">
@@ -47,11 +49,15 @@ Create Data Element - Step {{ wizard.steps.step1 }}: {{step_title}}
         <button class="btn btn-primary pull-right" type="submit" value="submit">
             {% trans next_button_text %}
         </button>
-        {% if wizard.steps.prev %}
-            <!-- button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "First step" %}</button -->
-            <button class="btn btn-default pull-right" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "Back" %}</button>
-        {% endif %}
-        <a href="{% url 'aristotle:create_list' %}" class="btn btn-danger pull-right">{% trans "Cancel" %}</a>
+        {% block back_button %}
+            {% if wizard.steps.prev %}
+                <button class="btn btn-default pull-right" name="wizard_goto_step"
+                        type="submit" value="{{ wizard.steps.prev }}">
+                        <i class="fa fa-angle-double-left"></i>
+                        {% trans "Previous step" %}
+                </button>
+            {% endif %}
+        {% endblock %}
     </div>
 </form>
 {% endblock %}

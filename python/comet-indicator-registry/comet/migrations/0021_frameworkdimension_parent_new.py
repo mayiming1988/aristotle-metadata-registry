@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('comet', '0020_auto_20190918_1612'),
-        ('aristotle_mdr', '0078_auto_20190918_1610'),
+        ('aristotle_mdr', '0079_auto_20190918_1610'),
     ]
 
     operations = [

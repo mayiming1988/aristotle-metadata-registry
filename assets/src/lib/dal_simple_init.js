@@ -1,3 +1,4 @@
+import { isFormstageElement } from 'src/lib/html.js'
 // DAL needs the full version
 import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
@@ -5,12 +6,12 @@ import 'select2/dist/css/select2.css'
 
 // Initialize all dal elements (urlfunc is optional)
 export function initDAL(urlfunc) {
-    $('[data-autocomplete-light-function=select2]').each(function() {
-        var element = $(this);
-        if (element.closest(".formstage").length == 0) {
-            initDALWidget(element, urlfunc)
+    for (let element of document.querySelectorAll('[data-autocomplete-light-function=select2]')) {
+        // If not inside a formstage
+        if (!isFormstageElement(element)) {
+            initDALWidget($(element), urlfunc)
         }
-    })
+    }
 }
 
 // Initialize a single dal element (urlfunc is optional)
@@ -37,8 +38,21 @@ export function initDALWidget(element, urlfunc) {
 
     // Templating selected item
     function template_selection(item) {
-        if (!item.body) {
+        // This is a blank entry, return nothing.
+        if (item.id == "") {
             return item.text;
+        }
+        // This is an item that was loaded with the page.
+        if (item.id && !item.body) {
+            var result = $('<strong>');
+            result.html(
+                item.text +
+                " <small>(id: " + item.id + ")</small> " +
+                '<a class="ac_preview_link" href="/item/'+ item.id + '" target="preview" title="Open in a new window" onclick="window.open(\'/item/'+ item.id+'\', \'preview\', \'height=600,width=595,resizable=yes,scrollbars=yes\');return false;">'+
+                '<i class="fa fa-external-link-square"></i>' +
+                '</a>'
+            );
+            return result
         }
         if (element.attr('data-html') !== undefined) {
             var $result = $('<span>');
@@ -96,10 +110,16 @@ export function initDALWidget(element, urlfunc) {
         };
     }
 
+    // Set the dropdown CSS class
+    let dropdownCssClass = "aristotle-select2";
+    if (element.attr('multiple')) {
+        dropdownCssClass = 'aristotle-select2-multiple'
+    }
     $(element).select2({
         tokenSeparators: element.attr('data-tags') ? [','] : null,
         debug: true,
         containerCssClass: ':all:',
+        dropdownCssClass: dropdownCssClass,
         placeholder: element.attr('data-placeholder') || '',
         language: element.attr('data-autocomplete-light-language'),
         minimumInputLength: element.attr('data-minimum-input-length') || 0,

@@ -1,12 +1,10 @@
-{% extends "aristotle_mdr/user/userHome.html" %}
+{% extends "aristotle_mdr/user/workgroups/base.html" %}
 {% load i18n %}
 
-{% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
-{% endblock %}
+{% block title %} Editing - {{ item.name }}{% endblock %}
 
-{% block page %}
-    <h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
+
+{% block workgroup_page %}
 
 
     <form action="" method="POST">

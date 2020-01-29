@@ -2,25 +2,32 @@
 {% load i18n util_tags %}
 {% load static from staticfiles %}
 
-{% block title %}Create link - confirm{% endblock %}
+{% block title %}Add new link - Step 4: Confirm link details{% endblock %}
 
 {% block form_title %}Step 4: Confirm link details{% endblock %}
 
 {% block wizard_content %}
+    <hr>
     <div>
-        {% blocktrans %}
-        You are about to add concepts to the roles for relation
-            <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
-        {% endblocktrans %}
-        <div class='well'>
-        {{ relation.definition|bleach }}
-        </div>
+        <p>
+          {% blocktrans %}
+          You are about to add concepts to the roles for relation 
+          {% endblocktrans %}
+          <a target="_blank" href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
+        </p>
+        {% if relation.definition %}
+          <div class='well'>
+          {{ relation.definition|bleach }}
+          </div>
+        {% endif %}
         <strong>The concepts in this relationship are:</strong>
         <table class="table">
-            <thead><tr>
-            <th>Role</th>
-            <th>Concepts</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Concepts</th>
+              </tr>
+            </thead>
             <tbody>
             {% for role, concepts in role_concepts %}
                 <tr>
@@ -29,9 +36,10 @@
                         <ul>
                         {% for concept in concepts %}
                         <li>
-                            <a href="{{concept.get_absolute_url}}">
-                            {{concept.name}}
+                            <a target="_blank" href="{{concept.get_absolute_url}}">
+                              {{ concept.name }}
                             </a>
+                            ({{ concept.item_type_name }})
                         </li>
                         {% endfor %}
                         </ul>

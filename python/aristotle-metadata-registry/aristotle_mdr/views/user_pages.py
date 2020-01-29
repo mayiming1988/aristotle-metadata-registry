@@ -14,6 +14,7 @@ from aristotle_mdr.views.utils import (paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
 from aristotle_mdr.views.views import ConceptRenderView
+from aristotle_mdr.views.utils import get_item_breadcrumbs
 
 from django.apps import apps
 from django.conf import settings
@@ -57,7 +58,7 @@ class FriendlyLoginView(LoginView):
 
         return context
 
-    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+    def get_redirect_url(self):  # We have to override this function to avoid ValueError "Redirection loop for auth..."
         if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
             return settings.LOGIN_REDIRECT_URL
         return super().get_redirect_url()
@@ -225,7 +226,6 @@ def recent(request):
 class InboxView(LoginRequiredMixin, ListView):
     template_name = 'aristotle_mdr/user/userInbox.html'
     context_object_name = 'page'
-    paginate_by = 5
 
     def get_queryset(self, *args, **kwargs):
         return self.request.user.notifications.unread().all()
@@ -483,15 +483,10 @@ class RegistrarTools(LoginRequiredMixin, View):
             self.template_name,
             {
                 'hide_add_button': True,
-                'title_text': 'Your Registration Authorities',
+                'title_text': 'My Registration Authorities',
                 'activeTab': 'registrarTools'
             }
         )
-
-
-@login_required
-def django_admin_wrapper(request, page_url):
-    return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
 class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
@@ -672,16 +667,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
 
         share_user = self.share.profile.user
         user_display_name = share_user.full_name or share_user.short_name or share_user.email
-        context['breadcrumbs'] = [
-            {
-                'name': '{}\'s Sandbox'.format(user_display_name),
-                'url': reverse('aristotle:sharedSandbox', args=[self.share.uuid])
-            },
-            {
-                'name': self.item.name,
-                'active': True
-            }
-        ]
+        context['breadcrumbs'] = get_item_breadcrumbs(self.item, self.request.user)
         # Set these in order to display links to other sandbox content  correctly
         context['shared_ids'] = self.sandbox_ids
         context['share_uuid'] = self.share.uuid

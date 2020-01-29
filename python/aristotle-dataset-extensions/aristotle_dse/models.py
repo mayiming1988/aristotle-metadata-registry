@@ -66,6 +66,9 @@ class Dataset(aristotle.models.concept):
     """
     template = "aristotle_dse/concepts/dataset.html"
 
+    class Meta:
+        verbose_name = "Data Set"
+
     # Themes = slots with name 'theme'
     # Keywords = slots with name 'keyword'
     issued = models.DateField(
@@ -380,7 +383,7 @@ class DataSetSpecification(aristotle.models.concept):
         # Lookup all objects
         if not objects:
             dss_ids = self.get_unique_ids(cluster_relations)
-            
+
             de_ids = self.get_unique_ids(de_relations)
             objects = type(self).objects.in_bulk(dss_ids)
             objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
@@ -513,11 +516,21 @@ class DSSDEInclusion(DSSInclusion):
     def include(self):
         return self.data_element
 
+    @property
     def inline_editor_description(self):
         if self.group:
-            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element.name, self.group.name, self.order)
+            msg = [
+                "Data element: '{de}' in group '{group}'".format(
+                    de=self.data_element.name,
+                    group=self.group.name
+                )
+            ]
         else:
-            msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
+            msg = [
+                'Data element: {de}'.format(
+                    de=self.data_element.name
+                )
+            ]
         return msg
 
     def __str__(self):
@@ -551,10 +564,11 @@ class DSSClusterInclusion(DSSInclusion):
     def include(self):
         return self.child
 
+    @property
     def inline_editor_description(self):
         if self.order:
-            return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
-        return "Cluster '{}'".format(self.child.name)
+            return ["Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)]
+        return ["Cluster '{}'".format(self.child.name)]
 
     def __str__(self):
         return self.inline_editor_description()

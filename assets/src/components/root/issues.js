@@ -19,10 +19,20 @@ export default {
         'issue-modal': issueModal,
         'issue-panel': issuePanel,
     },
-    data: {
-        new_comments: [],
-        isOpen: true,
-        issueModalOpen: false
+    data: function() {
+        let data = {
+            new_comments: [],
+            issueModalOpen: false,
+            isOpen: true,
+        }
+        // Get isopen from json element
+        let element = document.getElementById("issue-data")
+        if (element !== null) {
+            let issue_data = JSON.parse(element.textContent)
+            data.isOpen = issue_data.isopen
+        }
+
+        return data
     },
     methods: {
         setIsOpen: function(isopen) {

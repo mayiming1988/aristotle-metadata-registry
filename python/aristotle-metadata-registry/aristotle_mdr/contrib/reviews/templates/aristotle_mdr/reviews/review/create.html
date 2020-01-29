@@ -1,10 +1,11 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
-{% load i18n %}
+{% load i18n aristotle_tags bootstrap3 %}
 
 {% block breadcrumbs %}
     <ol class="breadcrumb">
-        <!--<li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>-->
-        <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
+        <li>
+            <a href="{% url 'aristotle_reviews:userMyReviewRequests' %}">My Review Requests</a>
+        </li>
         <li class="active">Create review</li>
     </ol>
 {% endblock %}
@@ -14,9 +15,7 @@
 
     <form action="" method="POST">
         {% csrf_token %}
-        <table class="table">
-            {{ form.as_table }}
-        </table>
+        {% include "aristotle_mdr/reviews/review/create_update_review_form.html" %}
         <a class="btn btn-danger" href="{% url 'aristotle:userHome' %}">Cancel</a>
         <button class="btn btn-primary" type="submit">Create New Review</button>
     </form>

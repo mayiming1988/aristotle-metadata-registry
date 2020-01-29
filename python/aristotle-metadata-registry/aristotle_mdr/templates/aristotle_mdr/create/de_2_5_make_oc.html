@@ -1,0 +1,15 @@
+{% extends "aristotle_mdr/create/concept_wizard_2_results.html" %}
+{% load i18n %}
+
+{% block back_button %}
+    <button name="wizard_goto_step" class="btn btn-default" type="submit"
+            value="{{ wizard.steps.prev }}"
+            data-toggle="popover" data-trigger="hover"
+            data-html="true"
+            title="Warning" data-placement="top"
+            data-content="This action will discard your unsaved changes or additions on this page."
+            >
+        <i class="fa fa-angle-double-left"></i>
+        {% trans "Previous step" %}
+    </button>
+{% endblock %}

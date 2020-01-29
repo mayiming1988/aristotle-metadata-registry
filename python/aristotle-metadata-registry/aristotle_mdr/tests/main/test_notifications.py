@@ -1,15 +1,19 @@
 import aristotle_mdr.models as models
-import datetime
-import ast
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_bg_workers.tasks import send_notification_email
+
 from django.core import mail
 from django.conf import settings
+from django.urls import reverse
+
 import logging
+import datetime
+import reversion
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,6 +22,8 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def setUp(self):
         super().setUp()
+
+        self.kenobi = get_user_model().objects.create_user('kenobi@jedi.order', 'password')
 
         self.item1 = models.ObjectClass.objects.create(
             name="Test Item 1 (visible to tested viewers)",
@@ -66,20 +72,19 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_of_comment(self):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
-        kenobi = get_user_model().objects.create_user('kenodi@jedi.order', '')
         grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil', '')
-        self.wg1.giveRoleToUser('viewer', kenobi)
+        self.wg1.giveRoleToUser('viewer', self.kenobi)
         self.wg1.giveRoleToUser('viewer', grievous)
 
-        self.assertEqual(kenobi.notifications.count(), 0)
+        self.assertEqual(self.kenobi.notifications.count(), 0)
         self.assertEqual(grievous.notifications.count(), 0)
         surprise = models.DiscussionPost.objects.create(
             title="Hello",
             body="There",
-            author=kenobi,
+            author=self.kenobi,
             workgroup=self.wg1
         )
-        self.assertEqual(kenobi.notifications.count(), 0)
+        self.assertEqual(self.kenobi.notifications.count(), 0)
         self.assertEqual(grievous.notifications.count(), 1)
 
         models.DiscussionComment.objects.create(
@@ -88,7 +93,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
             post=surprise,
         )
 
-        self.assertEqual(kenobi.notifications.count(), 1)
+        self.assertEqual(self.kenobi.notifications.count(), 1)
         self.assertEqual(grievous.notifications.count(), 1)
 
     def test_subscriber_is_notified_of_supersede(self):
@@ -221,16 +226,28 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(user2.notifications.count(), 1)
 
-    def test_subscriber_is_notified_when_issue_is_created_on_favourite_item(self):
-        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+    def test_subscriber_is_notified_when_favourited_item_edited(self):
+        user = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
 
-        self.favourite_item(user1, self.item1)
+        self.favourite_item(user, self.item1)
 
-        self.item1.name = "This is a new name"
+        with reversion.create_revision():
+            reversion.set_user(self.editor)
+            self.item1.name = "This is a new name"
+            self.item1.save()
 
-        self.item1.save()
+        self.assertEqual(user.notifications.count(), 1)
 
-        self.assertEqual(user1.notifications.count(), 1)
+    def test_subscriber_is_not_notified_when_favourited_item_edited_by_themselves(self):
+        """Users should not receive notifications for actions they perform themselves"""
+        self.favourite_item(self.editor, self.item1)
+
+        with reversion.create_revision():
+            reversion.set_user(self.editor)
+            self.item1.mame = "This is a new name"
+            self.item1.save()
+
+        self.assertEqual(self.editor.notifications.count(), 0)
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
@@ -258,4 +275,26 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
         self.assertEqual(mail.outbox[0].body, 'hello world')
 
+    def test_notification_visible_on_page(self):
+        self.test_subscriber_is_notified_of_comment()
+        notification_text = "(comment) has been created in the discussion"
 
+        self.logout()
+        response = self.client.post(
+            reverse('friendly_login'),
+            {'username': 'kenobi@jedi.order', 'password': 'password'}
+        )
+        self.assertEqual(response.status_code, 302)
+        response = self.client.get(reverse("aristotle:userInbox"))
+        self.assertContains(response, notification_text)
+
+        # Mark all as read - none should exist any more.
+        self.kenobi.notifications.mark_all_as_read()
+        self.assertEqual(0, self.kenobi.notifications.unread().count())
+        response = self.client.get(reverse("aristotle:userInbox"))
+        self.assertNotContains(response, notification_text)
+
+        # but notifications are still visible in the all messages page
+        response = self.client.get(reverse("aristotle:userInboxAll"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, notification_text)
