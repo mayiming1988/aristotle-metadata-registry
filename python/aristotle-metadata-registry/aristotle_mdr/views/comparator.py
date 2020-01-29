@@ -50,6 +50,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         concept_2 = self.get_version_2_concept()
         if concept_1 and concept_2:
             return concept_1._meta.model == concept_2._meta.model
+        return None
 
     def get_subitem_key(self, subitem_model):
         field_names = [f.name for f in subitem_model._meta.get_fields()]
