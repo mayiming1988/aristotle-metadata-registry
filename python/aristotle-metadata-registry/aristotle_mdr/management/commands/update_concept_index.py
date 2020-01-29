@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.apps import apps
 
-from aristotle_mdr.utils.cache import recache_types
-
 
 class Command(BaseCommand):
     args = ''

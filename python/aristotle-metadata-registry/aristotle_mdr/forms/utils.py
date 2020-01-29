@@ -1,7 +1,7 @@
 from django import forms
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.forms.creation_wizards import UserAwareForm, UserAwareFormMixin
+from aristotle_mdr.forms.creation_wizards import UserAwareFormMixin
 
 
 class FormRequestMixin(object):
@@ -30,7 +30,7 @@ class BootstrapableMixin(object):
 class StewardOrganisationRestrictedChoicesForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+        from aristotle_mdr.models import StewardOrganisation
         qs_kwargs = {}
         if not self.user.is_superuser:
             qs_kwargs.update({

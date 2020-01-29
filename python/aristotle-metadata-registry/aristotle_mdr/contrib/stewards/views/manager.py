@@ -2,7 +2,6 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView, CreateView, UpdateView, DetailView, DeleteView
 )
@@ -241,6 +240,11 @@ class StewardURLManager(GroupURLManager):
                 kwargs = super().get_form_kwargs()
                 kwargs['current_collection'] = self.object
                 return kwargs
+
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
+                context['moving'] = True
+                return context
 
         return MoveCollectionView.as_view(manager=self, group_class=self.group_class)
 

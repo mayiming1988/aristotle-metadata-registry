@@ -10,7 +10,6 @@ from django.template import loader
 
 from organizations.backends.defaults import (
     InvitationBackend,
-    RegistrationBackend
 )
 
 from organizations.backends.tokens import RegistrationTokenGenerator
