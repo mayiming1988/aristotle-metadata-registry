@@ -1,4 +1,5 @@
 import aristotle_mdr.models as MDR
+from aristotle_mdr.models import _concept
 import aristotle_mdr.tests.utils as utils
 
 from django.test import TestCase, override_settings
@@ -6,6 +7,11 @@ from django.urls import reverse
 from django.conf import settings
 
 import reversion
+
+
+def build_compare_url(a: _concept, b: _concept) -> str:
+    query_params = f'?item_a={a.pk}&item_b={b.pk}'
+    return reverse('aristotle:compare_concepts') + query_params
 
 
 class ComparatorTester(utils.LoggedInViewPages, TestCase):
@@ -52,14 +58,15 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
             DSE.DSSDEInclusion.objects.create(dss=data_set_specification_2,
                                               data_element=data_element_2,
                                               reference='second')
+
         with reversion.revisions.create_revision():
             # Create versions for comparision
             data_set_specification_1.save()
             data_set_specification_2.save()
 
         self.login_superuser()  # We're not testing permissions
-        query_params = f'?item_a={data_set_specification_1.pk}&item_b={data_set_specification_2.pk}'
-        response = self.client.get(reverse('aristotle:compare_concepts') + query_params)
+
+        response = self.client.get(build_compare_url(data_set_specification_1, data_set_specification_2))
 
         self.assertResponseStatusCodeEqual(response=response, code=200)
         self.assertContainsHtml(response, 'first')
@@ -73,3 +80,31 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
         data_element_2 = MDR.DataElement.objects.create(name="Data Element 2",
                                                         definition='',
                                                         submitter=self.editor)
+        aristotle_settings = settings.ARISTOTLE_SETTINGS
+        aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
+        aristotle_settings['CONTENT_EXTENSIONS'].append('comet')
+        with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
+            import aristotle_dse.models as DSE
+            distribution_1 = DSE.Distribution.objects.create(
+                name='Distribution 1',
+                definition='',
+                submitter=self.editor)
+            distribution_2 = DSE.Distribution.objects.create(name='Distribution 2',
+                                                             definition='',
+                                                             submitter=self.editor)
+            DSE.DistributionDataElementPath.objects.create(distribution=distribution_1,
+                                                           data_element=data_element_1,
+                                                           logical_path="first")
+            DSE.DistributionDataElementPath.objects.create(distribution=distribution_2,
+                                                           data_element=data_element_2,
+                                                           logical_path='second')
+            with reversion.revisions.create_revision():
+                distribution_1.save()
+                distribution_2.save()
+
+        self.login_superuser()
+        response = self.client.get(build_compare_url(distribution_1, distribution_2))
+
+        self.assertResponseStatusCodeEqual(response=response, code=200)
+        self.assertContainsHtml(response, 'first')
+        self.assertContainsHtml(response, 'second')
