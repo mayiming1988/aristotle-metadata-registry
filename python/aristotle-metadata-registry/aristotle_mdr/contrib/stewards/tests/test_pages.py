@@ -71,7 +71,6 @@ class OrgPagesTests(BaseStewardOrgsTestCase, TestCase):
 
 
 class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
-
     def setUp(self):
         super().setUp()
 

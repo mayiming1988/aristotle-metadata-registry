@@ -58,20 +58,3 @@ class ResponseDomain(aristotleComponent):
         blank=True,
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
-
-
-"""
-class QuestionModule(MDR.concept):
-    template = "mallard-qr/questionmodule.html"
-    questions = models.ManyToManyField(Question,blank=True,null=True)
-    submodules = models.ManyToManyField('QuestionModule',blank=True,null=True)
-    instruction_text = MDR.RichTextField(blank=True,null=True)
-    sqbl_definition = TextField(blank=True,null=True)
-    administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
-
-class Questionnaire(MDR.concept):
-    template = "mallard-qr/questionnaire.html"
-    submodules = models.ManyToManyField(QuestionModule,blank=True,null=True)
-    instructionText = MDR.RichTextField(blank=True)
-    administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
-"""
