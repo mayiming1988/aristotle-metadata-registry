@@ -2,13 +2,11 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 
-from datetime import timedelta
-
-from aristotle_mdr import models as mdr_models
-from aristotle_mdr import perms
 from aristotle_mdr import models
 from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.tests import utils
+
+from datetime import timedelta
 
 User = get_user_model()
 

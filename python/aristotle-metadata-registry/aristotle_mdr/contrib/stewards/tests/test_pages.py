@@ -74,7 +74,6 @@ class OrgPagesTests(BaseStewardOrgsTestCase, TestCase):
 
 
 class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -142,6 +141,26 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         response = self.client.get(
             reverse(
                 'aristotle:stewards:group:sub_collections_create',
+                args=[self.steward_org_1.slug, self.collection.id]
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_load_move_collection(self):
+        """Test loading the move collection page"""
+        self.login_oscar()
+
+        parent = Collection.objects.create(
+            stewardship_organisation=self.steward_org_1,
+            name='Parent Collection',
+        )
+        self.collection.parent_collection = parent
+        self.collection.save()
+
+        response = self.client.get(
+            reverse(
+                'aristotle:stewards:group:collection_move_view',
                 args=[self.steward_org_1.slug, self.collection.id]
             ),
         )

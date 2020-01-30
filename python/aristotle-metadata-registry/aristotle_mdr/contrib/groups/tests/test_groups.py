@@ -112,7 +112,6 @@ class InviteUserToStewardGroup(BaseGroupsTestCase, TestCase):
         self.assertTrue(self.steward_org.has_member(user))
 
 
-
 class GroupsBulkActions(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()

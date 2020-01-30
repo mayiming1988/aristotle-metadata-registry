@@ -16,25 +16,36 @@
 
 {% block objSpecific %}
     For more details on how to access this data contact the publishing organisation.
-
+    {% if item.issued %}
+        <h2>Issued</h2>
+        <p>{% timetag item.issued %}</p>
+    {% endif %}
     <h2>Data source details</h2>
     <dl class="">
         <dt>Contained in dataset</dt>
             <dd>
                 {% if item.dataset %}
-                    <a href="{{item.dataset.get_absolute_url}}">{{item.dataset.name}}</a>
+                    <a href="{{item.dataset.get_absolute_url}}">{{item.dataset.name|bleach}}</a>
                 {% else %}
                     This distribution is not linked to a dataset
                 {% endif %}
             </dd>
         <dt>Format type</dt>
-            <dd>{% firstof distribution.format_type "Unknown format type" %}</dd>
-        <dt style="float:left">Licence</dt>
-            <dd>{% firstof distribution.license "Unknown" %}</dd>
+            <dd>{% firstof distribution.format_type "Unknown format type"|bleach %}</dd>
+        <dt class="float-left">License</dt>
+            <dd>{% firstof distribution.license "Unknown"|bleach %}</dd>
         {% if item.rights %}
-            <dt style="float:left">Rights</dt> <dd>{{ item.rights }}</dd>
+            <dt class="float-left">Rights</dt>
+            <dd>{{ item.rights|bleach }}</dd>
         {% endif %}
-
+        {% if item.byte_size %}
+            <dt class="float-left">Size in bytes</dt>
+            <dd>{{ item.byte_size|bleach }}</dd>
+        {% endif %}
+        {% if item.media_type %}
+            <dt class="float-left">Media type</dt>
+            <dd>{{ item.media_type|bleach }}</dd>
+        {% endif %}
         <div class="well">
             {% if item.download_URL %}
                 <a href='{{item.download_URL}}' class='btn btn-default'>
@@ -96,7 +107,6 @@
             {% endif %}
             {% endwith %}
         </div>
-
     </dl>
 
 {% endblock %}
