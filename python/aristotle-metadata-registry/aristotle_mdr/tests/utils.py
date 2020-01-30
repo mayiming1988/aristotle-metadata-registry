@@ -23,6 +23,7 @@ from aristotle_mdr.downloader import Downloader
 
 from time import sleep, process_time
 import random
+from http import HTTPStatus
 
 
 def wait_for_signal_to_fire(seconds=1):
@@ -850,13 +851,11 @@ class TimingTestUtils:
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
                          WizardTestUtils, FormsetTestUtils, TimingTestUtils):
     """Combination of the above utils plus some aristotle specific utils"""
-    OK = 200
-    MOVED_PERMANENTLY = 301
-    FOUND = 302
-    BAD_REQUEST = 400
-    UNAUTHORIZED = 401
-    FORBIDDEN = 403
-    NOT_FOUND = 404
+
+    # Http status code enum
+    # Allows using self.Status.OK etc.
+    # See http standard lib docs for full code list
+    Status = HTTPStatus
 
     def serialize_inclusion(self, inclusion: aristotleComponent,
                             excluded: Optional[List[str]] = None, 
