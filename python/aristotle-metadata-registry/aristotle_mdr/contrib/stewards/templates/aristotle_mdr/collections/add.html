@@ -17,22 +17,31 @@
     </p>
     {% endif %}
 
-    <form action="" method="POST">
+    <form class="form-horizontal" method="POST" action="">
         {% csrf_token %}
         
         {% if parent_collection %}
-            <label>Parent Collection</label>
-            <div class="form-group">
-                <a href="{% url 'aristotle:stewards:group:collection_detail_view' stewardship_organisation.slug parent_collection.id %}" target="_blank">
-                  {{ parent_collection.name }}
+        <div class="form-group">
+            <label class="col-md-3 text-right">Parent Collection:</label>
+            <div class="col-md-9">
+                <a 
+                  class="full-width"
+                  href="{% url 'aristotle:stewards:group:collection_detail_view' stewardship_organisation.slug parent_collection.id %}" 
+                  target="_blank">
+                      {{ parent_collection.name }}
                 </a>
             </div>
+        </div>
         {% endif %}
-        
-        {% bootstrap_form_errors form %}
-        {% bootstrap_form form %}
 
-        <a class="btn btn-default" href="{{group.get_absolute_url}}">Back</a>
-        <button type="Submit" class="btn btn-primary">Create new Collection</button>
+        {% for field in form %}
+          {% bootstrap_field field layout="horizontal" %}
+        {% endfor %}
+
+
+        <div class="margin-top">
+            <a class="btn btn-default" href="{{group.get_absolute_url}}">Back</a>
+            <button type="Submit" class="btn btn-primary">Create new Collection</button>
+        </div>
     </form>
 {% endblock %}
