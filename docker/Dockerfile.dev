@@ -14,6 +14,15 @@ RUN pip install -U setuptools pip==9.0.2 pipenv==11.8.2 && pip --version && \
 ADD . /usr/src/app
 WORKDIR /usr/src/app/docker
 
+# Install wkhtmltopdf
+RUN apt-get update && apt-get install xfonts-base xfonts-75dpi -y
+RUN wget https://builds.wkhtmltopdf.org/0.12.6-dev/wkhtmltox_0.12.6-0.20180618.3.dev.e6d6f54.stretch_amd64.deb
+RUN dpkg -i wkhtmltox_0.12.6-0.20180618.3.dev.e6d6f54.stretch_amd64.deb
+
+# Install pandoc
+RUN wget https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-1-amd64.deb
+RUN dpkg -i pandoc-2.5-1-amd64.deb
+
 ENV DJANGO_SETTINGS_MODULE=settings \
     aristotlemdr__BASE_DIR=/data/ \
     aristotlemdr_STATIC_DIR=/data/staticfiles

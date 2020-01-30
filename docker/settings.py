@@ -1,7 +1,7 @@
 """
 Base settings necessary for running an Aristotle Instance in "the cloud (tm)"
 """
-
+from aristotle_glossary.settings import CKEDITOR_CONFIGS
 import dj_database_url
 import socket
 import os
@@ -33,8 +33,6 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     # "mallard_qr",
     "aristotle_mdr_graphql",
 ]
-
-from aristotle_glossary.settings import CKEDITOR_CONFIGS
 
 MIDDLEWARE.append('impersonate.middleware.ImpersonateMiddleware')
 

@@ -2,17 +2,14 @@ from django.test import TestCase, tag
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-import datetime
-from unittest import skip
-
 from aristotle_mdr import models
+from aristotle_mdr.models import RA_ACTIVE_CHOICES, STATES
 import aristotle_mdr.contrib.validators.models as vmodels
 import aristotle_mdr.tests.utils as utils
-
 from aristotle_bg_workers.tasks import register_items
 
+import datetime
 
-# This is for testing permissions around RA management.
 
 class RACreationTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_create(self):
@@ -61,7 +58,7 @@ class RACreationTests(utils.LoggedInViewPages, TestCase):
         after_count = models.RegistrationAuthority.objects.count()
         self.assertEqual(after_count, before_count)
 
-    def test_registry_owner_can_create(self):
+    def test_registry_owner_can_create_ra(self):
         self.login_superuser()
 
         response = self.client.get(reverse('aristotle:registrationauthority_create'))
@@ -133,7 +130,7 @@ class RAUpdateTests(utils.AristotleTestUtils, TestCase):
         self.assertNotEqual(my_ra.name, "My cool registrar")
         self.assertNotEqual(my_ra.definition, "This RA rocks!")
 
-    def test_registry_owner_can_edit(self):
+    def test_registry_owner_can_edit_ra(self):
         self.login_superuser()
 
         my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="",
@@ -234,6 +231,84 @@ class RAUpdateTests(utils.AristotleTestUtils, TestCase):
         # Make sure there are non form errors that are rendererd
         self.assertTrue(len(nfe) > 0)
         self.assertContains(response, nfe[0])
+
+    def test_administrator_can_deactivate_registration_authority(self):
+        """Test that an administrator can deactivate a registration authority"""
+        self.login_superuser()
+        ra = models.RegistrationAuthority.objects.create(name="My new RA",
+                                                         definition="",
+                                                         stewardship_organisation=self.steward_org_1)
+
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[ra.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_edit', args=[ra.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+
+        data = response.context['form'].initial
+        data.update({
+            'active': RA_ACTIVE_CHOICES.inactive
+        })
+
+        response = self.client.post(
+            reverse('aristotle:registrationauthority_edit', args=[ra.pk]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        ra.refresh_from_db()
+
+        self.assertEqual(ra.active, RA_ACTIVE_CHOICES.inactive)
+
+    def test_administrator_can_reactivate_registration_authority(self):
+        """Test that an administrator can reactivate a registration authority"""
+        self.login_superuser()
+
+        ra = models.RegistrationAuthority.objects.create(name="My new RA",
+                                                         definition="",
+                                                         stewardship_organisation=self.steward_org_1,
+                                                         active=RA_ACTIVE_CHOICES.inactive)
+
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[ra.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        data = response.context['form'].initial
+        data.update({
+            'active': RA_ACTIVE_CHOICES.active
+        })
+        response = self.client.post(
+            reverse('aristotle:registrationauthority_edit', args=[ra.pk]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        ra.refresh_from_db()
+        self.assertEqual(ra.active, RA_ACTIVE_CHOICES.active)
+
+    def test_administrator_can_edit_locked_metadata(self):
+        """Test that an administrator can edit metadata that is in a locked state"""
+        self.login_superuser()
+        # Create a registration authority
+        ra = models.RegistrationAuthority.objects.create(name="My new RA",
+                                                         definition="",
+                                                         stewardship_organisation=self.steward_org_1,
+                                                         active=RA_ACTIVE_CHOICES.active,
+                                                         locked_state=STATES.candidate)
+        # Create an object class
+        object_class = models.ObjectClass.objects.create(name="Object Class",
+                                                         definition="Object Class",
+                                                         submitter=self.editor)
+        # Register it with a 'locked' state in the Registration Authority
+        models.Status.objects.create(concept=object_class,
+                                     registrationAuthority=ra,
+                                     state=STATES.candidate,
+                                     registrationDate=datetime.date(2000, 1, 1)
+                                     )
+        # Go to the edit item page and check if you can edit
+        response = self.client.get(reverse('aristotle:edit_item', args=[object_class.pk]))
+        self.assertEqual(response.status_code, 200)
 
 
 class RAListTests(utils.LoggedInViewPages, TestCase):
@@ -574,6 +649,7 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
             '?registration_date=2018-1-2&status=5'
         )
         self.assertEqual(response.status_code, 200)
+
         # Check that the date rendered is closest to queried date
         for concept, status in response.context['concepts'].items():
             self.assertEqual(status.registrationDate, datetime.date(2018, 1, 1))

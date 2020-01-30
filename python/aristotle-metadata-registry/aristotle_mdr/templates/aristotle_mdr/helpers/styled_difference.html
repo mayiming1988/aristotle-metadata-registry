@@ -2,7 +2,7 @@
 
 {% if raw %}
     {% if difference.0 == -1 %}
-        <del>{% transform_difference difference.1 }}</del>
+        <del>{% transform_difference difference.1 %}</del>
     {% elif difference.0 == 1 %}
         <ins>{% transform_difference difference.1 %}</ins>
     {% else %}

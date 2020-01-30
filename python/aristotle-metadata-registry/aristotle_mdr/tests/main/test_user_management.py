@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from unittest.mock import patch, MagicMock
 
 import aristotle_mdr.tests.utils as utils
-
+from aristotle_mdr.models import ObjectClass
 
 class UserManagementPages(utils.LoggedInViewPages, TestCase):
     def setUp(self):
@@ -223,7 +223,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertFalse('form' in response.context)
             self.assertTrue('error_message' in response.context)
 
-
     def test_self_registration_page_with_signup_enabled(self):
         # With signup enabled
         mock_settings = MagicMock(return_value={'SELF_SIGNUP': {'enabled': True}})
@@ -350,9 +349,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(mail.outbox[1].to, ['super@example.com'])
         self.assertTrue('Testing Registry' in mail.outbox[1].subject)
 
-
     def test_self_register_activate_error_handling(self):
-
         mock_settings = MagicMock(return_value={'registry': {'SELF_SIGNUP': {'enabled': False}}})
         with patch('aristotle_mdr.contrib.user_management.views.fetch_aristotle_settings', mock_settings):
             # Test trying to activate with signup disabled
@@ -388,13 +385,12 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.context['error_message'], 'Account could not be activated')
 
-
     def test_get_resend_activation(self):
         response = self.client.get(reverse('aristotle-user:signup_resend'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['title'], 'Resend Activation')
 
-    def test_resend_activation_non_existant(self):
+    def test_resend_activation_non_existent(self):
 
         response = self.client.get(reverse('aristotle-user:signup_resend'))
         self.assertEqual(response.status_code, 200)
@@ -427,7 +423,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertTrue('activation link has been sent' in response.context['message'])
 
         self.assertEqual(len(mail.outbox), 1)
-
 
     @tag('emailcase')
     def test_creating_user_model_case(self):
@@ -490,11 +485,9 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             'myemail@example.com',
             'verysecure'
         )
-
         data = {
             'email_list': 'myemail@example.com\nnewguy@example.com'
         }
-
         post_response = self.client.post(reverse('aristotle-user:registry_invitations_create'), data)
         self.assertEqual(post_response.status_code, 302)
 
@@ -529,3 +522,49 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertTrue('activation link has been sent' in response.context['message'])
 
         self.assertEqual(len(mail.outbox), 1)
+
+    @tag('view_all_permissions')
+    def test_administrator_can_give_view_all_permission_to_user(self):
+        """Test whether an administrator can add view all permissions to a user"""
+        regular_user = self.user_model.objects.create_user(
+            'average@example.com',
+            'verysecure'
+        )
+        self.login_superuser()
+        url = reverse('aristotle-user:update_another_user_site_perms', args=[regular_user.pk])
+        response = self.client.get(url)
+        self.assertResponseStatusCodeEqual(response=response, code=200)
+
+        data = response.context['form'].initial
+        data['perm_view_all_metadata'] = True
+        response = self.client.post(url, data)
+        self.assertResponseStatusCodeEqual(response=response, code=302)
+        regular_user.refresh_from_db()
+        self.assertEqual(regular_user.perm_view_all_metadata, True)
+
+    @tag('view_all_permission')
+    def test_view_all_permission_allows_regular_user_to_view_all_metadata(self):
+        """Test that a regular user that has been given the view all permission can view all items"""
+        regular_user = self.user_model.objects.create_user(
+            'average@example.com',
+            'verysecure'
+        )
+        regular_user.perm_view_all_metadata = True
+        regular_user.save()
+
+        login_url = reverse('friendly_login')
+
+        response = self.client.post(
+            login_url,
+            {'username': 'average@example.com', 'password': 'verysecure'}
+        )
+        self.assertEqual(response.status_code, 302)
+
+        object_class = ObjectClass.objects.create(name="Object Class",
+                                                  definition="Object Class")
+        response = self.client.get(object_class.get_absolute_url())
+        self.assertResponseStatusCodeEqual(response=response, code=200)
+
+
+
+

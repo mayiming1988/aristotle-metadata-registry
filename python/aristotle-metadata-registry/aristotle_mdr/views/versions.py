@@ -449,7 +449,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     hidden_diff_fields = ['modified', 'created', 'uuid', 'serialized_model', 'parent_dss']
 
     differ = diff_match_patch.diff_match_patch()
-
     raw = False
     comparing_different_formats = False
 
@@ -474,12 +473,19 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def replace_item_id(self, model, field_name, value) -> Optional[Dict]:
         """Returns a modified dict containing item names (and URLs if possible) instead of ids"""
         field = self.get_field_or_none(field_name, model)
+
         if field is not None:
             if (self.is_concept_fk(field) or self.is_reference_doc_fk(field)) and value:
-                if not value.isdigit():
+                if not type(value) == int and not value.isdigit():
                     return value
+
                 item_model = self.get_model_from_foreign_key_field(model, field_name)
-                item = item_model.objects.get(pk=value)
+                try:
+                    item = item_model.objects.get(pk=value)
+                except item_model.DoesNotExist:
+                    # If the item has been deleted but the model still exists
+                    return value
+
                 item_dict = {
                     'name': self.get_item_name(item),
                     'url': self.get_item_url(item)

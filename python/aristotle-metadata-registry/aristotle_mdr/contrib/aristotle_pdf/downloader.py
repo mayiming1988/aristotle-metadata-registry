@@ -41,7 +41,7 @@ class GenericPDFDownloader(HTMLDownloader):
             pages.insert(1, generated_bytes)
             for page_bytes in pages:
                 if page_bytes is not None:
-                    merger.append(BytesIO(page_bytes))
+                    merger.append(BytesIO(page_bytes), import_bookmarks=False)
             final_file = BytesIO()
             merger.write(final_file)
             merger.close()  # Close all files given to the merger
@@ -52,21 +52,6 @@ class GenericPDFDownloader(HTMLDownloader):
 
 class PythonPDFDownloader(GenericPDFDownloader):
     """Pure python weasyprint based pdf downloader"""
-
-    def wrap_file(self, generated_bytes: bytes) -> BytesIO:
-        if self.has_wrap_pages:
-            merger = PdfFileMerger()
-            pages = self.get_wrap_pages()
-            pages.insert(1, generated_bytes)
-            for page_bytes in pages:
-                if page_bytes is not None:
-                    merger.append(BytesIO(page_bytes))
-            final_file = BytesIO()
-            merger.write(final_file)
-            merger.close()  # Close all files given to the merger
-            return final_file
-        else:
-            return BytesIO(generated_bytes)
 
     def generate_outline_str(self, bookmarks, indent=0):
         outline_str = ""
@@ -190,13 +175,17 @@ class PDFDownloader(GenericPDFDownloader):
         if table_of_contents:
             # Add toc option so toc is generated
             toc_options['--toc-header-text'] = 'Table Of Contents'
+
             # Render preamble string
             preamble_string = render_to_string(self.preamble_template, context=context)
+
             # Write preamble temp file
             title_temp_file = NamedTemporaryFile(suffix='.html')
             title_temp_file.write(preamble_string.encode('utf-8'))
+
             # Set cover
             cover = title_temp_file.name
+
             # Set options for fixing page numbers with 2 page cover
             final_options['--page-offset'] = -1
             final_options['--footer-html'] = self.cover_footer_path
