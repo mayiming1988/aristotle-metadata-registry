@@ -69,6 +69,35 @@ class OrgPagesTests(BaseStewardOrgsTestCase, TestCase):
         self.assertFalse(org_manager_role in response.context['object_list'])
         self.assertFalse(org_member_role in response.context['object_list'])
 
+    def test_creation_of_stewardship_organisation(self):
+        """Test that an administrator can create a stewardship organisation"""
+        stewardship_organisations = StewardOrganisation.objects.all().count()
+
+        self.login_superuser()
+        response = self.client.get(reverse('aristotle:stewards:group:create'))
+
+        # Create a new Stewardship Organisation
+        data = {field: field for field in response.context['form'].fields.keys()}
+        response = self.client.post(reverse('aristotle:stewards:group:create'), data)
+
+        # Check that we are redirected and that a new Stewardship Organisation has been created
+        self.assertResponseStatusCodeEqual(response=response, code=302)
+        self.assertEqual(stewardship_organisations + 1, StewardOrganisation.objects.all().count())
+
+    def test_edit_of_stewardship_organisation(self):
+        """Test that a registrar can update the description of a stewardship organisation"""
+        stewardship_organisation = StewardOrganisation.objects.create(name="Stewardship Organisation",
+                                                                      description="This is a very important"
+                                                                                  "Stewardship Organisation")
+        self.login_superuser()
+        response = self.client.get(reverse('aristotle:stewards:group:settings', args=[stewardship_organisation.slug]))
+        data = response.context['form'].initial
+        data['name'] = "My edited Stewardship Organisation"
+        data['description'] = 'This is not a very important Stewardship Organisation'
+
+        response = self.client.post(reverse('aristotle:stewards:group:settings', args=[stewardship_organisation.slug]))
+        self.assertResponseStatusCodeEqual(response=response, code=302)
+
 
 class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
 
@@ -111,16 +140,6 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
             object_id=self.new_org_collection.id,
             publisher=self.new_org_member,
         )
-
-    def test_creation_of_stewardship_organisation(self):
-        """Test that an administrator can create a stewardship organisation"""
-        self.login_superuser()
-        response = self.client.get(reverse(''))
-
-
-    def test_update_of_stewardship_organisation(self):
-        """Test that a registrar can update the description of a stewardship organisation"""
-        pass
 
     def test_view_collection(self):
         """Test viewing a collection"""
@@ -313,7 +332,6 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
 
 
 class ManagedItemTestCase:
-
     def test_managed_item_edit(self):
         # TODO addtest: create test for editing a managed items
         pass
