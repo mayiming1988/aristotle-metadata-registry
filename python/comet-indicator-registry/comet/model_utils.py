@@ -14,7 +14,6 @@ class IndicatorFrameworkDimensionsThrough(models.Model):
     )
     frameworkdimension = models.ForeignKey(
         "FrameworkDimension",
-        null=True,
         blank=True,
         to_field='id',
         on_delete=models.CASCADE,

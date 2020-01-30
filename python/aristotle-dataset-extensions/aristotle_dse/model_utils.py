@@ -11,7 +11,6 @@ class DSSGroupingLinkedGroupThrough(models.Model):
     """
     to_dssgrouping = models.ForeignKey(
         blank=True,
-        null=True,
         to='DSSGrouping',
         to_field='id',
         related_name='to_dssgrouping_reverse',
@@ -19,7 +18,6 @@ class DSSGroupingLinkedGroupThrough(models.Model):
     )
     from_dssgrouping = models.ForeignKey(
         blank=True,
-        null=True,
         to='DSSGrouping',
         to_field='id',
         related_name='from_dssgrouping_reverse',
@@ -37,14 +35,12 @@ class DSSDEInclusionSpecialisationClassesThrough(models.Model):
 
     dssdeinclusion = models.ForeignKey(
         blank=True,
-        null=True,
         to="DSSDEInclusion",
         to_field='id',
         on_delete=models.CASCADE,
     )
     objectclass = ConceptForeignKey(
         blank=True,
-        null=True,
         to=ObjectClass,
         on_delete=models.CASCADE,
     )
@@ -60,14 +56,12 @@ class DistributionDataElementPathSpecialisationClassesThrough(models.Model):
 
     distributiondataelementpath = models.ForeignKey(
         blank=True,
-        null=True,
         to="DistributionDataElementPath",
         to_field='id',
         on_delete=models.CASCADE,
     )
     objectclass = ConceptForeignKey(
         blank=True,
-        null=True,
         to=ObjectClass,
         on_delete=models.CASCADE,
     )
