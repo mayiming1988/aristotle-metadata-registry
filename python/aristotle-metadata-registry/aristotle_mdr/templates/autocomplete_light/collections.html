@@ -1,0 +1,23 @@
+{% load i18n l10n %}
+{% load static %}
+{% with choice=result %}
+<span class="autocomplete-item block" data-value="{{ choice.pk|unlocalize }}">
+    <strong class="title" data-name="{{ choice.name }}">
+    {{ choice }} <small>(id: {{ choice.id }}) </small>
+        {% with choice.get_absolute_url as url %}
+            {% if url %}
+                <a class="ac_preview_link" href="{{ url }}" target="preview"
+                   title="{% trans 'Open in a new window' %}"
+                   onclick="window.open('{{url}}', 'preview', 'height=600,width=595,resizable=yes,scrollbars=yes');return false;">
+                    <i class="fa fa-external-link-square"></i>
+                </a>
+            {% endif %}
+        {% endwith %}
+    </strong>
+    <div class="details">
+        <p>
+            {{ choice.description|truncatewords:20|striptags }}
+        </p>
+    </div>
+</span>
+{% endwith %}

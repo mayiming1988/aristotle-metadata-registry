@@ -176,7 +176,6 @@ class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
                 False,
                 msg="User permission failed for - %s" % permission_name
             )
-        # for permission_name, is_permitted in org_2_role_permissions.items():
 
 
 class OrgConceptVisibilityTests(BaseStewardOrgsTestCase, TestCase):

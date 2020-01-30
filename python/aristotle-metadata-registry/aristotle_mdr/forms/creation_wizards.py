@@ -143,7 +143,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == FrameworkDimensionQuerySet:
                 if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
                     field_widget = widgets.FrameworkDimensionAutocompleteSelectMultiple
-                    self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
+                    self.fields[f].widget = field_widget()
                     self.fields[f].queryset = self.fields[f].queryset.all()
 
             # Add date field

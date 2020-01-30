@@ -166,7 +166,7 @@ class LoggedInUserAutocompletes(utils.LoggedInViewPages, TestCase):
         )
         data = get_json_from_response(response)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(data['results']), min(10, num_users))  # Autocomplete retuns a max of 10 results
+        self.assertEqual(len(data['results']), min(10, num_users))  # Autocomplete reruns a max of 10 results
 
         response = self.client.get(
             reverse("aristotle-autocomplete:user")+"?q=Grump",

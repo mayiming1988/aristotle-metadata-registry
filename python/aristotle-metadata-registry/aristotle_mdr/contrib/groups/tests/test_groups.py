@@ -46,11 +46,11 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         )
 
     def get_url_from_email(self, email_content):
-            start = email_content.find('http://')
-            end = email_content.find('\n', start)
-            accept_url = email_content[start:end]
+        start = email_content.find('http://')
+        end = email_content.find('\n', start)
+        accept_url = email_content[start:end]
 
-            return accept_url[7:]
+        return accept_url[7:]
 
 
 @tag('invite_stewardship_user')
@@ -110,7 +110,6 @@ class InviteUserToStewardGroup(BaseStewardOrgsTestCase, TestCase):
 
         # Check that the invited user is added
         self.assertTrue(self.steward_org.has_member(user))
-
 
 
 class GroupsBulkActions(utils.AristotleTestUtils, TestCase):

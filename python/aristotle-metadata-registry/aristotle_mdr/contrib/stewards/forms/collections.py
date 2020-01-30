@@ -5,6 +5,7 @@ from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.forms.creation_wizards import UserAwareFormMixin
 from aristotle_mdr.forms.utils import BootstrapableMixin
+from aristotle_mdr.contrib.stewards.models import Collection
 
 
 class CollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
@@ -30,20 +31,23 @@ class MoveCollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm
     i.e. changing the parent collection"""
 
     def __init__(self, *args, **kwargs):
-        current_collection = kwargs.pop('current_collection', None)
+        current_collection = kwargs.pop('current_collection')
+        stewardship_organisation = current_collection.stewardship_organisation
 
         super().__init__(*args, **kwargs)
 
-        if 'parent_collection' in self.fields:
-            # Get collections in the same SO
-            collection_qs = Collection.objects.filter(
-                stewardship_organisation=current_collection.stewardship_organisation
-            )
-            # Exclude current collection if provided
-            if current_collection:
-                collection_qs = collection_qs.exclude(id=current_collection.id)
+        field = self.fields['parent_collection']
+        # Set queryset for validation
+        field.queryset = Collection.objects.editable_when_manage_collections(
+            stewardship_organisation
+        ).exclude(id=current_collection.id)
 
-            self.fields['parent_collection'].queryset = collection_qs
+        field.widget = widgets.CollectionSelect(
+            steward_organisation_uuid=stewardship_organisation.uuid,
+            steward_organisation_slug=stewardship_organisation.slug,
+            current_collection_id=current_collection.id
+        )
+        field.widget.choices = field.choices
 
     class Meta:
         model = Collection
