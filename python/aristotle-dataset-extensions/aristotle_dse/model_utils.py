@@ -24,6 +24,9 @@ class DSSGroupingLinkedGroupThrough(models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        unique_together = ('to_dssgrouping', 'from_dssgrouping')
+
 
 class DSSDEInclusionSpecialisationClassesThrough(models.Model):
     """
@@ -45,6 +48,9 @@ class DSSDEInclusionSpecialisationClassesThrough(models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        unique_together = ('dssdeinclusion', 'objectclass')
+
 
 class DistributionDataElementPathSpecialisationClassesThrough(models.Model):
     """
@@ -65,3 +71,6 @@ class DistributionDataElementPathSpecialisationClassesThrough(models.Model):
         to=ObjectClass,
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        unique_together = ('distributiondataelementpath', 'objectclass')

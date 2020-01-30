@@ -18,3 +18,6 @@ class IndicatorFrameworkDimensionsThrough(models.Model):
         to_field='id',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        unique_together = ('indicator', 'frameworkdimension')

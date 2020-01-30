@@ -42,4 +42,17 @@ class Migration(migrations.Migration):
             name='to_dssgrouping',
             field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='to_dssgrouping_reverse', to='aristotle_dse.DSSGrouping'),
         ),
+
+        migrations.AlterUniqueTogether(
+            name='distributiondataelementpathspecialisationclassesthrough',
+            unique_together={('distributiondataelementpath', 'objectclass')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='dssdeinclusionspecialisationclassesthrough',
+            unique_together={('dssdeinclusion', 'objectclass')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='dssgroupinglinkedgroupthrough',
+            unique_together={('to_dssgrouping', 'from_dssgrouping')},
+        ),
     ]
