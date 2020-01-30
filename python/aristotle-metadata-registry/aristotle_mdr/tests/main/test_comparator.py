@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.conf import settings
 
 import reversion
+from reversion.models import Version
 
 
 class ComparatorTester(utils.LoggedInViewPages, TestCase):
@@ -58,18 +59,32 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
                                               data_element=data_element_2,
                                               reference='second')
 
-        with reversion.revisions.create_revision():
-            # Create versions for comparision
-            data_set_specification_1.save()
-            data_set_specification_2.save()
+            with reversion.revisions.create_revision():
+                # Create versions for comparision
+                data_set_specification_1.save()
+                data_set_specification_2.save()
 
-        self.login_superuser()  # We're not testing permissions
+            data_element_1.refresh_from_db()
+            data_element_2.refresh_from_db()
+            self.assertEqual(data_element_1.name, 'Data Element 1')
+            self.assertEqual(data_element_2.name, 'Data Element 2')
+            self.assertEqual(Version.objects.get_for_object(data_set_specification_1).count(), 1)
+            self.assertEqual(Version.objects.get_for_object(data_set_specification_2).count(), 1)
 
-        response = self.client.get(self.build_compare_url(data_set_specification_1, data_set_specification_2))
+            print("--- DEBUG STARTS --- ")
+            print([concept.id for concept in _concept.objects.all()])
+            print([data_element_1.id, data_element_2.id])
+            print(vars(Version.objects.get_for_object(data_set_specification_1)[0]))
+            print(vars(Version.objects.get_for_object(data_set_specification_2)[0]))
+            print("--- DEBUG ENDS --- ")
 
-        self.assertResponseStatusCodeEqual(response=response, code=200)
-        self.assertContainsHtml(response, 'first')
-        self.assertContainsHtml(response, 'second')
+            self.login_superuser()  # We're not testing permissions
+
+            response = self.client.get(self.build_compare_url(data_set_specification_1, data_set_specification_2))
+
+            self.assertResponseStatusCodeEqual(response=response, code=200)
+            self.assertContainsHtml(response, 'first')
+            self.assertContainsHtml(response, 'second')
 
     def test_user_can_compare_different_distribution_objects(self):
         """Test that a user can compare differences between two different distributions"""
@@ -101,9 +116,9 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
                 distribution_1.save()
                 distribution_2.save()
 
-        self.login_superuser()
-        response = self.client.get(self.build_compare_url(distribution_1, distribution_2))
+            self.login_superuser()
+            response = self.client.get(self.build_compare_url(distribution_1, distribution_2))
 
-        self.assertResponseStatusCodeEqual(response=response, code=200)
-        self.assertContainsHtml(response, 'first')
-        self.assertContainsHtml(response, 'second')
+            self.assertResponseStatusCodeEqual(response=response, code=200)
+            self.assertContainsHtml(response, 'first')
+            self.assertContainsHtml(response, 'second')
