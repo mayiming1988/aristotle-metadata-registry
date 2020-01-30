@@ -1,7 +1,7 @@
 """
 Base settings necessary for running an Aristotle Instance in "the cloud (tm)"
 """
-
+from aristotle_glossary.settings import CKEDITOR_CONFIGS
 import dj_database_url
 import socket
 import os

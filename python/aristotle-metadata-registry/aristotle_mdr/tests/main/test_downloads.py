@@ -1,5 +1,4 @@
 from django.test import TestCase, tag, override_settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.core.exceptions import PermissionDenied
@@ -12,20 +11,8 @@ from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeD
 
 import datetime
 from unittest.mock import patch, MagicMock
-from unittest import skip
-
-from typing import Dict
 import os
 
-@override_settings(
-    ARISTOTLE_SETTINGS={
-        'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']},
-        'BULK_ACTIONS': ['aristotle_mdr.forms.bulk_actions.BulkDownloadForm']
-    }
-)
-class PreviewDownloadsTestCase(AristotleTestUtils, TestCase):
-    def test_print_preview(self):
-        pass
 
 @override_settings(
     ARISTOTLE_SETTINGS={
@@ -432,7 +419,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
-
     def setUp(self):
         super().setUp()
         self.item = models.DataElement.objects.create(

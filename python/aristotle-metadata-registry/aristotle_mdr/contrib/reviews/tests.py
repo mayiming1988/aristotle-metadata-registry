@@ -1430,7 +1430,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         self.assertFalse(review.status == REVIEW_STATES.revoked)
         response = self.client.post(reverse('aristotle:userReviewCancel', args=[review.pk]), {})
-        self.assertRedirects(response, reverse('aristotle:userMyReviewRequests', ))
+        self.assertRedirects(response, reverse('aristotle:userMyReviewRequests'))
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
         self.assertTrue(review.status == REVIEW_STATES.revoked)
