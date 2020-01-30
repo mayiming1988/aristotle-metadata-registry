@@ -119,12 +119,12 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
             # Check new values
             self.assertEqual(inc.specific_information, 'cluster specific')
 
-
     def test_add_data_element(self):
-        de, created = MDR.DataElement.objects.get_or_create(name="Person-sex, Code N",
-                                                            workgroup=self.wg1,
-                                                            definition="The sex of the person with a code.",
-                                                            )
+        de, created = MDR.DataElement.objects.get_or_create(
+            name="Person-sex, Code N",
+            workgroup=self.wg1,
+            definition="The sex of the person with a code.",
+        )
         self.item1.addDataElement(de)
         self.assertTrue(self.item1.data_elements.count(), 1)
 
