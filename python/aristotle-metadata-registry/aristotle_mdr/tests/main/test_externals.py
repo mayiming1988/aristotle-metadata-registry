@@ -7,12 +7,11 @@ import aristotle_mdr.tests.utils as utils
 
 import datetime
 
-
-
 """
 This test suite houses tests to third-party modules to ensure they are being run how
 we need them.
 """
+
 
 class AristotleAutocompletes(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -29,9 +28,9 @@ class AristotleAutocompletes(utils.AristotleTestUtils, TestCase):
         self.login_editor()
 
         # We aren't going to run the full gambit here
-        # Just enough to prove that
-        #  a. _concept autocomplete can return more than one item typr
-        #  b. specialised autcompleted *only* return their own item type
+        # Just enough to prove that:
+        #  a. _concept autocomplete can return more than one item type
+        #  b. specialised autocompletes *only* return their own item type
         #  c. autocompletes don't return items invisible to users
 
         response = self.client.get(
@@ -67,9 +66,9 @@ class AristotleAutocompletes(utils.AristotleTestUtils, TestCase):
 
         self.make_review_request(self.item1, self.registrar)
 
-        self.ra.register(self.item1,models.STATES.standard,self.registrar,
-            registrationDate=timezone.now()+datetime.timedelta(days=-1)
-        )
+        self.ra.register(self.item1, models.STATES.standard, self.registrar,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-1)
+                         )
         self.assertTrue(models.ObjectClass.objects.get(name='AC1').is_public())
 
         self.logout()
@@ -93,33 +92,33 @@ class AristotleAutocompletes(utils.AristotleTestUtils, TestCase):
         # tests.main.test_search.test_current_statuses_only_in_search_results_and_index
 
         from django.contrib.auth import get_user_model
-        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
-        self.ra.giveRoleToUser('registrar',self.registrar)
+        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil', 'mutantsMustDie')
+        self.ra.giveRoleToUser('registrar', self.registrar)
 
         self.logout()
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
-        self.assertEqual(response.status_code,302) # logged in
-        self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
+        self.assertEqual(response.status_code, 302)  # logged in
+        self.assertTrue(perms.user_is_registrar(self.registrar, self.ra))
 
         dp = models.ObjectClass.objects.create(name="deadpool",
-                definition="not really an xman, no matter how much he tries",
-                workgroup=self.wg1)
+                                               definition="not really an xman, no matter how much he tries",
+                                               workgroup=self.wg1)
 
         self.make_review_request(dp, self.registrar)
 
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
-        self.assertTrue(perms.user_can_view(self.registrar,dp))
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
+        self.assertTrue(perms.user_can_view(self.registrar, dp))
         self.assertFalse(dp.is_public())
 
-        self.ra.register(dp,models.STATES.incomplete,self.su,
-            registrationDate=timezone.now()+datetime.timedelta(days=-7)
-        )
+        self.ra.register(dp, models.STATES.incomplete, self.su,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-7)
+                         )
 
-        self.ra.register(dp,models.STATES.standard,self.su,
-            registrationDate=timezone.now()+datetime.timedelta(days=-1)
-        )
+        self.ra.register(dp, models.STATES.standard, self.su,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-1)
+                         )
 
         response = self.client.get(
             reverse(
