@@ -92,6 +92,11 @@ class Dataset(aristotle.models.concept):
         verbose_name="Modification date",
         help_text=_('Most recent date on which the dataset was changed, updated or modified.'),
         )
+    # TODO: we want to remove this field ASAP, it's not on the standard
+    contact_point = models.TextField(
+        blank=True, null=True,
+        help_text=_('The temporal period that the dataset covers.'),
+        )
 
     @property
     def relational_attributes(self):

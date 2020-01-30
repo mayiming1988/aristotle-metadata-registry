@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('aristotle_dse', '0030_auto_20190809_1241'),
     ]
@@ -13,9 +12,5 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name='dataset',
             options={'verbose_name': 'Data Set'},
-        ),
-        migrations.RemoveField(
-            model_name='dataset',
-            name='contact_point',
         ),
     ]
