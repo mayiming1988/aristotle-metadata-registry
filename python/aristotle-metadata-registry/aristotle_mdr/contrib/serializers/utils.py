@@ -9,14 +9,22 @@ def get_concept_fields(model_class):
             if not field.name.startswith('_'):
                 # Don't serialize internal fields
                 fields.append(field)
+    return fields
 
+
+def get_many_to_one_fields(model_class):
+    fields = []
+    for field in model_class._meta.get_fields():
+        if field.many_to_one:
+            if not field.name.startswith("_"):
+                fields.append(field)
     return fields
 
 
 def get_concept_field_names(model_class):
-    """Get fields that are actually **on** the model.
+    """Get fields that are actually **on** the model or are many-to-one.
        Returns a tuple of fields"""
-    fields = get_concept_fields(model_class)
+    fields = get_concept_fields(model_class) + get_many_to_one_fields(model_class)
     return tuple([field.name for field in fields])
 
 
