@@ -31,7 +31,7 @@ fname_new="${outputdir}/${dbname_new}.sql"
 # Start database
 cd "${top}/docker"
 if [[ "$(docker-compose ps -q)" ]]; then
-    echo "Taking down"
+    echo "Taking docker down"
     docker-compose down
 fi
 docker-compose up --detach --no-deps db
@@ -42,7 +42,7 @@ docker-compose up --detach --no-deps db
 backup_from_branch() {
     # Checkout to branch
     echo "Checking out to branch $1"
-    git checkout $1
+    git checkout "$1"
     # Clean database
     echo "Dropping database $2"
     docker-compose exec db psql \
@@ -72,23 +72,23 @@ dump_database() {
         --no-owner \
         --no-privileges \
         --user postgres \
-        $1 | python3 "${top}/scripts/sqlsort.py" > $2
+        "$1" | python3 "${top}/scripts/sqlsort.py" > "$2"
 }
 
 # Backup from each branch
-backup_from_branch $branch_old $dbname_old
-backup_from_branch $branch_new $dbname_new
+backup_from_branch "$branch_old" "$dbname_old"
+backup_from_branch "$branch_new" "$dbname_new"
 
 # pg_dump from each database
-dump_database $dbname_old $fname_old
-dump_database $dbname_new $fname_new
+dump_database "$dbname_old" "$fname_old"
+dump_database "$dbname_new" "$fname_new"
 
 # Diff 2 sql files
 diff_fname="${top}/comparison.diff"
-diff_args="--strip-trailing-cr --unified $fname_old $fname_new"
+diff_args="--strip-trailing-cr --unified ${fname_old} ${fname_new}"
 
 echo "Writing diff to $diff_fname"
-diff $diff_args > $diff_fname
+diff $diff_args > "$diff_fname"
 
 
 docker-compose down
