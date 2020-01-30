@@ -149,8 +149,8 @@ class HasRolePermissionMixin(PermissionRequiredMixin):
 
     def check_permissions(self, request):
         assert self.role_permission is not None
-        group = self.get_group()
-        can_access = group.user_has_permission(user=request.user, permission=self.role_permission)
+        self.group = self.get_group()
+        can_access = self.group.user_has_permission(user=request.user, permission=self.role_permission)
         return can_access
 
 
