@@ -113,14 +113,14 @@ class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
         )
 
     def test_creation_of_stewardship_organisation(self):
-        """Test that a registrar can create a stewardship organisation"""
-        return True
-        # TODO: finish
+        """Test that an administrator can create a stewardship organisation"""
+        self.login_superuser()
+        response = self.client.get(reverse(''))
+
 
     def test_update_of_stewardship_organisation(self):
         """Test that a registrar can update the description of a stewardship organisation"""
-        return True
-        # TODO: finish
+        pass
 
     def test_view_collection(self):
         """Test viewing a collection"""

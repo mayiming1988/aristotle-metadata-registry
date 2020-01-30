@@ -34,8 +34,6 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     "aristotle_mdr_graphql",
 ]
 
-from aristotle_glossary.settings import CKEDITOR_CONFIGS
-
 MIDDLEWARE.append('impersonate.middleware.ImpersonateMiddleware')
 
 DATABASES = {'default': dj_database_url.config()}

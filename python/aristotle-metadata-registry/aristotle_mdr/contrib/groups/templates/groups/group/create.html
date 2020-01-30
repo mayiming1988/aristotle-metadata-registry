@@ -1,6 +1,6 @@
 {% extends "groups/base.html" %}
 {% load group_tags %}
-
+{% load bootstrap3 %}
 {% block group_content %}
     <h1>
         Create {{view.manager.group_meta.verbose_name.title}}
@@ -8,12 +8,9 @@
 
     <form action="{%url view.manager.namespace|add:":create" %}" method="POST">
         {% csrf_token %}
-        <table>
-            {{form.as_table}}
-        </table>
-
-        <a href="{%url view.manager.namespace|add:":list" %}">Cancel</a>
-        <button type="submit">Submit</button>
+        {% bootstrap_form form %}
+        <a class="btn btn-default" href="{%url view.manager.namespace|add:":list" %}">Cancel</a>
+        <button class="btn btn-primary" type="submit">Submit</button>
     </form>
 
 {% endblock %}
