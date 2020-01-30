@@ -22,6 +22,7 @@ from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
 from aristotle_mdr.utils.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
+from aristotle_mdr.tests.utils import model_to_dict_with_change_time
 
 import datetime
 from unittest import mock, skip
@@ -2680,43 +2681,126 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.DataElementDerivation
 
-    def test_weak_editing_in_advanced_editor_dynamic(self):
-        self.item1 = self.create_linked_ded()
-        # TODO fixtest: fix this test
-        # super().test_weak_editing_in_advanced_editor_dynamic()
-
     def create_linked_ded(self):
+        self.de1 = models.DataElement.objects.create(
+            name='DE1 Name',
+            definition="my definition",
+            workgroup=self.wg1
+        )
+        self.de2 = models.DataElement.objects.create(
+            name='DE2 Name',
+            definition="my definition",
+            workgroup=self.wg1
+        )
+        self.de3 = models.DataElement.objects.create(
+            name='DE3 Name',
+            definition="my definition",
+            workgroup=self.wg1
+        )
 
-        self.de1 = models.DataElement.objects.create(name='DE1 Name', definition="my definition", workgroup=self.wg1)
-        self.de2 = models.DataElement.objects.create(name='DE2 Name', definition="my definition", workgroup=self.wg1)
-        self.de3 = models.DataElement.objects.create(name='DE3 Name', definition="my definition", workgroup=self.wg1)
-        self.ded = models.DataElementDerivation.objects.create(name='DED Name', definition='my definition',
-                                                               workgroup=self.wg1)
+        self.ded = models.DataElementDerivation.objects.create(
+            name='DED Name',
+            definition='my definition',
+            workgroup=self.wg1
+        )
 
-        ded_derives_1 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de1,
-                                                                order=0)
-        ded_derives_2 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de2,
-                                                                order=1)
-        ded_derives_3 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de3,
-                                                                order=2)
+        ded_derives_1 = models.DedDerivesThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de1,
+            order=0
+        )
+        ded_derives_2 = models.DedDerivesThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de2,
+            order=1
+        )
+        ded_derives_3 = models.DedDerivesThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de3,
+            order=2
+        )
 
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de3,
-                                                              order=0)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de2,
-                                                              order=1)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de1,
-                                                              order=2)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de3,
+            order=0
+        )
+        ded_inputs_2 = models.DedInputsThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de2,
+            order=1
+        )
+        ded_inputs_3 = models.DedInputsThrough.objects.create(
+            data_element_derivation=self.ded,
+            data_element=self.de1,
+            order=2
+        )
 
         return self.ded
 
+    def test_weak_editing_in_advanced_editor_dynamic(self):
+        """Test editing of ded inputs and derives
+
+        Overrides general weak editor test
+        """
+        self.login_editor()
+        ded = self.create_linked_ded()
+
+        de = models.DataElement.objects.create(
+            name='Brand new data element',
+            definition='So new',
+            workgroup=self.wg1,
+        )
+
+        inputs = ded.dedinputsthrough_set.all()
+        derives = ded.dedderivesthrough_set.all()
+
+        # Serialize item
+        data = model_to_dict_with_change_time(ded)
+
+        inputs_data = self.bulk_serialize_inclusions(inputs, ['data_element_derivation'])
+        for item in inputs_data:
+            item['data_element'] = de.id
+        data.update(self.get_formset_postdata(inputs_data, 'inputs', 3))
+
+        derives_data = self.bulk_serialize_inclusions(derives, ['data_element_derivation'])
+        for item in derives_data:
+            item['data_element'] = de.id
+        data.update(self.get_formset_postdata(inputs_data, 'derives', 3))
+
+        # Post edit
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[ded.id]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Check updates were applied
+        self.assertEqual(ded.dedinputsthrough_set.count(), 3)
+        for item in ded.dedinputsthrough_set.all():
+            self.assertEqual(item.data_element, de)
+
+        self.assertEqual(ded.dedderivesthrough_set.count(), 3)
+        for item in ded.dedderivesthrough_set.all():
+            self.assertEqual(item.data_element, de)
+
     def derivation_m2m_concepts_save(self, url, attr):
         # TODO fixtest: have test actually use this function, or test the equivalent
-        self.de1 = models.DataElement.objects.create(name='DE1 - visible', definition="my definition",
-                                                     workgroup=self.wg1)
-        self.de2 = models.DataElement.objects.create(name='DE2 - not visible', definition="my definition",
-                                                     workgroup=self.wg2)
-        self.oc1 = models.ObjectClass.objects.create(name='OC - visible but wrong', definition="my definition",
-                                                     workgroup=self.wg1)
+        self.de1 = models.DataElement.objects.create(
+            name='DE1 - visible',
+            definition="my definition",
+            workgroup=self.wg1
+        )
+        self.de2 = models.DataElement.objects.create(
+            name='DE2 - not visible',
+            definition="my definition",
+            workgroup=self.wg2
+        )
+        self.oc1 = models.ObjectClass.objects.create(
+            name='OC - visible but wrong',
+            definition="my definition",
+            workgroup=self.wg1
+        )
 
         self.login_editor()
 
@@ -2798,12 +2882,21 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
                                extra_postdata=None):
         # TODO fixtest: have test actually use this function, or test the equivalent
 
-        self.de1 = models.DataElement.objects.create(name='DE1 - visible', definition="my definition",
-                                                     workgroup=self.wg1)
-        self.de2 = models.DataElement.objects.create(name='DE2 - visible', definition="my definition",
-                                                     workgroup=self.wg1)
-        self.de3 = models.DataElement.objects.create(name='DE3 - visible', definition="my definition",
-                                                     workgroup=self.wg1)
+        self.de1 = models.DataElement.objects.create(
+            name='DE1 - visible',
+            definition="my definition",
+            workgroup=self.wg1
+        )
+        self.de2 = models.DataElement.objects.create(
+            name='DE2 - visible',
+            definition="my definition",
+            workgroup=self.wg1
+        )
+        self.de3 = models.DataElement.objects.create(
+            name='DE3 - visible',
+            definition="my definition",
+            workgroup=self.wg1
+        )
 
         self.login_editor()
 
