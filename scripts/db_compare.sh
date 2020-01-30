@@ -16,11 +16,14 @@ top="$(git rev-parse --show-toplevel)"
 outputdir="$top"
 branch_old="$1"
 branch_new="$2"
-# Get database names from branch names with slahes and dots replaced by "_"
+# Get database names from branch names
 # Add prefix since name must start with letter
+# Replace various symbols with '_' since they are not allowed in db names
 dbname_prefix="compare_"
-dbname_old="${dbname_prefix}$(echo $1 | tr '/.' '_')"
-dbname_new="${dbname_prefix}$(echo $2 | tr '/.' '_')"
+translate_chars="/.,-"
+dbname_old=${dbname_prefix}$(echo "$1" | tr "$translate_chars" '_')
+dbname_new=${dbname_prefix}$(echo "$2" | tr "$translate_chars" '_')
+
 # Get output filenames
 fname_old="${outputdir}/${dbname_old}.sql"
 fname_new="${outputdir}/${dbname_new}.sql"
