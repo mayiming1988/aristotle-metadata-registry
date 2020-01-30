@@ -71,15 +71,7 @@ class ComparatorTester(utils.LoggedInViewPages, TestCase):
             self.assertEqual(Version.objects.get_for_object(data_set_specification_1).count(), 1)
             self.assertEqual(Version.objects.get_for_object(data_set_specification_2).count(), 1)
 
-            print("--- DEBUG STARTS --- ")
-            print([concept.id for concept in _concept.objects.all()])
-            print([data_element_1.id, data_element_2.id])
-            print(vars(Version.objects.get_for_object(data_set_specification_1)[0]))
-            print(vars(Version.objects.get_for_object(data_set_specification_2)[0]))
-            print("--- DEBUG ENDS --- ")
-
             self.login_superuser()  # We're not testing permissions
-
             response = self.client.get(self.build_compare_url(data_set_specification_1, data_set_specification_2))
 
             self.assertResponseStatusCodeEqual(response=response, code=200)
