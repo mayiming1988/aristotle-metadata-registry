@@ -95,12 +95,16 @@ class OrgPagesTests(BaseStewardOrgsTestCase, TestCase):
         data['name'] = "My edited Stewardship Organisation"
         data['description'] = 'This is not a very important Stewardship Organisation'
 
-        response = self.client.post(reverse('aristotle:stewards:group:settings', args=[stewardship_organisation.slug]))
+        response = self.client.post(reverse('aristotle:stewards:group:settings', args=[stewardship_organisation.slug]),
+                                    data)
         self.assertResponseStatusCodeEqual(response=response, code=302)
+
+        stewardship_organisation.refresh_from_db()
+        self.assertEqual(stewardship_organisation.name, 'My edited Stewardship Organisation')
+        self.assertEqual(stewardship_organisation.description, 'This is not a very important Stewardship Organisation')
 
 
 class CollectionsTestCase(BaseStewardOrgsTestCase, TestCase):
-
     def setUp(self):
         super().setUp()
 
