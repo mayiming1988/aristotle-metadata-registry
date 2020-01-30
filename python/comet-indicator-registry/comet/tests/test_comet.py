@@ -1,6 +1,7 @@
 from django.test import TestCase, tag
+from django.urls import reverse
 
-from aristotle_mdr.tests.utils import ManagedObjectVisibility
+from aristotle_mdr.tests.utils import ManagedObjectVisibility, model_to_dict_with_change_time
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 
@@ -80,6 +81,53 @@ class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
 class IndicatorSetViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.IndicatorSet
 
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
+        """Test editing of indicator inclusions
+
+        overrides general weak editor test
+        """
+        self.login_editor()
+
+        # Create models
+        indicator = models.Indicator.objects.create(
+            name='Indicator of goodness',
+            definition='Indicator of goodness',
+        )
+
+        inclusions = []
+        for i in range(4):
+            inc = models.IndicatorInclusion.objects.create(
+                order=i,
+                indicator_set=self.item1,
+                indicator=indicator,
+                name='Some indicator',
+            )
+            inclusions.append(inc)
+
+        # Serialize item
+        data = model_to_dict_with_change_time(self.item1)
+
+        # Serialize inclusions, make edit to name
+        incdata = self.bulk_serialize_inclusions(inclusions, ['indicator_set'])
+        for item in incdata:
+            item['name'] = 'The best indicator'
+        data.update(self.get_formset_postdata(incdata, 'indicators', 4))
+
+        # Post edit
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item1.id]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Check result
+        self.assertEqual(self.item1.indicatorinclusion_set.count(), 4)
+        for inc in self.item1.indicatorinclusion_set.all():
+            # Check old values
+            self.assertEqual(inc.indicator, indicator)
+            # Check new values
+            self.assertEqual(inc.name, 'The best indicator')
+
 
 class QualityStatementViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.QualityStatement
@@ -91,3 +139,40 @@ class OutcomeAreaViewPage(LoggedInViewConceptPages, TestCase):
 
 class FrameworkViewPage(LoggedInViewConceptPages, TestCase):
     itemType = models.Framework
+
+    def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
+        """Test editing of framework dimensions
+
+        overrides general weak editor test
+        """
+        self.login_editor()
+
+        dimensions = []
+        for i in range(4):
+            dim = models.FrameworkDimension.objects.create(
+                framework=self.item1,
+                name='Dimension',
+                description='An average dimension'
+            )
+            dimensions.append(dim)
+
+        # Serialize item
+        data = model_to_dict_with_change_time(self.item1)
+
+        dimension_data = self.bulk_serialize_inclusions(dimensions, ['framework'], '')
+        for item in dimension_data:
+            item['description'] = 'An amazing dimension'
+        data.update(self.get_formset_postdata(dimension_data, 'dimensions', 4))
+
+        # Post edit
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item1.id]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Check that changes have been applied
+        self.assertEqual(self.item1.frameworkdimension_set.count(), 4)
+        for fd in self.item1.frameworkdimension_set.all():
+            self.assertEqual(fd.name, 'Dimension')
+            self.assertEqual(fd.description, 'An amazing dimension')
