@@ -13,7 +13,7 @@ from aristotle_mdr.tests import utils
 User = get_user_model()
 
 
-class TestPrivatePermissions(TestCase):
+class TestPrivatePermissions(utils.AristotleTestUtils, TestCase):
 
     def setUp(self):
         super().setUp()
