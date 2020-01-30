@@ -93,7 +93,6 @@ urlpatterns = [
     re_path(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.MeasureView.as_view(), name='measure'),
     path('managed_items/<slug:model_slug>/<int:iid>', view=views.ManagedItemView.as_view(), name='view_managed_item'),
 
-    # path('create/', views.item, name='item'),
     path('create/', views.create_list, name='create_list'),
     path('create/wizard/aristotle_mdr/dataelementconcept', views.wizards.DataElementConceptWizard.as_view(), name='createDataElementConcept'),
     path('create/wizard/aristotle_mdr/dataelement', views.wizards.DataElementWizard.as_view(), name='createDataElement'),

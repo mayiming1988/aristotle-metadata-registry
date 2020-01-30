@@ -42,11 +42,6 @@ View profile for <em>{% firstof object.short_name object.full_name object.email 
       </div>
       <div class="list-group">
         <a class="list-group-item" href="{% url 'aristotle-user:update_another_user' object.pk %}">Edit Profile</a>
-        <!--<a class="list-group-item" href="{% url 'password_change' %}">Change Password</a>-->
-        <!--<a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View History</a>-->
-        <!--<a class="list-group-item" href="{% url 'aristotle:userRecentItems' %}">View Recent Actions</a>-->
-        <!--<a class="list-group-item" href="{% url 'aristotle:userRoles' %}">View My Roles</a>-->
-        <!-- a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View search history</a -->
       </div>
     </div>
 
@@ -101,10 +96,15 @@ View profile for <em>{% firstof object.short_name object.full_name object.email 
             <td>
               <ul>
                 {% if object.is_superuser %}
-                <li>Registry Administrator</li>
+                <li>Registry administrator</li>
                 {% endif %}
-                
-                {% if not object.is_superuser %}
+                {% if object.perm_view_all_metadata %}
+                <li>View all metadata</li>
+                {% endif %}
+                {% if object.is_staff %}
+                <li>Access Django admin area</li>
+                {% endif %}
+                {% if not object.is_superuser and not object.perm_view_all_metadata and not object.is_staff %}
                   <li>No extra permissions</li>
                 {% endif %}
               </ul>

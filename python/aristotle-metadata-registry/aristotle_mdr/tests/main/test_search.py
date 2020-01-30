@@ -35,39 +35,37 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.ra1 = models.RegistrationAuthority.objects.create(name="Superhuman Registration Act",
                                                                stewardship_organisation=self.steward_org)
         # Anti-registration!
-        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
-        self.ra.giveRoleToUser('registrar',self.registrar)
-        self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
+        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil', 'mutantsMustDie')
+        self.ra.giveRoleToUser('registrar', self.registrar)
+        self.assertTrue(perms.user_is_registrar(self.registrar, self.ra))
         xmen = "professorX cyclops iceman angel beast phoenix wolverine storm nightcrawler"
 
         self.xmen_wg = models.Workgroup.objects.create(name="X Men", stewardship_organisation=self.steward_org)
         # self.xmen_wg.registrationAuthorities.add(self.ra)
         self.xmen_wg.save()
         self.item_xmen = [
-            models.ObjectClass.objects.create(name=t,definition="known xman",workgroup=self.xmen_wg)\
+            models.ObjectClass.objects.create(name=t, definition="known xman", workgroup=self.xmen_wg) \
             for t in xmen.split()]
 
         for item in self.item_xmen:
-            registered = self.ra.register(item,models.STATES.standard,self.su)
+            registered = self.ra.register(item, models.STATES.standard, self.su)
             self.assertTrue(item in registered['success'])
-            item = models._concept.objects.get(pk=item.pk).item # Stupid cache
+            item = models._concept.objects.get(pk=item.pk).item  # Stupid cache
             self.assertTrue(item.is_public())
-
 
         avengers = "thor spiderman ironman hulk captainAmerica"
 
         self.avengers_wg = models.Workgroup.objects.create(name="Avengers", stewardship_organisation=self.steward_org)
         # self.avengers_wg.registrationAuthorities.add(self.ra1)
         self.item_avengers = [
-            models.ObjectClass.objects.create(name=t,workgroup=self.avengers_wg)
+            models.ObjectClass.objects.create(name=t, workgroup=self.avengers_wg)
             for t in avengers.split()]
-
 
     def test_search_factory_fails_with_bad_queryset(self):
         from django.core.exceptions import ImproperlyConfigured
 
         with self.assertRaises(ImproperlyConfigured):
-            self.client.get(reverse('fail_search')+"?q=wolverine")
+            self.client.get(reverse('fail_search') + "?q=wolverine")
 
     def test_empty_search_loads(self):
         self.logout()
@@ -76,7 +74,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
     def test_one_result_search_doesnt_have_did_you_mean(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:search')+"?q=wolverine")
+        response = self.client.get(reverse('aristotle:search') + "?q=wolverine")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page'].object_list), 1)
         self.assertNotContains(response, "Did you mean")
@@ -84,31 +82,31 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
     def test_empty_search(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:search')+"?q=")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
     def test_search_delete_signal(self):
         self.login_superuser()
         with reversion.create_revision():
-            cable = models.ObjectClass.objects.create(name="cable",definition="known xman",workgroup=self.xmen_wg)
-            self.ra.register(cable,models.STATES.standard,self.su)
+            cable = models.ObjectClass.objects.create(name="cable", definition="known xman", workgroup=self.xmen_wg)
+            self.ra.register(cable, models.STATES.standard, self.su)
             cable.save()
         self.assertTrue(cable.is_public())
-        response = self.client.get(reverse('aristotle:search')+"?q=cable")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        response = self.client.get(reverse('aristotle:search') + "?q=cable")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
         with reversion.create_revision():
             cable.delete()
-        response = self.client.get(reverse('aristotle:search')+"?q=cable")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=cable")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
     def test_public_search(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),len(self.item_xmen))
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), len(self.item_xmen))
         for i in response.context['page'].object_list:
             self.assertTrue(i.object.is_public())
 
@@ -123,11 +121,10 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page'].object_list), 0)
 
-
     def test_public_search_has_valid_facets(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
+        self.assertEqual(response.status_code, 200)
         facets = response.context['form'].facets['fields']
         self.assertTrue('workgroup' not in facets.keys())
         self.assertTrue('restriction' not in facets.keys())
@@ -138,17 +135,16 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         for state, count in facets['statuses']:
             self.assertTrue(int(state) >= self.ra.public_state)
 
-
     @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
                      "Whoosh doesn't support faceting")
     def test_registrar_search_has_valid_facets(self):
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
-        self.assertEqual(response.status_code,302) # logged in
+        self.assertEqual(response.status_code, 302)  # logged in
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
+        self.assertEqual(response.status_code, 200)
         facets = response.context['form'].facets['fields']
         self.assertTrue('workgroup' in facets.keys())
         self.assertTrue('restriction' in facets.keys())
@@ -159,15 +155,15 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
     def test_registrar_favourite_in_list(self):
         self.logout()
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
         self.assertNotContains(response, 'Add Favourite')
 
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
-        self.assertEqual(response.status_code,302) # logged in
+        self.assertEqual(response.status_code, 302)  # logged in
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
         self.assertNotContains(response, 'This item is in your favourites list')
 
         i = self.xmen_wg.items.first()
@@ -175,94 +171,101 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.favourite_item(self.registrar, i)
         self.assertTrue(i in self.registrar.profile.favourites.all())
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
         self.assertContains(response, 'This item is in your favourites list')
 
     def test_registrar_search_after_adding_new_status_request(self):
         self.logout()
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
         steve_rogers = models.ObjectClass.objects.get(name="captainAmerica")
-        self.assertFalse(perms.user_can_view(self.registrar,steve_rogers))
+        self.assertFalse(perms.user_can_view(self.registrar, steve_rogers))
 
         with reversion.create_revision():
             steve_rogers.save()
 
         self.make_review_request(steve_rogers, self.registrar)
 
-        self.assertTrue(perms.user_can_view(self.registrar,steve_rogers))
+        self.assertTrue(perms.user_can_view(self.registrar, steve_rogers))
 
-        response = self.client.get(reverse('aristotle:search')+"?q=captainAmerica")
-        self.assertEqual(len(response.context['page'].object_list),1)
-        self.assertEqual(response.context['page'].object_list[0].object.item,steve_rogers)
-        self.assertTrue(perms.user_can_view(self.registrar,response.context['page'].object_list[0].object))
+        response = self.client.get(reverse('aristotle:search') + "?q=captainAmerica")
+        self.assertEqual(len(response.context['page'].object_list), 1)
+        self.assertEqual(response.context['page'].object_list[0].object.item, steve_rogers)
+        self.assertTrue(perms.user_can_view(self.registrar, response.context['page'].object_list[0].object))
 
     def test_workgroup_member_search(self):
         self.logout()
         # Create user model
-        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
+        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu', 'equalRightsForAll')
         self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX", stewardship_organisation=self.steward_org)
 
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'charles@schoolforgiftedyoungsters.edu', 'password': 'equalRightsForAll'})
+                                    {'username': 'charles@schoolforgiftedyoungsters.edu',
+                                     'password': 'equalRightsForAll'})
 
-        self.assertEqual(response.status_code,302) # logged in
+        self.assertEqual(response.status_code, 302)  # logged in
 
         # Charles is not in any workgroups
-        self.assertFalse(perms.user_in_workgroup(self.viewer,self.xmen_wg))
-        self.assertFalse(perms.user_in_workgroup(self.viewer,self.weaponx_wg))
+        self.assertFalse(perms.user_in_workgroup(self.viewer, self.xmen_wg))
+        self.assertFalse(perms.user_in_workgroup(self.viewer, self.weaponx_wg))
 
         # Create Deadpool in Weapon X workgroup
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
-                    definition="not really an xman, no matter how much he tries",
-                    workgroup=self.weaponx_wg)
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
-        self.assertFalse(perms.user_can_view(self.viewer,dp))
+                                                   definition="not really an xman, no matter how much he tries",
+                                                   workgroup=self.weaponx_wg)
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
+        self.assertFalse(perms.user_can_view(self.viewer, dp))
         self.assertFalse(dp.is_public())
 
         # Charles isn't a viewer of X-men yet, so no results.
         psqs = get_permission_sqs()
         psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
-        self.assertEqual(len(psqs),0)
-        #response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
-        #self.assertEqual(len(response.context['page'].object_list),0)
+        self.assertEqual(len(psqs), 0)
+        # response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
+        # self.assertEqual(len(response.context['page'].object_list),0)
 
         # Make viewer of XMen
-        self.xmen_wg.giveRoleToUser('viewer',self.viewer)
-        self.assertFalse(perms.user_can_view(self.viewer,dp))
+        self.xmen_wg.giveRoleToUser('viewer', self.viewer)
+        self.assertFalse(perms.user_can_view(self.viewer, dp))
 
         # Deadpool isn't an Xman yet, still no results.
         psqs = get_permission_sqs()
         psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
 
         with reversion.create_revision():
             dp.workgroup = self.xmen_wg
             dp.save()
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
 
         # Charles is a viewer, Deadpool is in X-men, should have results now.
         psqs = get_permission_sqs()
         psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
-        self.assertTrue(perms.user_can_view(self.viewer,dp))
-        self.assertEqual(len(response.context['page'].object_list),1)
-        self.assertEqual(response.context['page'].object_list[0].object.item,dp)
+        response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
+        self.assertTrue(perms.user_can_view(self.viewer, dp))
+        self.assertEqual(len(response.context['page'].object_list), 1)
+        self.assertEqual(response.context['page'].object_list[0].object.item, dp)
 
         # Take away Charles viewing rights and no results again.
-        self.xmen_wg.removeRoleFromUser('viewer',self.viewer)
+        self.xmen_wg.removeRoleFromUser('viewer', self.viewer)
         psqs = get_permission_sqs()
         psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
+        self.assertEqual(len(response.context['page'].object_list), 0)
+
+    def test_fuzzy_search(self):
+        """Test that fuzzy search is working"""
+        return True
+        # TODO: complete
 
     def test_workgroup_member_search_of_discussions(self):
+        """Test that only workgroup members can search discussions"""
         self.logout()
 
         # Only workgroup members should be able to see discussion posts
@@ -293,39 +296,40 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.login_viewer()
 
-        response = self.client.get(reverse('aristotle:search')+"?q=Hello")
+        response = self.client.get(reverse('aristotle:search') + "?q=Hello")
         self.assertEqual(len(response.context['page'].object_list), 1)
 
-
     @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
-                      "Whoosh doesn't support faceting")
+                     "Whoosh doesn't support faceting")
     def test_workgroup_member_search_has_valid_facets(self):
         self.logout()
-        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
+        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu', 'equalRightsForAll')
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'charles@schoolforgiftedyoungsters.edu', 'password': 'equalRightsForAll'})
+                                    {'username': 'charles@schoolforgiftedyoungsters.edu',
+                                     'password': 'equalRightsForAll'})
 
-        self.assertEqual(response.status_code,302) # logged in
+        self.assertEqual(response.status_code, 302)  # logged in
 
-        self.xmen_wg.giveRoleToUser('viewer',self.viewer)
+        self.xmen_wg.giveRoleToUser('viewer', self.viewer)
         self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX", stewardship_organisation=self.steward_org)
 
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'charles@schoolforgiftedyoungsters.edu', 'password': 'equalRightsForAll'})
+                                    {'username': 'charles@schoolforgiftedyoungsters.edu',
+                                     'password': 'equalRightsForAll'})
 
-        self.assertEqual(response.status_code,302) # logged in
+        self.assertEqual(response.status_code, 302)  # logged in
 
         # Create Deadpool in Weapon X workgroup
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
-                    definition="not really an xman, no matter how much he tries",
-                    workgroup=self.weaponx_wg)
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
-        self.assertFalse(perms.user_can_view(self.viewer,dp))
+                                                   definition="not really an xman, no matter how much he tries",
+                                                   workgroup=self.weaponx_wg)
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
+        self.assertFalse(perms.user_can_view(self.viewer, dp))
         self.assertFalse(dp.is_public())
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
+        self.assertEqual(response.status_code, 200)
         facets = response.context['form'].facets['fields']
         self.assertTrue('restriction' in facets.keys())
 
@@ -335,85 +339,84 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         for wg in facets['workgroup']:
             wg = models.Workgroup.objects.get(pk=wg)
-            self.assertTrue(perms.user_in_workgroup(self.viewer,wg))
+            self.assertTrue(perms.user_in_workgroup(self.viewer, wg))
 
     def test_current_statuses_only_in_search_results_and_index(self):
         # See issue #327
         self.logout()
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
         # login
-        self.assertEqual(response.status_code,302) # logged in
-        self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
+        self.assertEqual(response.status_code, 302)  # logged in
+        self.assertTrue(perms.user_is_registrar(self.registrar, self.ra))
 
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
-                    definition="not really an xman, no matter how much he tries",
-                    workgroup=self.xmen_wg)
+                                                   definition="not really an xman, no matter how much he tries",
+                                                   workgroup=self.xmen_wg)
 
         self.make_review_request(dp, self.registrar)
 
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
-        self.assertTrue(perms.user_can_view(self.registrar,dp))
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
+        self.assertTrue(perms.user_can_view(self.registrar, dp))
         self.assertFalse(dp.is_public())
 
-        self.ra.register(dp,models.STATES.incomplete,self.registrar,
-            registrationDate=timezone.now()+datetime.timedelta(days=-7)
-        )
+        self.ra.register(dp, models.STATES.incomplete, self.registrar,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-7)
+                         )
 
-        self.ra.register(dp,models.STATES.standard,self.registrar,
-            registrationDate=timezone.now()+datetime.timedelta(days=-1)
-        )
+        self.ra.register(dp, models.STATES.standard, self.registrar,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-1)
+                         )
 
-        response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
-        self.assertEqual(len(response.context['page'].object_list),1)
+        response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
+        self.assertEqual(len(response.context['page'].object_list), 1)
         dp_result = response.context['page'].object_list[0]
-        self.assertTrue(dp_result.object.name=="deadpool")
+        self.assertTrue(dp_result.object.name == "deadpool")
         self.assertTrue(len(dp_result.statuses) == 1)
 
         self.assertTrue(int(dp_result.statuses[0]) == int(models.STATES.standard))
 
     def test_visibility_restriction_facets(self):
-        # See issue #351
+        # See issue #351q
         self.logout()
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
         self.assertNotContains(response, 'Restriction')
 
         response = self.client.post(reverse('friendly_login'),
-                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
+                                    {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
-        self.assertEqual(response.status_code,302) # logged in
-        self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
+        self.assertEqual(response.status_code, 302)  # logged in
+        self.assertTrue(perms.user_is_registrar(self.registrar, self.ra))
 
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
-                    definition="not really an xman, no matter how much he tries",
-                    workgroup=self.xmen_wg)
+                                                   definition="not really an xman, no matter how much he tries",
+                                                   workgroup=self.xmen_wg)
 
         self.make_review_request(dp, self.registrar)
 
-        dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
-        self.assertTrue(perms.user_can_view(self.registrar,dp))
+        dp = models.ObjectClass.objects.get(pk=dp.pk)  # Un-cache
+        self.assertTrue(perms.user_can_view(self.registrar, dp))
         self.assertFalse(dp.is_public())
 
-        self.ra.register(dp,models.STATES.candidate,self.registrar,
-            registrationDate=timezone.now()+datetime.timedelta(days=-7)
-        )
+        self.ra.register(dp, models.STATES.candidate, self.registrar,
+                         registrationDate=timezone.now() + datetime.timedelta(days=-7)
+                         )
 
-        response = self.client.get(reverse('aristotle:search')+"?q=xman")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman")
         self.assertContains(response, 'Restriction')
 
-
-        response = self.client.get(reverse('aristotle:search')+"?q=xman&res=1")
+        response = self.client.get(reverse('aristotle:search') + "?q=xman&res=1")
         self.assertNotContains(response, 'Restriction')
 
         self.assertContains(response, 'Item visibility state is Locked')
 
-        self.assertEqual(len(response.context['page'].object_list),1)
+        self.assertEqual(len(response.context['page'].object_list), 1)
         dp_result = response.context['page'].object_list[0]
-        self.assertTrue(dp_result.object.name=="deadpool")
+        self.assertTrue(dp_result.object.name == "deadpool")
         self.assertTrue(len(dp_result.statuses) == 1)
         self.assertTrue(dp_result.object.is_locked())
         self.assertFalse(dp_result.object.is_public())
@@ -423,9 +426,9 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
     def test_user_can_search_own_content(self):
         self.logout()
         self.login_regular_user()
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
         # Create object class
         models.ObjectClass.objects.create(
@@ -434,23 +437,22 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             submitter=self.regular
         )
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
 
         self.logout()
         self.login_editor()
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
-
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
     def test_user_can_search_own_content_and_other_content(self):
         self.logout()
         self.login_regular_user()
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
         # Create object class
         models.ObjectClass.objects.create(
@@ -459,24 +461,23 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             submitter=self.regular
         )
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
 
         self.logout()
         self.login_editor()
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),0)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
 
         # Get item
         item = models.ObjectClass.objects.get(name='pokemon')
         self.ra.register(item, models.STATES.standard, self.su)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
-
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
 
     def test_facet_search(self):
         self.logout()
@@ -499,45 +500,48 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.login_superuser()
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),3)
+        self.assertEqual(len(objs), 3)
         extra_facets = response.context['form'].extra_facet_fields
 
         self.assertTrue(len(extra_facets) == 2)
-        self.assertTrue('data_element_concept' in [f[0] for f in extra_facets] )
-        self.assertTrue('object_class' in [f[0] for f in extra_facets] )
+        self.assertTrue('data_element_concept' in [f[0] for f in extra_facets])
+        self.assertTrue('object_class' in [f[0] for f in extra_facets])
 
         # Confirm spaces are included in the facet
         self.assertTrue(dec.name in [v[0] for v in dict(extra_facets)['data_element_concept']['values']])
 
         psqs = get_permission_sqs()
         psqs = psqs.auto_query('pokemon').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),3)
+        self.assertEqual(len(psqs), 3)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),3)
+        self.assertEqual(len(objs), 3)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon&f=object_class::%s"%oc.name)
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon&f=object_class::%s" % oc.name)
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),2)
+        self.assertEqual(len(objs), 2)
         self.assertTrue(de.pk in [o.object.pk for o in objs])
         self.assertTrue(dec.pk in [o.object.pk for o in objs])
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon&f=data_element_concept::%s"%dec.name.replace(' ','+'))
+        response = self.client.get(
+            reverse('aristotle:search') + "?q=pokemon&f=data_element_concept::%s" % dec.name.replace(' ', '+'))
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),2)
+        self.assertEqual(len(objs), 2)
         self.assertTrue(de.pk in [o.object.pk for o in objs])
         self.assertTrue(dec.pk in [o.object.pk for o in objs])
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon&models=aristotle_mdr.dataelement&f=data_element_concept::%s"%dec.name.replace(' ','+'))
+        response = self.client.get(reverse(
+            'aristotle:search') + "?q=pokemon&models=aristotle_mdr.dataelement&f=data_element_concept::%s" % dec.name.replace(
+            ' ', '+'))
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),1)
+        self.assertEqual(len(objs), 1)
         self.assertTrue(de.pk in [o.object.pk for o in objs])
         self.assertTrue(dec.pk not in [o.object.pk for o in objs])
 
@@ -557,29 +561,29 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.login_superuser()
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon")
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),2)
+        self.assertEqual(len(objs), 2)
 
-        response = self.client.get(reverse('aristotle:search')+"?q=pokemon&models=aristotle_mdr.dataelement")
+        response = self.client.get(reverse('aristotle:search') + "?q=pokemon&models=aristotle_mdr.dataelement")
 
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.pk,de.pk)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.pk, de.pk)
 
     def test_values_in_conceptual_domain_search(self):
         # For bug #676
         PSQS = get_permission_sqs()
         psqs = PSQS.auto_query('flight').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
         psqs = PSQS.auto_query('mutations').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
 
         cd = models.ConceptualDomain.objects.create(
-                name="Mutation",
-                definition="List of mutations",
-            )
+            name="Mutation",
+            definition="List of mutations",
+        )
         for i, power in enumerate(['flight', 'healing', 'invisiblilty']):
             models.ValueMeaning.objects.create(
                 name=power, definition=power, order=i,
@@ -587,28 +591,28 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             )
 
         psqs = PSQS.auto_query('mutations').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
         self.assertEqual(psqs[0].object.pk, cd.pk)
 
         psqs = PSQS.auto_query('flight').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
         self.assertEqual(psqs[0].object.pk, cd.pk)
 
     def test_values_in_value_domain_search(self):
         # For bug #676
         PSQS = get_permission_sqs()
         psqs = PSQS.auto_query('flight').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
         psqs = PSQS.auto_query('mutations').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
         psqs = PSQS.auto_query('FLT').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),0)
+        self.assertEqual(len(psqs), 0)
 
         # with reversion.create_revision():
         vd = models.ValueDomain.objects.create(
-                name="Mutation",
-                definition="Coded list of mutations",
-            )
+            name="Mutation",
+            definition="Coded list of mutations",
+        )
         for i, data in enumerate([("FLT", 'flight'), ("HEAL", 'healing'), ("INVIS", 'invisiblilty')]):
             code, power = data
             models.PermissibleValue.objects.create(
@@ -630,7 +634,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         rpp_values = getattr(settings, 'RESULTS_PER_PAGE', [20])
 
-        #add new test data
+        # add new test data
         letters = ""
         for i in range(100):
             letters += random.choice(string.ascii_letters)
@@ -645,24 +649,24 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             for t in letters.split()]
 
         for item in item_random:
-            registered = self.ra.register(item,models.STATES.standard,self.su)
+            registered = self.ra.register(item, models.STATES.standard, self.su)
             self.assertTrue(item in registered['success'])
 
-        #test default number of items
-        response = self.client.get(reverse('aristotle:search')+"?q=random")
-        self.assertEqual(response.context['page'].end_index(),rpp_values[0])
+        # test default number of items
+        response = self.client.get(reverse('aristotle:search') + "?q=random")
+        self.assertEqual(response.context['page'].end_index(), rpp_values[0])
 
         for val in rpp_values:
-            response = self.client.get(reverse('aristotle:search')+"?q=random&rpp=" + str(val))
-            self.assertEqual(response.context['page'].end_index(),val)
+            response = self.client.get(reverse('aristotle:search') + "?q=random&rpp=" + str(val))
+            self.assertEqual(response.context['page'].end_index(), val)
 
-        #test with invalid number (drops back to default)
-        response = self.client.get(reverse('aristotle:search')+"?q=random&rpp=92")
-        self.assertEqual(response.context['page'].end_index(),rpp_values[0])
+        # test with invalid number (drops back to default)
+        response = self.client.get(reverse('aristotle:search') + "?q=random&rpp=92")
+        self.assertEqual(response.context['page'].end_index(), rpp_values[0])
 
         self.logout()
 
-        #delete newly added data
+        # delete newly added data
         for item in item_random:
             item.delete()
 
@@ -689,7 +693,6 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(page[0].pk, dec.pk)
 
 
-
 @tag('token_search')
 class TestTokenSearch(TestCase):
     def tearDown(self):
@@ -704,11 +707,12 @@ class TestTokenSearch(TestCase):
         import haystack
         haystack.connections.reload('default')
 
-        self.su = get_user_model().objects.create_superuser('super@example.com','user')
+        self.su = get_user_model().objects.create_superuser('super@example.com', 'user')
         self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act", stewardship_organisation=self.steward_org)
-        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
-        self.ra.giveRoleToUser('registrar',self.registrar)
+        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act",
+                                                              stewardship_organisation=self.steward_org)
+        self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil', 'mutantsMustDie')
+        self.ra.giveRoleToUser('registrar', self.registrar)
         xmen = "wolverine professorX cyclops iceman angel beast phoenix storm nightcrawler"
         self.xmen_wg = models.Workgroup.objects.create(name="X Men", stewardship_organisation=self.steward_org)
         self.xmen_wg.save()
@@ -716,11 +720,11 @@ class TestTokenSearch(TestCase):
         self.item_xmen = [
             models.ObjectClass.objects.create(
                 name=t,
-                version="0.%d.0"%(v+1),
+                version="0.%d.0" % (v + 1),
                 definition="known x-man",
                 workgroup=self.xmen_wg
             )
-            for v,t in enumerate(xmen.split())
+            for v, t in enumerate(xmen.split())
         ]
 
         self.item_xmen.append(
@@ -732,7 +736,7 @@ class TestTokenSearch(TestCase):
         )
 
         for item in self.item_xmen:
-            self.ra.register(item,models.STATES.standard,self.su)
+            self.ra.register(item, models.STATES.standard, self.su)
 
     def add_identifiers(self):
         namespace = ident_models.Namespace.objects.create(
@@ -772,31 +776,31 @@ class TestTokenSearch(TestCase):
 
     def query_search(self, searchtext):
         query_params = '?q=' + searchtext
-        response = self.client.get(reverse('aristotle:search')+query_params)
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + query_params)
+        self.assertEqual(response.status_code, 200)
         return response.context['page'].object_list
 
     def test_token_version_search(self):
-        self.assertEqual(models.ObjectClass.objects.get(version='0.1.0').name,"wolverine")
+        self.assertEqual(models.ObjectClass.objects.get(version='0.1.0').name, "wolverine")
 
-        response = self.client.get(reverse('aristotle:search')+"?q=version:0.1.0")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=version:0.1.0")
+        self.assertEqual(response.status_code, 200)
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "wolverine")
 
     def test_token_type_search(self):
-        response = self.client.get(reverse('aristotle:search')+"?q=type:property")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=type:property")
+        self.assertEqual(response.status_code, 200)
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"Power")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "Power")
 
-        response = self.client.get(reverse('aristotle:search')+"?q=type:p")
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:search') + "?q=type:p")
+        self.assertEqual(response.status_code, 200)
         objs = response.context['page'].object_list
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"Power")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "Power")
 
     @tag('id_search')
     @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
@@ -806,8 +810,8 @@ class TestTokenSearch(TestCase):
         # namespace is returned when one is specified
         self.add_identifiers()
         objs = self.query_search('id:pre/ice')
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"iceman")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "iceman")
 
     @tag('id_search')
     @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
@@ -817,14 +821,14 @@ class TestTokenSearch(TestCase):
         self.add_identifiers()
         self.add_new_identifier(self.item_xmen[0], 'ice')
         objs = self.query_search('id:ice')
-        self.assertEqual(len(objs),2)
+        self.assertEqual(len(objs), 2)
 
     @tag('id_search')
     def test_token_namespace_search(self):
         # Tests namespace search returns all in that namespace
         self.add_identifiers()
         objs = self.query_search('ns:pre')
-        self.assertEqual(len(objs),10)
+        self.assertEqual(len(objs), 10)
 
     @tag('id_search')
     def test_token_id_version_search(self):
@@ -833,32 +837,36 @@ class TestTokenSearch(TestCase):
         self.add_new_identifier(self.item_xmen[0], 'test', '1')
         self.add_new_identifier(self.item_xmen[1], 'test', '2')
         objs = self.query_search('id:ctm/test/1')
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "wolverine")
 
     @tag('token_search')
     def test_token_statuses_search(self):
         # Tests that only the identifier with the correct
         # namespace is returned when one is specified
         objs = self.query_search('wolverine hs:standard')
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "wolverine")
 
         objs = self.query_search('wolverine statuses:standard')
-        self.assertEqual(len(objs),1)
-        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object.name, "wolverine")
 
         animal = models.ObjectClass.objects.create(
-            name="Wolverine (animal)",version="0.0.1",
+            name="Wolverine (animal)", version="0.0.1",
             definition="An regular animal found on Earth-1218 - not a mutant from a comic book."
         )
-        self.ra.register(animal,models.STATES.recorded,self.su)
+        self.ra.register(animal, models.STATES.recorded, self.su)
 
         objs = self.query_search('wolverine statuses:standard,recorded')
-        self.assertEqual(len(objs),2)
+        self.assertEqual(len(objs), 2)
         objs = sorted(objs, key=lambda obj: len(obj.name))
-        self.assertEqual(objs[0].object.name,"wolverine")
-        self.assertEqual(objs[1].object.name,"Wolverine (animal)")
+        self.assertEqual(objs[0].object.name, "wolverine")
+        self.assertEqual(objs[1].object.name, "Wolverine (animal)")
+
+    def test_search_result_ordering(self):
+        pass
+        # TODO: complete
 
     def test_uuid_search(self):
         item = self.item_xmen[0]
@@ -888,6 +896,7 @@ class TestSearchDescriptions(TestCase):
     """
     Test the 'form to plain text' description generator
     """
+
     def setUp(self):
         self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
 
@@ -898,10 +907,10 @@ class TestSearchDescriptions(TestCase):
 
         ra = models.RegistrationAuthority.objects.create(name='Filter RA', stewardship_organisation=self.steward_org)
 
-        filters = {'models':['aristotle_mdr.objectclass']}
+        filters = {'models': ['aristotle_mdr.objectclass']}
         form = PSF(filters)
 
-        if not form.is_valid(): # pragma: no cover
+        if not form.is_valid():  # pragma: no cover
             # If this branch happens, we messed up the test bad.
             print(form.errors)
             self.assertTrue('programmer' is 'good')
@@ -910,13 +919,13 @@ class TestSearchDescriptions(TestCase):
         self.assertTrue('Item type is Object Classes' == description)
         self.assertTrue('and' not in description)
 
-        filters = {'models':[
+        filters = {'models': [
             'aristotle_mdr.objectclass',
             'aristotle_mdr.property',
             'aristotle_mdr.dataelement',
         ]}
         form = PSF(filters)
-        if not form.is_valid(): # pragma: no cover
+        if not form.is_valid():  # pragma: no cover
             print(form.errors)
             self.assertTrue('programmer' is 'good')
 
@@ -927,25 +936,25 @@ class TestSearchDescriptions(TestCase):
         )
         self.assertTrue('and' not in description)
 
-        filters = {'models':['aristotle_mdr.objectclass'],'ra':[str(ra.pk)]}
+        filters = {'models': ['aristotle_mdr.objectclass'], 'ra': [str(ra.pk)]}
         form = PSF(filters)
-        if not form.is_valid(): # pragma: no cover
+        if not form.is_valid():  # pragma: no cover
             print(form.errors)
             self.assertTrue('programmer' is 'good')
 
         description = gen(form)
 
         self.assertTrue('Item type is Object Classes' in gen(form))
-        self.assertTrue('registration authority is %s'%ra.name.lower() in gen(form).lower())
+        self.assertTrue('registration authority is %s' % ra.name.lower() in gen(form).lower())
         self.assertTrue('and' in description)
 
         filters = {
-            'models':['aristotle_mdr.objectclass'],
-            'res':0
+            'models': ['aristotle_mdr.objectclass'],
+            'res': 0
         }
         form = PSF(filters)
 
-        if not form.is_valid(): # pragma: no cover
+        if not form.is_valid():  # pragma: no cover
             # If this branch happens, we messed up the test bad.
             print(form.errors)
             self.assertTrue('programmer' is 'good')
@@ -954,4 +963,3 @@ class TestSearchDescriptions(TestCase):
         self.assertTrue('Item type is Object Classes' in description)
         self.assertTrue('and' in description)
         self.assertTrue('Item visibility state is Public' in description)
-

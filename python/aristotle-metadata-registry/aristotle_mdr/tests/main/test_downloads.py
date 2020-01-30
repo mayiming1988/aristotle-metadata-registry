@@ -1,5 +1,4 @@
 from django.test import TestCase, tag, override_settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.core.exceptions import PermissionDenied
@@ -12,7 +11,7 @@ from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeD
 
 import datetime
 from unittest.mock import patch, MagicMock
-from unittest import skip
+import os
 
 
 @override_settings(
@@ -43,19 +42,22 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
             definition='A pokemons defense',
             submitter=self.editor
         )
+        self.basedir = os.path.dirname(os.path.dirname(__file__))
 
     def setupFakeTaskCreator(self, mock_task_creator):
         fakeResult = AsyncResultMock(20)
         mock_task_creator.return_value = fakeResult
 
-    def post_dl_options(self, querystring):
+    def post_dl_options(self, querystring, additional_options={}, follow=False):
+        """Util function to assist with posting to download options view"""
         url = reverse('aristotle:download_options', args=['fake']) + querystring
         postdata = {
             'include_supporting': True,
             'email_copy': True
         }
+        postdata.update(additional_options)
 
-        response = self.client.post(url, postdata)
+        response = self.client.post(url, postdata, follow=follow)
         return response
 
     @patch('aristotle_bg_workers.tasks.get_download_class')
@@ -266,19 +268,6 @@ class DownloaderTestCase(AristotleTestUtils, TestCase):
         with self.assertRaises(PermissionDenied):
             downloader = FakeDownloader([self.item.id], self.viewer.id, {})
 
-    @skip('Removed direct email attachments')
-    def test_email_file_direct(self):
-        downloader = FakeDownloader([self.item.id], self.editor.id, {})
-        f = ContentFile('MyFile')
-        size = f.size
-        f.close()
-        downloader.email_file(f, size, 'https://example.com/file.txt')
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
-        self.assertEqual(len(message.attachments), 1)
-        content = message.attachments[0][1]
-        self.assertEqual(content, 'MyFile')
-
     def test_email_file(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {'CURRENT_HOST': 'http://testserver'})
         f = ContentFile('MyFile')
@@ -290,8 +279,8 @@ class DownloaderTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(len(message.attachments), 0)
         self.assertTrue('https://example.com/file.txt' in message.body)
 
-        expected_regen_url = reverse('aristotle:download_options', args=['fake'])\
-            + '?items=' + str(self.item.id)
+        expected_regen_url = reverse('aristotle:download_options', args=['fake']) \
+                             + '?items=' + str(self.item.id)
         self.assertTrue(expected_regen_url in message.body)
 
 
@@ -356,7 +345,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse(self.forbidden_speed.definition in html)
 
     def test_sub_item_list_single_download(self):
-
         self.aspeed.objectClass = self.animal
         self.aspeed.property = self.speed
         self.aspeed.save()
@@ -431,7 +419,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
-
     def setUp(self):
         super().setUp()
         self.item = models.DataElement.objects.create(
@@ -441,7 +428,6 @@ class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
         )
 
     @tag('docx')
-    @skip('pandoc isnt installed on all test environments')
     def test_docx_downloader_generates_file(self):
         downloader = DocxDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()

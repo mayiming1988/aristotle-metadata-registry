@@ -132,7 +132,6 @@ class Downloader:
                     pages.append(page_file.read())
             else:
                 pages.append(None)
-
         return pages
 
     def get_filepath(self):
