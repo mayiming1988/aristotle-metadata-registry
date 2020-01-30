@@ -35,11 +35,6 @@ class DataCatalog(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('The dataset specification to which this data source conforms'),
         )
-    # publisher_record = models.ForeignKey(
-    #     aristotle.models.OrganizationRecord,
-    #     blank=True, null=True,
-    #     help_text=_('The entity responsible for making the catalog online.'),
-    #     )
     spatial = models.TextField(
         blank=True, null=True,
         help_text=_('The geographical area covered by the catalog.'),
@@ -92,14 +87,15 @@ class Dataset(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('A Web page that can be navigated to in a Web browser to gain access to the dataset, its distributions and/or additional information'),
         )
-    contact_point = models.TextField(
-        blank=True, null=True,
-        help_text=_('The temporal period that the dataset covers.'),
-        )
     dct_modified = models.DateTimeField(
         blank=True, null=True,
         verbose_name="Modification date",
         help_text=_('Most recent date on which the dataset was changed, updated or modified.'),
+        )
+    # TODO: we want to remove this field ASAP, it's not on the standard
+    contact_point = models.TextField(
+        blank=True, null=True,
+        help_text=_('The temporal period that the dataset covers.'),
         )
 
     @property

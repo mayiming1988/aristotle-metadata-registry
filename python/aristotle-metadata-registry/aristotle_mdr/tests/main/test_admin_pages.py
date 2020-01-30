@@ -72,7 +72,7 @@ class AdminPage(utils.LoggedInViewPages, TestCase):
     def test_clone(self):
         from aristotle_mdr.utils import concept_to_clone_dict
 
-        # Does cloning an item prepopulate everythin?
+        # Does cloning an item prepopulate everything?
         self.login_editor()
         oc = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg1)
         prop = models.Property.objects.create(name="Prop1", workgroup=self.wg1)
@@ -344,7 +344,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
             ),
             follow=True
         )
-        # In django 1.11, if you can't view an item you are redirected to the admin index page
+        # If you can't view an item you are redirected to the admin index page
         self.assertRedirects(response, reverse("admin:index"))
         self.assertContains(response, "Perhaps it was deleted?")
 

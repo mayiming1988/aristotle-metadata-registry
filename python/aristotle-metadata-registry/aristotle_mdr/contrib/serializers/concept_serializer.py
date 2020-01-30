@@ -4,9 +4,7 @@ Serializer for concept and all attached subfields
 from rest_framework import serializers
 
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
-from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
-from django.db import DEFAULT_DB_ALIAS
 from django.conf import settings
 
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
@@ -19,9 +17,8 @@ from aristotle_mdr.models import (
     ValueMeaning,
     DedInputsThrough,
     DedDerivesThrough,
-    aristotleComponent
 )
-
+from aristotle_mdr.contrib.serializers.utils import get_concept_field_names, get_relation_field_names
 from aristotle_mdr.contrib.links.models import RelationRole
 from aristotle_mdr.utils.utils import cloud_enabled
 
@@ -128,6 +125,15 @@ class BaseSerializer(serializers.ModelSerializer):
 #   2. Add to FIELD_SUBSERIALIZER_MAPPING
 
 
+def get_class_for_serializer(concept):
+    return concept.__class__
+
+
+def get_class_for_deserializer(json):
+    data = JSON.loads(json)
+    return apps.get_model(data['serialized_model'])
+
+
 class ConceptSerializerFactory:
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     field_subserializer_mapping = {
@@ -165,7 +171,6 @@ class ConceptSerializerFactory:
                 IndicatorDisaggregationSerializer,
                 IndicatorInclusionSerializer
             )
-
             self.field_subserializer_mapping.update({
                 'indicatornumeratordefinition_set': IndicatorNumeratorSerializer(many=True),
                 'indicatordenominatordefinition_set': IndicatorDenominatorSerializer(many=True),
@@ -177,67 +182,15 @@ class ConceptSerializerFactory:
             self.field_subserializer_mapping.update({
                 'metadatareferencelink_set': ReferenceLinkSerializer(many=True)
             })
+
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
         ] + list(self.field_subserializer_mapping.keys())
 
-    def _get_concept_fields(self, model_class):
-        """Internal helper function to get fields that are actually **on** the model.
-           Returns a tuple of fields"""
-        fields = []
-        for field in model_class._meta.get_fields():
-            # If data field or foreign key field
-            if not field.is_relation or field.many_to_one:
-                if not field.name.startswith('_'):
-                    # Don't serialize internal fields
-                    fields.append(field.name)
-
-        return tuple(fields)
-
-    def get_field_name(self, field):
-        if hasattr(field, 'get_accessor_name'):
-            return field.get_accessor_name()
-        else:
-            return field.name
-
-    def get_relation_fields(self, model_class):
-        """
-        Internal helper function to get related fields
-        Returns a tuple of fields
-        """
-        related_fields = []
-
-        for field in model_class._meta.get_fields():
-            if not field.name.startswith('_'):
-                # Don't serialize internal fields
-                if field.is_relation:
-                    # Check if the model class is the parent of the item, we don't want to serialize up the chain
-                    field_model = field.related_model
-                    if issubclass(field_model, aristotleComponent):
-                        # If it's a subclass of aristotleComponent it should have a parent
-                        parent_model = field_model.get_parent_model()
-                        if not parent_model:
-                            # This aristotle component has no parent model
-                            related_fields.append(self.get_field_name(field))
-                        else:
-                            if field_model.get_parent_model() == model_class:
-                                # If the parent is the model we're serializing, right now
-                                related_fields.append(self.get_field_name(field))
-                            else:
-                                # It's the child, we don't want to serialize
-                                pass
-                    else:
-                        # Just a normal field
-                        related_fields.append(self.get_field_name(field))
-        return tuple([field for field in related_fields if field in self.whitelisted_fields])
-
-    def _get_class_for_serializer(self, concept):
-        return concept.__class__
-
     def generate_serializer(self, concept):
         """ Generate the serializer class """
-        concept_class = self._get_class_for_serializer(concept)
+        concept_class = get_class_for_serializer(concept)
         Serializer = self._generate_serializer_class(concept_class)
 
         return Serializer
@@ -246,8 +199,8 @@ class ConceptSerializerFactory:
         universal_fields = ('slots', 'customvalue_set', 'org_records', 'identifiers', 'stewardship_organisation',
                             'workgroup', 'submitter')
 
-        concept_fields = self._get_concept_fields(concept_class)
-        relation_fields = self.get_relation_fields(concept_class)
+        concept_fields = get_concept_field_names(concept_class)
+        relation_fields = get_relation_field_names(concept_class, whitelisted_fields=self.whitelisted_fields)
 
         included_fields = concept_fields + relation_fields + universal_fields
 
@@ -268,17 +221,6 @@ class ConceptSerializerFactory:
         # Generate serializer dynamically
         Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
         return Serializer
-
-    def _get_class_for_deserializer(self, json):
-        data = JSON.loads(json)
-        return apps.get_model(data['serialized_model'])
-
-    def generate_deserializer(self, json):
-        """ Generate the deserializer """
-        concept_model = self._get_class_for_deserializer(json)
-
-        Deserializer = self._generate_serializer_class(concept_model)
-        return Deserializer
 
 
 class Serializer(BaseDjangoSerializer):
@@ -302,30 +244,5 @@ class Serializer(BaseDjangoSerializer):
         self.data = JSON.dumps(data)
 
     def getvalue(self):
-        # Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly
+        """Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly"""
         return self.data
-
-
-def Deserializer(json, using=DEFAULT_DB_ALIAS, **options):
-    # TODO: fix
-    """ Deserialize JSON back into Django ORM instances.
-        Django deserializers yield a DeserializedObject generator.
-        DeserializedObjects are thin wrappers over POPOs. """
-    m2m_data = {}
-
-    # Generate the serializer
-    ModelDeserializer = ConceptSerializerFactory().generate_deserializer(json)
-
-    # Instantiate the serializer
-    data = JSON.loads(json)
-
-    Model = apps.get_model(data['serialized_model'])
-
-    # Deserialize the data
-    serializer = ModelDeserializer(data=data)
-
-    serializer.is_valid(raise_exception=True)
-
-    obj = build_instance(Model, data, using)
-
-    yield DeserializedObject(obj, m2m_data)

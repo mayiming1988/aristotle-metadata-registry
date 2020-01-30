@@ -11,23 +11,26 @@ fi
 
 # Get top of repo
 top="$(git rev-parse --show-toplevel)"
-# Get current git branch
-current_branch="$(git symbolic-ref --short HEAD)"
 
 # Set variables
 outputdir="$top"
 branch_old="$1"
 branch_new="$2"
 # Get database names from branch names with slahes and dots replaced by "_"
-dbname_old=$(echo $1 | tr "/." "_")
-dbname_new=$(echo $2 | tr "/." "_")
+# Add prefix since name must start with letter
+dbname_prefix="compare_"
+dbname_old="${dbname_prefix}$(echo $1 | tr '/.' '_')"
+dbname_new="${dbname_prefix}$(echo $2 | tr '/.' '_')"
 # Get output filenames
 fname_old="${outputdir}/${dbname_old}.sql"
 fname_new="${outputdir}/${dbname_new}.sql"
 
 # Start database
-cd $top/docker
-docker-compose down
+cd "${top}/docker"
+if [[ "$(docker-compose ps -q)" ]]; then
+    echo "Taking down"
+    docker-compose down
+fi
 docker-compose up --detach --no-deps db
 
 # Checkout to branch and create database from it
@@ -72,9 +75,6 @@ dump_database() {
 # Backup from each branch
 backup_from_branch $branch_old $dbname_old
 backup_from_branch $branch_new $dbname_new
-
-# Checkout back to original branch
-git checkout $current_branch
 
 # pg_dump from each database
 dump_database $dbname_old $fname_old
