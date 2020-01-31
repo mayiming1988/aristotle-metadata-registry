@@ -407,9 +407,11 @@ def get_concept_models() -> List[Model]:
     from aristotle_mdr.models import _concept
     models = []
     for app_config in apps.get_app_configs():
-        for model in app_config.get_models():
-            if issubclass(model, _concept) and model != _concept:
-                models.append(model)
+        if not app_config.label == 'extension_test':
+            # Exclude extension test modules
+            for model in app_config.get_models():
+                if issubclass(model, _concept) and model != _concept:
+                    models.append(model)
     return models
 
 

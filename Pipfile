@@ -42,7 +42,7 @@ wcag-zoo = "*"
 django-impersonate = "*"
 boto3 = "*"
 mypy = "*"
-
+django-dynamic-fixture = "*"
 [requires]
 python_version = "3.6"
 

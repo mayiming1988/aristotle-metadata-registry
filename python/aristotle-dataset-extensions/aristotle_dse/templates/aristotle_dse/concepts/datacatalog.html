@@ -12,11 +12,41 @@
 
 
 {% block objSpecific %}
-
+     <h2>Data Catalog Details</h2>
+    <dl>
+        <dt>Issued</dt>
+        <dd>{% if item.issued %}
+            {% timetag item.issued %}
+        {% else %}
+            {% trans 'No issue date supplied' %}
+        {% endif %}
+        </dd>
+        <dt>Spatial dimension</dt>
+        <dd>{% if item.spatial %}
+            {{ item.spatial|bleach }}
+        {% else %}
+            {% trans 'No spatial dimension stated' %}
+        {% endif %}
+        </dd>
+        <dt>Home page</dt>
+        <dd>{% if item.homepage %}
+            <a href="{{ item.homepage }}">{{ item.homepage }}</a>
+        {% else %}
+            {% trans 'No home page for the Data Catalog supplied' %}
+        {% endif %}
+        </dd>
+          <dt>License</dt>
+        <dd>{% if item.license %}
+            <p>{{ item.license|bleach }}</p>
+        {% else %}
+            <p>{% trans 'No home page for the Data Catalog supplied' %}</p>
+        {% endif %}
+        </dd>
+    </dl>
+    <h2>Data Sets</h2>
     {% with datasets=item.dataset_set.all|order_by:"name"|can_view_iter:request.user %}
     {% if datasets %}
         The following data sets are included in this catalog:
-
         <table class="table">
             <thead>
             <tr>
@@ -45,7 +75,7 @@
         {% if item.dataset_set.all %}
             <p>You do not have permission to view any of the datasets in this data catalog.</p>
         {% else %}
-            <p>There are no datasets in this data catalog.</p>
+            <p><em>There are no datasets in this data catalog.</em></p>
         {% endif %}
     {% endif %}
     {% endwith %}

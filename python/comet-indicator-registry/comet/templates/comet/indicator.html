@@ -143,8 +143,14 @@
 
     {% if item.rationale %}
         <h2>Rationale</h2>
-        <p>{{ item.rationale | bleach }}</p>
+        <p>{{ item.rationale|bleach }}</p>
     {% endif %}
+
+    {% if item.benchmark %}
+        <h2>Benchmark</h2>
+        <p>{{ item.benchmark|bleach }}</p>
+    {% endif %}
+
 
     <h2>Calculation rules</h2>
     <div class="container">

@@ -1,11 +1,12 @@
+"""
+Serializer for concept and all attached subfields
+"""
 import reversion
 import json as JSON
 from rest_framework import serializers
 from drf_writable_nested import WritableNestedModelSerializer
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
-from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
-from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 from aristotle_mdr.models import (
     aristotleComponent,
@@ -137,6 +138,7 @@ class ConceptSerializerFactory:
             self.field_subserializer_mapping.update({
                 'metadatareferencelink_set': ReferenceLinkSerializer(many=True)
             })
+
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
@@ -285,32 +287,5 @@ class Serializer(BaseDjangoSerializer):
         self.data = JSON.dumps(data)
 
     def getvalue(self):
-        # Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly
+        """Get value must be overridden because django-reversion calls *getvalue* rather than serialize directly"""
         return self.data
-
-
-def Deserializer(json, using=DEFAULT_DB_ALIAS, **options):
-    # TODO: fix
-    """
-    Deserialize JSON back into Django ORM instances.
-    Django deserializers yield a DeserializedObject generator.
-    DeserializedObjects are thin wrappers over POPOs.
-    """
-    m2m_data = {}
-
-    # Generate the serializer
-    ModelDeserializer = ConceptSerializerFactory().generate_deserializer(json)
-
-    # Instantiate the serializer
-    data = JSON.loads(json)
-
-    Model = apps.get_model(data['serialized_model'])
-
-    # Deserialize the data
-    serializer = ModelDeserializer(data=data)
-
-    serializer.is_valid(raise_exception=True)
-
-    obj = build_instance(Model, data, using)
-
-    yield DeserializedObject(obj, m2m_data)

@@ -241,6 +241,11 @@ class StewardURLManager(GroupURLManager):
                 kwargs['current_collection'] = self.object
                 return kwargs
 
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
+                context['moving'] = True
+                return context
+
         return MoveCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_delete_view(self):
