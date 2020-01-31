@@ -44,7 +44,7 @@ def generate_item_test(model):
 
         # Go to the item page
         response = self.client.get(item.get_absolute_url())
-        self.assertEqual(response.status_code, self.OK)
+        self.assertEqual(response.status_code, self.Status.OK)
 
         # Check that all the concept (the fields that are directly on the concept) fields appear with their content
         failures = []

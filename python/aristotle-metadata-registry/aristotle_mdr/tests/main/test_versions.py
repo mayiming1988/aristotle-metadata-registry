@@ -776,24 +776,24 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
         self.login_viewer()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, self.FORBIDDEN)
+        self.assertEqual(response.status_code, self.Status.FORBIDDEN)
 
         self.login_regular_user()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, self.FORBIDDEN)
+        self.assertEqual(response.status_code, self.Status.FORBIDDEN)
         self.logout()
 
         self.login_editor()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, self.FORBIDDEN)
+        self.assertEqual(response.status_code, self.Status.FORBIDDEN)
         self.logout()
 
         self.login_superuser()
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        self.assertEqual(response.status_code, self.OK)
+        self.assertEqual(response.status_code, self.Status.OK)
         self.logout()
 
 
@@ -818,7 +818,7 @@ class TestStatusViews(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[status.id, object_class.id, self.ra.id])
         )
-        self.assertEqual(response.status_code, self.OK)
+        self.assertEqual(response.status_code, self.Status.OK)
 
         versions = response.context['versions']
         self.assertEqual(versions.count(), 5)
@@ -839,7 +839,7 @@ class TestStatusViews(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[status.id, object_class.id, self.ra.id])
         )
-        self.assertEqual(response.status_code, self.OK)
+        self.assertEqual(response.status_code, self.Status.OK)
         self.assertContains(response, "No history for")
 
     def test_fields_are_set_correctly_when_editing_status(self):

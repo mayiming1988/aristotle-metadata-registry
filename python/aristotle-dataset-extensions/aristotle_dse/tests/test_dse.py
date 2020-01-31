@@ -6,7 +6,7 @@ from aristotle_dse import models
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
-from aristotle_mdr.tests.utils import ManagedObjectVisibility
+from aristotle_mdr.tests.utils import ManagedObjectVisibility, model_to_dict_with_change_time
 from aristotle_mdr.utils import url_slugify_concept
 
 from django.urls import reverse
@@ -39,33 +39,26 @@ class DataSetSpecificationAdmin(AdminPageForConcept, TestCase):
 
 
 class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'datasetspecification'
     itemType = models.DataSetSpecification
 
     # TODO: Add test for dss groupings
 
-    @skip('Weak editing currently disabled on this model')
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
-        # TODO addtest: enable this test or a test with equivalent functionality
-        oc = MDR.ObjectClass.objects.create(
-            name="a very nice object class"
-        )
-        oc.save()
+        """Test editing of dss inclusions, through edit page formsets
 
+        overrides general weak editor test
+        """
+        self.login_editor()
+        # Setup objects
         de = MDR.DataElement.objects.create(
             name="test name",
             definition="test definition",
         )
         de.save()
 
-        for i in range(4):
-            models.DSSDEInclusion.objects.create(
-                data_element=de,
-                specific_information="test info",
-                conditional_inclusion="test obligation",
-                order=i,
-                dss=self.item1
-            )
+        inclusions = []
+        clusters = []
+
         for i in range(4):
             inc = models.DSSDEInclusion.objects.create(
                 data_element=de,
@@ -74,6 +67,8 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
                 order=i,
                 dss=self.item1
             )
+            inclusions.append(inc)
+
             clust = models.DSSClusterInclusion.objects.create(
                 specific_information="test info",
                 conditional_inclusion="test obligation",
@@ -81,20 +76,55 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
                 dss=self.item1,
                 child=self.item1
             )
-        default_fields = {
-            'specialisation_classes': oc.id,
-            'data_element': de.id,
-            'child': self.item1.id
-        }
+            clusters.append(clust)
 
-        super().test_weak_editing_in_advanced_editor_dynamic(updating_field='specific_information',
-                                                             default_fields=default_fields)
+        # Serialize objects
+        data = model_to_dict_with_change_time(self.item1)
+
+        # Add modified inclusion data
+        incdata = self.bulk_serialize_inclusions(inclusions, ['dss'])
+        for item in incdata:
+            item['specific_information'] = 'dssde specific'
+
+        data.update(self.get_formset_postdata(incdata, 'data_elements', 4))
+
+        # Add cluster data
+        clustdata = self.bulk_serialize_inclusions(clusters, ['dss'])
+        for item in clustdata:
+            item['specific_information'] = 'cluster specific'
+
+        data.update(self.get_formset_postdata(clustdata, 'clusters', 4))
+
+        # Make changes
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item1.id]),
+            data
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Check updates
+        self.assertEqual(self.item1.dssdeinclusion_set.count(), 4)
+        for inc in self.item1.dssdeinclusion_set.all():
+            # Check old values
+            self.assertEqual(inc.data_element, de)
+            self.assertEqual(inc.conditional_inclusion, 'test obligation')
+            # Check new values
+            self.assertEqual(inc.specific_information, 'dssde specific')
+
+        self.assertEqual(self.item1.dssclusterinclusion_set.count(), 4)
+        for inc in self.item1.dssclusterinclusion_set.all():
+            # Check old values
+            self.assertEqual(inc.child, self.item1)
+            self.assertEqual(inc.conditional_inclusion, 'test obligation')
+            # Check new values
+            self.assertEqual(inc.specific_information, 'cluster specific')
 
     def test_add_data_element(self):
-        de, created = MDR.DataElement.objects.get_or_create(name="Person-sex, Code N",
-                                                            workgroup=self.wg1,
-                                                            definition="The sex of the person with a code.",
-                                                            )
+        de, created = MDR.DataElement.objects.get_or_create(
+            name="Person-sex, Code N",
+            workgroup=self.wg1,
+            definition="The sex of the person with a code.",
+        )
         self.item1.addDataElement(de)
         self.assertTrue(self.item1.data_elements.count(), 1)
 
@@ -188,12 +218,10 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DataCatalogViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'datacatalog'
     itemType = models.DataCatalog
 
 
 class DatasetViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'dataset'
     itemType = models.Dataset
 
     def create_public_dataset(self) -> models.Dataset:
@@ -211,7 +239,6 @@ class DatasetViewPage(LoggedInViewConceptPages, TestCase):
 
 
 class DistributionViewPage(LoggedInViewConceptPages, TestCase):
-    url_name = 'distribution'
     itemType = models.Distribution
 
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):

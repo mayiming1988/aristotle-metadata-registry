@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 import attr
 import datetime
 import string
@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.files.base import ContentFile
+from django.forms.models import model_to_dict as django_model_to_dict
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -16,11 +17,13 @@ from django_celery_results.models import TaskResult
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
+from aristotle_mdr.utils.model_utils import aristotleComponent
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
 from aristotle_mdr.downloader import Downloader
 
 from time import sleep, process_time
 import random
+from http import HTTPStatus
 
 
 def wait_for_signal_to_fire(seconds=1):
@@ -501,7 +504,7 @@ class LoggedInViewPages(object):
             name='Org 1',
             description="1",
         )
-        
+
         self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
         self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
         self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
@@ -847,14 +850,46 @@ class TimingTestUtils:
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
                          WizardTestUtils, FormsetTestUtils, TimingTestUtils):
-    """Combination of the above 3 utils plus some aristotle specific utils"""
-    OK = 200
-    MOVED_PERMANENTLY = 301
-    FOUND = 302
-    BAD_REQUEST = 400
-    UNAUTHORIZED = 401
-    FORBIDDEN = 403
-    NOT_FOUND = 404
+    """Combination of the above utils plus some aristotle specific utils"""
+
+    # Http status code enum
+    # Allows using self.Status.OK etc.
+    # See http standard lib docs for full code list
+    Status = HTTPStatus
+
+    def serialize_inclusion(self, inclusion: aristotleComponent,
+                            excluded: Optional[List[str]] = None, 
+                            ordering_field: str = 'order') -> Dict[str, Any]:
+        """Serialize inclusion for submission through formset"""
+        # Add ordering field to excluded
+        if excluded is not None:
+            excluded.append(ordering_field)
+
+        # Serialize model and set ORDER
+        data = django_model_to_dict(inclusion, exclude=excluded)
+        if ordering_field:
+            data['ORDER'] = getattr(inclusion, ordering_field)
+
+        # Remove keys where the value is None
+        todelete = set()
+        for key, value in data.items():
+            if value is None:
+                todelete.add(key)
+
+        for key in todelete:
+            del data[key]
+
+        return data
+
+    def bulk_serialize_inclusions(self, inclusions: List[aristotleComponent],
+                                  excluded: Optional[List[str]] = None,
+                                  ordering_field: str = 'order') -> List[Dict[str, Any]]:
+        """Serialize multiple inclusions"""
+        datalist = []
+        for inc in inclusions:
+            datalist.append(self.serialize_inclusion(inc, excluded, ordering_field))
+
+        return datalist
 
     def favourite_item(self, user, item):
         from aristotle_mdr.contrib.favourites.models import Favourite, Tag

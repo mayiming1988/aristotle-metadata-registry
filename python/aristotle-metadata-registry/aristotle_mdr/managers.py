@@ -11,7 +11,18 @@ from aristotle_mdr.constants import visibility_permission_choices
 from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
 
 
-class PublishedMixin(object):
+class PublishedMixin:
+
+    def _published_visible_q(self, user):
+        """Return Q object for use in visible queryset
+        Filters down based on users status"""
+        q = self.is_published_public
+        if user.is_anonymous:
+            return q
+
+        q |= self.is_published_auth
+        return q
+
     def visible(self, user):
         """
         Returns a queryset that returns all managed items that the given user has
@@ -22,13 +33,7 @@ class PublishedMixin(object):
         if user.is_superuser:
             return self.all()
 
-        q = self.is_published_public
-        if user.is_anonymous:
-            return self.filter(q)
-
-        q |= self.is_published_auth
-
-        return self.filter(q)
+        return self.filter(self._published_visible_q(user))
 
     def public(self):
         """
@@ -482,6 +487,32 @@ class PublishedItemQuerySet(PublishedMixin, models.QuerySet):
 
 class ManagedItemQuerySet(PublishedItemQuerySet):
 
+    def _managed_items_q(self, user):
+        """Return q object filter for managed items in an SO
+        if the user has the appropriate role"""
+        from aristotle_mdr.models import StewardOrganisation
+        return Q(
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role__in=[
+                StewardOrganisation.roles.admin, StewardOrganisation.roles.steward
+            ]
+        )
+
+    def visible(self, user):
+        # Should be filtered based on role within stewardship organisation
+        # admin and steward can view
+        if user.is_superuser:
+            return self.all()
+
+        # Get filter for published items
+        q = self._published_visible_q(user)
+
+        # Or filter for items in SO's with role
+        if not user.is_anonymous:
+            q |= self._managed_items_q(user)
+
+        return self.filter(q)
+
     def editable(self, user):
         """
         Returns a queryset that returns all managed items that the given user has
@@ -494,13 +525,6 @@ class ManagedItemQuerySet(PublishedItemQuerySet):
         if user.is_anonymous:
             return self.none()
 
-        from aristotle_mdr.models import StewardOrganisation
-
-        q = Q(
-            stewardship_organisation__members__user=user,
-            stewardship_organisation__members__role__in=[
-                StewardOrganisation.roles.admin, StewardOrganisation.roles.steward
-            ]
-        )
+        q = self._managed_items_q(user)
 
         return self.filter(q)

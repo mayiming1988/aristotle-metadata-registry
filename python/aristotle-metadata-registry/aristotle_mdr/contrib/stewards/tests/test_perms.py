@@ -11,6 +11,7 @@ User = get_user_model()
 
 
 class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+
     def setUp(self):
         super().setUp()
 
@@ -75,10 +76,12 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         )
 
     def login_oscar(self):
-        self.client.login(email='oscar@aristotle.example.com', password='naughty_cat')
+        success = self.client.login(email='oscar@aristotle.example.com', password='naughty_cat')
+        self.assertTrue(success)
 
     def login_frankie(self):
-        self.client.login(email='frankie@aristotle.example.com', password='naughty_kitten')
+        success = self.client.login(email='frankie@aristotle.example.com', password='naughty_kitten')
+        self.assertTrue(success)
 
 
 class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):

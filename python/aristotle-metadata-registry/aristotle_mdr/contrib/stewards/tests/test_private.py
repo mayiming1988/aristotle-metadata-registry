@@ -11,7 +11,8 @@ from datetime import timedelta
 User = get_user_model()
 
 
-class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+class TestPrivatePermissions(utils.AristotleTestUtils, TestCase):
+
     def setUp(self):
         super().setUp()
 
@@ -82,8 +83,6 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
             workgroup=self.regular_wg,
         )
 
-
-class TestPrivatePermissions(BaseStewardOrgsTestCase, TestCase):
     def test_metadata_permissions(self):
         self.assertTrue(
             self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)

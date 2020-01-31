@@ -40,7 +40,6 @@ class AristotleBackwardsTestCase(AristotleTestUtils, TestCase):
 
 
 class ClassificationSchemeViewPage(LoggedInViewConceptPages, TestCase):
-    url_name='classificationScheme'
     itemType=models.ClassificationScheme
 
     def setUp(self):
