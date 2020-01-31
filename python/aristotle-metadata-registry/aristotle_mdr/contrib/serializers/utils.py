@@ -1,8 +1,10 @@
+"""A collection of util functions to help """
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers
 from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
+from aristotle_mdr.models import aristotleComponent
 
 
 class UUIDRelatedField(serializers.RelatedField):
@@ -125,3 +127,76 @@ def construct_change_message_for_validated_data(validated_data, model=None):
         change_message = _('Changed %s.') % get_text_list(fields_verbose_names, _('and'))
 
     return change_message
+
+
+def get_concept_fields(model_class):
+    fields = []
+    for field in model_class._meta.get_fields():
+        if not field.is_relation:
+            if not field.name.startswith('_'):
+                # Don't serialize internal fields
+                fields.append(field)
+    return fields
+
+
+def get_many_to_one_fields(model_class):
+    fields = []
+    for field in model_class._meta.get_fields():
+        if field.many_to_one:
+            if not field.name.startswith("_"):
+                fields.append(field)
+    return fields
+
+
+def get_concept_field_names(model_class):
+    """Get fields that are actually **on** the model or are many-to-one.
+       Returns a tuple of fields"""
+    fields = get_concept_fields(model_class) + get_many_to_one_fields(model_class)
+    return tuple([field.name for field in fields])
+
+
+def get_field_name(field):
+    if hasattr(field, 'get_accessor_name'):
+        return field.get_accessor_name()
+    else:
+        return field.name
+
+
+def get_relation_fields(model_class):
+    """
+    Helper function to get related fields
+    Returns a tuple of fields
+    """
+    related_fields = []
+    for field in model_class._meta.get_fields():
+        if not field.name.startswith('_'):
+            # Don't serialize internal fields
+            if field.is_relation:
+                # Check if the model class is the parent of the item, we don't want to serialize up the chain
+                field_model = field.related_model
+                if issubclass(field_model, aristotleComponent):
+                    # If it's a subclass of aristotleComponent it should have a parent
+                    parent_model = field_model.get_parent_model()
+                    if not parent_model:
+                        # This aristotle component has no parent model
+                        related_fields.append(field)
+                    else:
+                        if field_model.get_parent_model() == model_class:
+                            # If the parent is the model we're serializing, right now
+                            related_fields.append(field)
+                        else:
+                            # It's the child, we don't want to serialize
+                            pass
+                else:
+                    # Just a normal field
+                    related_fields.append(field)
+
+    return related_fields
+
+
+def get_relation_field_names(model_class, whitelisted_fields=None):
+    fields = get_relation_fields(model_class)
+    if whitelisted_fields:
+        return tuple([get_field_name(field) for field in fields if get_field_name(field) in whitelisted_fields])
+    else:
+        return tuple([get_field_name(field) for field in fields])

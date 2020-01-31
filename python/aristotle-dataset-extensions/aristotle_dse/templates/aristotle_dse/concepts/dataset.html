@@ -15,14 +15,40 @@
 {% endblock %}
 
 {% block objSpecific %}
-
     <h2>Data source details</h2>
     <dl class="">
+        <dt>Issued</dt>
+        <dd>{% if item.issued %}
+            {% timetag item.issued %}
+        {% else %}
+            {% trans 'No issue date supplied' %}
+        {% endif %}
+        </dd>
         <dt>Frequency</dt>
         <dd>{% if item.frequency %}
-            {{ item.frequency }}
+            {{ item.frequency|bleach }}
         {% else %}
             {% trans "No frequency stated" %}
+        {% endif %}
+        </dd>
+        <dt>Spatial dimension</dt>
+        <dd>{% if item.spatial %}
+            {{ item.spatial|bleach }}
+        {% else %}
+            {% trans 'No spatial dimension stated' %}
+        {% endif %}
+        </dd>
+        <dt>Temporal dimension</dt>
+        <dd>{% if item.temporal %}
+            {{ item.temporal|bleach }}
+        {% else %}
+            {% trans 'No temporal dimension stated' %}
+        {% endif %}
+        <dt>Landing page</dt>
+        <dd>{% if item.landing_page %}
+            <a href="{{ item.landing_page }}">{{ item.landing_page }}</a>
+        {% else %}
+            {% trans 'No landing page supplied' %}
         {% endif %}
         </dd>
         <dt>Distributions</dt>
@@ -39,7 +65,6 @@
                                     Download
                                 </a>
                             {% endif %}
-
                             <div>
                                 {{ distribution.definition|bleach }}
                             </div>
